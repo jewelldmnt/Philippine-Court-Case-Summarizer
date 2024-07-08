@@ -10,6 +10,15 @@ class PreProcessor:
         self.nlp = spacy.load('en_core_web_sm')
 
     def preprocess(self, text):
+        """
+        Preprocesses the input text.
+
+        Parameters: text(str)
+            The text to be preprocessed.
+
+        Returns: dict
+            Contains tokens, tokens without stopwords, POS tags, and named entities.
+        """
         # Step 1: Tokenization
         tokens = word_tokenize(text)
         
