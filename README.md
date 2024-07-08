@@ -40,13 +40,32 @@ This module segments the court case documents into coherent topics, making it ea
 
 LSA is used to analyze relationships between a set of documents and the terms they contain, providing a deeper understanding of the underlying topics.
 
-## Dependencies
-
-To set up the project, you need to install the following dependencies:
-
-### Requirements File
-
+## Installation
+1. Clone the repository:
+ ```bash
+git clone https://github.com/jewelldmnt/Philippine-Court-Case-Summarizer.git
+cd Philippine-Court-Case-Summarizer
+```
+2. Install dependencies:
 The `requirements.txt` file contains a list of required Python packages. Install these packages using the following command:
-
 ```bash
 pip install -r requirements.txt
+```
+3. Download SpaCy model:
+Download the SpaCy model for English:
+```bash
+python -m spacy download en_core_web_sm
+```
+4. Download NLTK data:
+Run the nltk_downloader.py script to download necessary NLTK data:
+```bash
+python nltk_downloader.py
+```
+
+## How to Run
+Run the main script:
+```bash
+python main.py
+```
+
+
