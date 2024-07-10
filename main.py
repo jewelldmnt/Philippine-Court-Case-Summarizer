@@ -20,7 +20,7 @@ def main():
     bert_output = legal_bert.get_context_vectors(preprocessed_result['tokens_no_stopwords'])
     
     # Display BERT output shape
-    print("BERT Encoding Shape:", bert_output.shape)
+    print("BERT Encoding Shape:", bert_output)
     
 if __name__ == "__main__":
     main()

@@ -14,7 +14,13 @@ class LegalBert:
         # Get the original embeddings
         old_embeddings = model.embeddings.position_embeddings.weight
         old_num_embeddings, embedding_dim = old_embeddings.size()
+        """
+        Extends the positional embeddings of the model.
 
+        Parameters: 
+        model (transformers.PreTrainedModel): The model whose positional embeddings are to be extended.
+        new_max_position_embeddings (int): The new maximum length for positional embeddings.
+        """
         # Create new positional embeddings matrix
         new_embeddings = torch.nn.Embedding(new_max_position_embeddings, embedding_dim)
         
@@ -30,6 +36,15 @@ class LegalBert:
         model.config.max_position_embeddings = new_max_position_embeddings
 
     def get_context_vectors(self, text):
+        """
+        Tokenizes and encodes text using the Legal BERT model.
+
+        Parameters: 
+        text (str): The text to be tokenized and encoded.
+
+        Returns: torch.Tensor
+            The output hidden states from the model.
+        """
         # Tokenize and encode text with the Legal BERT model
         inputs = self.tokenizer(text, return_tensors='pt', truncation=True, padding=True, max_length=16000)
         outputs = self.model(**inputs)
