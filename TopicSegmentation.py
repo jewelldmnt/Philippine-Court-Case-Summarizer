@@ -132,7 +132,7 @@ if __name__ == "__main__":
         tgt = tokens['input_ids']  # Use input ids as target for this example
         output = decoder(tgt, context_vectors)
         
-        print("Decoder output shape:", output)
+        print("Decoder output shape:", output.shape)
         
     except Exception as e:
         print("Error:", str(e))
