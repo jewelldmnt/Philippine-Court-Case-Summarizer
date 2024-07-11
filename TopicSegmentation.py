@@ -61,9 +61,9 @@ class LegalBert:
 
         Returns: torch.Tensor
             The output hidden states from the model.
-        """
+        """ 
         # Tokenize and encode text with the Legal BERT model
-        inputs = self.tokenizer(text, return_tensors='pt', truncation=True, padding=True, max_length=512)
+        inputs = self.tokenizer(text, return_tensors='pt', truncation=True, padding='do_not_pad', max_length=512)
         outputs = self.model(**inputs)
         return outputs.last_hidden_state
 
