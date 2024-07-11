@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[43]:
+# In[7]:
 
 
 from transformers import AutoTokenizer, AutoModel
@@ -22,7 +22,7 @@ from Preprocessing import PreProcessor
 import pandas as pd
 
 
-# In[44]:
+# In[8]:
 
 
 class PositionalEncoding(tf.keras.layers.Layer):
@@ -46,7 +46,7 @@ class PositionalEncoding(tf.keras.layers.Layer):
         return inputs + self.pos_encoding[:, :tf.shape(inputs)[1], :]
 
 
-# In[45]:
+# In[9]:
 
 
 class LegalBert:
@@ -112,7 +112,7 @@ class LegalBert:
         return outputs.last_hidden_state
 
 
-# In[46]:
+# In[10]:
 
 
 class ModifiedStandardDecoder(tf.keras.layers.Layer):
@@ -227,7 +227,7 @@ model.summary()
 
 # # Encoder Debugging
 
-# In[47]:
+# In[11]:
 
 
 df_text = ["John Doe a lawyer at ABC Corporation filed a lawsuit on January in New York City", 
@@ -241,44 +241,14 @@ legal_bert = LegalBert()
 bert_output = legal_bert.get_context_vectors(df_text)
 
 
-# In[33]:
-
-
-# Display BERT output shape
-print("Preprocesed Result:", len(preprocessed_result['tokens_no_stopwords']))
-print("BERT Encoding Shape:", bert_output.shape)
-print("BERT Encoding:", bert_output)
-
-
 # # Decoder Debugging
 
-# In[ ]:
-
-
-"""segments = pd.DataFrame({
-    'text': "John Doe, a lawyer at ABC Corporation, filed a lawsuit on January 5, 2022, in New York City.",
-    'ruling': [['John', 'Doe', 'a', 'lawyer', 'at', 'ABC', 'Corporation']]
-})"""
-
-
-# In[34]:
-
-
-segments.head()
-
-
-# In[35]:
-
-
-"""segments = [['John', 'Doe', 'a', 'lawyer', 'at', 'ABC', 'Corporation']]"""
-
-
-# In[48]:
+# In[13]:
 
 
 # Tokenize the segments
 tokenizer = Tokenizer(num_words=8000)  # Adjust num_words according to your vocabulary size
-tokenizer.fit_on_texts(segments)
+tokenizer.fit_on_texts(ruling)
 tokenized_segments = tokenizer.texts_to_sequences(ruling)
 
 # Pad the sequences to ensure uniform length
@@ -301,6 +271,12 @@ model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=1e-3), loss='s
 
 # Train
 model.fit([ytrain, xtrain], ytrain, epochs=5)
+
+
+# In[14]:
+
+
+model.save('seqtoseq.h5')
 
 
 # In[ ]:
