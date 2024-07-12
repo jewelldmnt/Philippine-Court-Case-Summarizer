@@ -18,7 +18,7 @@ class LegalBert:
         self.model = AutoModel.from_pretrained("nlpaueb/legal-bert-base-uncased")
         
         # Extend the positional embeddings
-        self.extend_positional_embeddings(self.model, new_max_position_embeddings=16384)
+        self.extend_positional_embeddings(self.model, new_max_position_embeddings=512)
 
     def extend_positional_embeddings(self, model, new_max_position_embeddings):
         """
@@ -61,9 +61,9 @@ class LegalBert:
 
         Returns: torch.Tensor
             The output hidden states from the model.
-        """
+        """ 
         # Tokenize and encode text with the Legal BERT model
-        inputs = self.tokenizer(text, return_tensors='pt', truncation=True, padding=True, max_length=16384)
+        inputs = self.tokenizer(text, return_tensors='pt', truncation=True, padding='do_not_pad', max_length=512)
         outputs = self.model(**inputs)
         return outputs.last_hidden_state
 
