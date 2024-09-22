@@ -52,58 +52,83 @@ class LegalBert:
         model.embeddings.position_ids = torch.arange(new_max_position_embeddings).expand((1, -1))
 
 
-    def get_context_vectors(self, text):
+    def get_context_vectors(self, texts, batch_size=16):
         """
-        Tokenizes and encodes text using the Legal BERT model.
+        Tokenizes and encodes text using the Legal BERT model in batches.
 
         Parameters: 
-        text (str): The text to be tokenized and encoded.
+        texts (list of str): The list of texts to be tokenized and encoded.
+        batch_size (int): The batch size for processing the texts.
 
         Returns: torch.Tensor
-            The output hidden states from the model.
+            The concatenated output hidden states from the model.
         """ 
-        # Tokenize and encode text with the Legal BERT model
-        inputs = self.tokenizer(text, return_tensors='pt', truncation=True, padding='do_not_pad', max_length=1024)
-        outputs = self.model(**inputs)
-        return outputs.last_hidden_state
+        all_outputs = []
+        # Process the text in batches to avoid memory issues
+        for i in range(0, len(texts), batch_size):
+            batch_texts = texts[i:i + batch_size]
+            # Tokenize and encode text with the Legal BERT model
+            inputs = self.tokenizer(batch_texts, return_tensors='pt', truncation=True, padding='do_not_pad', max_length=1024)
+            with torch.no_grad():  # Disable gradient calculations
+                outputs = self.model(**inputs)
+            all_outputs.append(outputs.last_hidden_state)
+        
+        # Concatenate all the outputs along the batch dimension
+        return torch.cat(all_outputs, dim=0)
 
 
 
 class ModifiedStandardDecoder(tf.keras.layers.Layer):
     def __init__(self, vocab_size, embedding_dim, num_heads, ff_dim, dropout_rate=0.1, **kwargs):
         super(ModifiedStandardDecoder, self).__init__(**kwargs)
+        # Converts words (or more generally tokens) into dense vectors of fixed size, known as embeddings.
         self.embedding = Embedding(vocab_size, embedding_dim)
-        self.dropout1 = Dropout(dropout_rate)
+
+        # Prevent overfitting by randomly dropping units during training
+        self.dropout = Dropout(dropout_rate)
+
+        # Keep the position information of the embeddings
         self.positional_encoding = PositionalEncoding(embedding_dim)
-        self.dropout2 = Dropout(dropout_rate)
+        
+        # Attetion head that will creates an autoregressive manner in the decoder model
         self.masked_self_attention = MultiHeadAttention(num_heads=num_heads, key_dim=embedding_dim, dropout=dropout_rate)
-        self.layer_norm1 = LayerNormalization(epsilon=1e-6)
+
+        # Stabilize and accelerate training by normalizing the inputs across the features
+        self.layer_norm = LayerNormalization(epsilon=1e-6)
+
+        # Attention head that will accept the context vector
         self.multihead_attention = MultiHeadAttention(num_heads=num_heads, key_dim=embedding_dim, dropout=dropout_rate)
-        self.layer_norm2 = LayerNormalization(epsilon=1e-6)
+
+        # Feed Forward Network
         self.ffn = tf.keras.Sequential([
-            Dense(ff_dim, activation="relu"),
-            Dropout(dropout_rate),
-            Dense(embedding_dim)
+          Dense(ff_dim, activation="relu"),
+          Dropout(dropout_rate),
+          Dense(embedding_dim)
         ])
-        self.layer_norm3 = LayerNormalization(epsilon=1e-6)
-        self.dropout3 = Dropout(dropout_rate)
+
         self.dense = Dense(vocab_size)
+        
         self.softmax = tf.keras.activations.softmax
 
-    def call(self, inputs, encoder_outputs, padding_mask=None):
+    def call(self, inputs, encoder_outputs, padding_mask=None, training=False):
+        """
+        Parameters:
+            inputs - refers to the current predicted tokens at each iterations. This is because its in an autoregressive manner that predicts one token at a  
+                     time base on the context vector.
+                     
+            encoder_outputs - refers to the context vector passed in by the encoder.
+        """
         # Text embedding layer
         embedded = self.embedding(inputs)
 
-        # Dropout
-        embedded = self.dropout1(embedded)
+        # Dropout Layer
+        embedded = self.dropout(embedded, training=training)
 
         # Positional encoding
         embedded = self.positional_encoding(embedded)
 
-        # Dropout
-        embedded = self.dropout2(embedded)
-
-        print(embedded)
+        # Dropout Layer
+        embedded = self.dropout(embedded, training=training)
 
         # Create look-ahead mask
         seq_len = tf.shape(inputs)[1]
@@ -112,39 +137,42 @@ class ModifiedStandardDecoder(tf.keras.layers.Layer):
         look_ahead_mask = look_ahead_mask[tf.newaxis, tf.newaxis, :, :]  # Shape: (1, 1, seq_len, seq_len)
 
         # Masked multi-head self-attention
-        attention_output = self.masked_self_attention(query=embedded, key=embedded, value=embedded, attention_mask=look_ahead_mask)
+        attention_output = self.masked_self_attention(query=embedded, key=embedded, value=embedded, attention_mask=look_ahead_mask, training=training)
 
-        # Layer normalization
-        attention_output = self.layer_norm1(attention_output + embedded)
+        # Dropout Layer
+        attention_output = self.dropout(attention_output, training=training)
 
-        # Multi-head attention with encoder output
-        output = self.multihead_attention(query=attention_output, key=encoder_outputs, value=encoder_outputs, attention_mask=padding_mask)
+        # Layer normalization Layer
+        attention_output = self.layer_norm(attention_output + embedded)
 
-        # Layer normalization
-        output = self.layer_norm2(output + attention_output)
+        # MultiHead Attention Layer
+        output = self.multihead_attention(query=attention_output, key=encoder_outputs, value=encoder_outputs, attention_mask=padding_mask, training=training)
 
-        # Feed-forward network
-        ffn_output = self.ffn(output)
+        # Dropout Layer
+        output = self.dropout(output, training=training)
 
-        # Layer normalization
-        ffn_output = self.layer_norm3(ffn_output + output)
+        # Layer normalization Layer
+        output = self.layer_norm(output + attention_output)
 
-        # Dropout
-        ffn_output = self.dropout3(ffn_output)
+        # Feed-forward network 
+        ffn_output = self.ffn(output, training=training)
+    
+        # Dropout Layer
+        ffn_output = self.dropout(ffn_output, training=training)
+    
+        # Layer normalization Layer
+        ffn_output = self.layer_norm(ffn_output + output)
 
         # Dense layer
         logits = self.dense(ffn_output)
-
-        # Softmax
-        predictions = self.softmax(logits)
-
-        return predictions
+    
+        return logits
 
     def create_look_ahead_mask(self, size):
         mask = tf.linalg.band_part(tf.ones((size, size)), -1, 0)
         return mask
 
-    def save(self,filename):
+    def save(self, filename):
         self.model.save('bert_model_{}.h5'.format(filename))
 
     def get_config(self):
@@ -154,7 +182,7 @@ class ModifiedStandardDecoder(tf.keras.layers.Layer):
             "embedding_dim": self.embedding.output_dim,
             "num_heads": self.masked_self_attention.num_heads,
             "ff_dim": self.ffn.layers[0].units,
-            "dropout_rate": self.dropout1.rate,
+            "dropout_rate": self.dropout.rate,
         })
         return config
 
@@ -165,7 +193,6 @@ class PositionalEncoding(tf.keras.layers.Layer):
         
     def positional_encoding(self, position, d_model):
         angle_rads = self.get_angles(np.arange(position)[:, np.newaxis], np.arange(d_model)[np.newaxis, :], d_model)
-        # Apply sin to even positions and cos to odd positions
         angle_rads[:, 0::2] = np.sin(angle_rads[:, 0::2])
         angle_rads[:, 1::2] = np.cos(angle_rads[:, 1::2])
         pos_encoding = angle_rads[np.newaxis, ...]
@@ -178,25 +205,43 @@ class PositionalEncoding(tf.keras.layers.Layer):
     def call(self, inputs):
         return inputs + self.pos_encoding[:, :tf.shape(inputs)[1], :]
 
-class PaddingMaskLayer(tf.keras.layers.Layer):
+"""class PaddingMaskLayer(tf.keras.layers.Layer):
+    def __init__(self, num_heads, **kwargs):
+        super(PaddingMaskLayer, self).__init__(**kwargs)
+        self.num_heads = num_heads
+
     def call(self, inputs):
+        # Create the padding mask
         padding_mask = tf.cast(tf.math.equal(inputs, 0), tf.float32)
-        return padding_mask[:, tf.newaxis, tf.newaxis, :]
 
+        # Shape: (batch_size, 1, 1, sequence_length)
+        padding_mask = padding_mask[:, tf.newaxis, tf.newaxis, :]
 
-if __name__ == "__main__":
-    # Initialize LegalBert instance
-    legal_bert = LegalBert()
-    
-    # Check max_position_embeddings after initialization
-    print("Max Position Embeddings after Initialization:", legal_bert.model.config.max_position_embeddings)
-    
-    # Example input text (adjust length as needed for testing)
-    input_text = "This is a sample input text. " * 4000  # Approximately 16,000 tokens
-    
-    try:
-        # Tokenize the input text
-        tokens = legal_bert.tokenizer(input_text, return_tensors='pt', truncation=True, padding=True, max_length=1024)
-        print("Tokenization successful. Sequence length:", tokens['input_ids'].size(1))
-    except Exception as e:
-        print("Tokenization error:", str(e))
+        # Tile the mask for each head. Adjust the '1' to the number of heads.
+        padding_mask = tf.tile(padding_mask, [1, self.num_heads, 1, 1])
+
+        return padding_mask"""
+
+class PaddingMaskLayer(tf.keras.layers.Layer):
+    def __init__(self, num_heads, **kwargs):
+        super(PaddingMaskLayer, self).__init__(**kwargs)
+        self.num_heads = num_heads
+
+    def call(self, inputs, training=None):
+        # Check if we're in training mode
+        if training:
+            padding_mask = tf.cast(tf.math.equal(inputs, 0), tf.float32)
+            padding_mask = padding_mask[:, tf.newaxis, tf.newaxis, :]  # Shape: (batch_size, 1, 1, seq_len)
+
+            # Dynamic query length, derived from the shape of the decoder input.
+            batch_size = tf.shape(inputs)[0]
+            query_length = tf.shape(inputs)[1]
+
+            # Tile the mask for the number of heads and current query length.
+            padding_mask = tf.tile(padding_mask, [1, self.num_heads, query_length, 1])
+            
+            return padding_mask
+        else:
+            # Return None if not in training mode, i.e., during inference
+            return None
+        
