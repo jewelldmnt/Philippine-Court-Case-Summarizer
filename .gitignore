@@ -1,3 +1,7 @@
 
 testing and fucking debugging/facts_seq_to_seq.keras
 testing and fucking debugging/issues_seq_to_seq.keras
+*.safetensors
+/testing and fucking debugging/test_trainer
+/testing and fucking debugging/fine-tuned-legal-bert-model
+/testing and fucking debugging/fine-tuned-legal-bert-tokenizer
