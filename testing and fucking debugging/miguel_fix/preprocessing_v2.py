@@ -3,10 +3,11 @@ import pandas as pd
 import numpy as np
 import re
 from nltk.tokenize import  sent_tokenize
-from transformers import Trainer, TrainingArguments, LEDTokenizer, LEDForConditionalGeneration, AutoModel
+from transformers import Trainer, TrainingArguments, LEDTokenizer, LEDForConditionalGeneration, AutoModel, LEDConfig
 from torch.utils.data import DataLoader, Dataset
 import transformers
 import torch
+from sklearn.model_selection import train_test_split
 
 class preprocess:
     def __init__(self, file_path):
@@ -15,10 +16,13 @@ class preprocess:
         self.stopwords = ['the','of','to']
         
         # Model related variables
-        self.encoder_max_token = 8192
-        self.decoder_max_token = 1024
+        self.encoder_max_token = 4096
+        self.decoder_max_token = 4096
         self.LED_tokenizer = LEDTokenizer.from_pretrained("allenai/led-base-16384")
-        self.LED_model = LEDForConditionalGeneration.from_pretrained("allenai/led-base-16384", gradient_checkpointing=True, use_cache=False)
+        self.config = LEDConfig.from_pretrained('allenai/led-base-16384')
+        self.config.max_decoder_position_embeddings = 4096
+        self.config.max_encoder_position_embeddings = 4096
+        self.LED_model = LEDForConditionalGeneration(self.config)
         self.global_mask = []
 
         # Data related variables
@@ -31,10 +35,7 @@ class preprocess:
 
         # Actual Data input to the model
         self.encoder_inputs = []
-        self.decoder_rulings = []
-        self.decoder_issues = []
-        self.decoder_facts = []
-        self.global_mask = []
+        self.decoder_inputs = []
         self.final_data = []
 
         # Unknown token variables
@@ -52,11 +53,12 @@ class preprocess:
         self.find_unknown_token()
         if self.found_new_unknown_token:
             self.add_tokens_tokenizer_model()
-        self.add_globalmask()
+        self.add_specialtoken_globalmask()
         self.prepare_LED_data()
 
     def return_model_tokenizer_data(self):
-        return self.LED_model, self.LED_tokenizer, self.final_data
+        train_data, eval_data = train_test_split(self.final_data, test_size=0.1, random_state=42)
+        return self.LED_model, self.LED_tokenizer, train_data, eval_data
 
     def return_visualization_data(self):
         return self.court_cases, self.rulings, self.issues, self.facts
@@ -72,134 +74,117 @@ class preprocess:
                                return_tensors="pt")
             
             # Tokenize the issues (segmentation)
-            issues_output = self.LED_tokenizer(self.decoder_issues[i], 
-                                max_length=self.decoder_max_token,
-                                padding="max_length", 
-                                truncation=True, 
-                                return_tensors="pt")
-
-            # Tokenize the issues (segmentation)
-            facts_output = self.LED_tokenizer(self.decoder_facts[i], 
-                                max_length=self.decoder_max_token,
-                                padding="max_length", 
-                                truncation=True, 
-                                return_tensors="pt")
-
-            # Tokenize the issues (segmentation)
-            ruling_output = self.LED_tokenizer(self.decoder_rulings[i], 
+            outputs = self.LED_tokenizer(self.decoder_inputs[i], 
                                 max_length=self.decoder_max_token,
                                 padding="max_length", 
                                 truncation=True, 
                                 return_tensors="pt")
 
             # prepare court case input ids
-            input_ids = inputs.input_ids
+            encoder_input_ids = inputs.input_ids
             attention_mask = inputs.attention_mask
 
             # prepare decoder input ids
-            issues_input_ids = issues_output.input_ids.clone()
-            facts_input_ids = facts_output.input_ids.clone()
-            ruling_input_ids = ruling_output.input_ids.clone()
+            decoder_input_ids = outputs.input_ids.clone()
 
             # ensure global_attention_mask is padded to the correct length
             global_attention_mask = self.global_mask[i]
-            if len(global_attention_mask) < 8192:
-                padding_length = 8192 - len(global_attention_mask)
+            if len(global_attention_mask) < self.encoder_max_token:
+                padding_length = self.encoder_max_token - len(global_attention_mask)
                 global_attention_mask = global_attention_mask + [0] * padding_length
     
             global_attention_mask = torch.tensor(global_attention_mask).unsqueeze(0)  # convert to tensor and match input shape
-            '''print('court: ',len(input_ids[0]))
-            print('issues: ',len(issues[0]))
-            print('facts: ',len(facts[0]))
-            print('ruling: ',len(ruling[0]))
-            print('global_attention_mask: ',len(global_attention_mask[0]))'''  # debugging here
+            '''print('encoder_input_ids: ',len(encoder_input_ids[0]))
+            print('decoder_input_ids: ',len(decoder_input_ids[0]))
+            print('global_attention_mask: ',len(global_attention_mask[0])) # debugging here'''
+
+            '''print("Input IDs shape:", encoder_input_ids.shape)
+            print("Attention Mask shape:", attention_mask.shape)
+            print("Global Attention Mask shape:", global_attention_mask.shape)
+            print("Labels shape:", decoder_input_ids.shape)'''
 
             # prepare final data structure
             data = {
-                "input_ids": input_ids,
+                "input_ids": encoder_input_ids,
                 "attention_mask": attention_mask,
                 "global_attention_mask": global_attention_mask,
-                "issues_input_ids": issues_input_ids,
-                "facts_input_ids": facts_input_ids,
-                "ruling_input_ids": ruling_input_ids
+                "labels": decoder_input_ids
             }
 
             # append final data
             self.final_data.append(data)
         
         
-    def add_globalmask(self):
+    def add_specialtoken_globalmask(self):
         '''
-        Add global mask to the first tokens of the start of each segment.
+        Add special tokens to the segment when it switches labels. Add global mask to the first 3 tokens of the start of each segment.
+        
+        Example: "<RULING> the courts ruling is in this text. this text is also about ruling. 
+        <ISSUES> this text is about issue. <FACTS> this text is facts. <RULING> this is a text for ruling. <FACTS> this text is also facts."
         '''
         # Prepare encoder/decoder inputs and global attention mask
         current_label = ''
         for i in range(len(self.court_cases)):
-            # instantiate lists for encoder, decoder and attention masks
+            sentences = self.court_cases[i]
             list_encoder = []
-            list_issues = []
-            list_facts = []
-            list_ruling = []
+            list_decoder = []
             list_attntn = []
-    
-            for sentence in self.court_cases[i]:  # process each sentence one by one
+            
+            for sentence in sentences:  # process each sentence one by one
                 # Tokenize each sentence
                 token = self.regex_tokenizer.tokenize(sentence)
-                token_ids = self.LED_tokenizer.convert_tokens_to_ids(token)  # Convert to token IDs for LED input
-                global_attntn = [0] * len(token_ids)  # Initialize global attention for each sentence
+                global_attntn = []
 
-                if sentence in self.issues[i]:
-                    list_encoder.append(sentence)
-                    list_issues.append(sentence)
-    
-                    if current_label != "<ISSUES>" and len(token) >= 7:
-                        # Add special token and set global attention for the first 3 tokens
-                        global_attntn = [1] * 2 + [0] * (len(token) - 2)
-                    else:
-                        global_attntn = [0] * len(token)
-                    # Append to decoder inputs and global mask
-                    list_attntn.append(global_attntn)
-                    current_label = "<ISSUES>"
-    
                 if sentence in self.facts[i]:
-                    list_encoder.append(sentence)
-                    list_facts.append(sentence)
-    
-                    if current_label != "<FACTS>" and len(token) >= 7:
+                    list_encoder.append(' '.join(token))
+
+                    if current_label != "<FACTS>":
                         # Add special token and set global attention for the first 3 tokens
+                        token = ["<FACTS>"] + token
                         global_attntn = [1] * 3 + [0] * (len(token) - 3)
                     else:
                         global_attntn = [0] * len(token)
+
                     # Append to decoder inputs and global mask
+                    list_decoder.append(' '.join(token))
                     list_attntn.append(global_attntn)
                     current_label = "<FACTS>"
-    
+
                 elif sentence in self.rulings[i]:
-                    list_encoder.append(sentence)
-                    list_ruling.append(sentence)
-    
-                    if current_label != "<RULING>" and len(token) >= 7:
+                    list_encoder.append(' '.join(token))
+                    if current_label != "<RULING>":
                         # Add special token and set global attention for the first 3 tokens
+                        token = ["<RULING>"] + token
                         global_attntn = [1] * 4 + [0] * (len(token) - 4)
                     else:
                         global_attntn = [0] * len(token)
+
                     # Append to decoder inputs and global mask
+                    list_decoder.append(' '.join(token))
                     list_attntn.append(global_attntn)
                     current_label = "<RULING>"
 
-            '''x = ' '.join(list_encoder)
-            x = self.regex_tokenizer.tokenize(x)
-            y = [attn for attn_list in list_attntn for attn in attn_list]''' # debugging here
+                elif sentence in self.issues[i]:
+                    list_encoder.append(' '.join(token))
+                    if current_label != "<ISSUES>":
+                        # Add special token and set global attention for the first 2 tokens
+                        token = ["<ISSUES>"] + token
+                        global_attntn = [1] * 2 + [0] * (len(token) - 2)
+                    else:
+                        global_attntn = [0] * len(token)
 
-            # Concatenate and append strings and attention
-            self.encoder_inputs.append(' '.join(list_encoder))  # Combine encoder segments
-            self.decoder_rulings.append(' '.join(list_ruling))  # Combine ruling segments
-            self.decoder_issues.append(' '.join(list_issues))   # Combine issue segments
-            self.decoder_facts.append(' '.join(list_facts))     # Combine fact segments
-            self.global_mask.append([attn for attn_list in list_attntn for attn in attn_list])  # Flatten global attention
+                    # Append to decoder inputs and global mask
+                    list_decoder.append(' '.join(token))
+                    list_attntn.append(global_attntn)
+                    current_label = "<ISSUES>"
 
+                # add else todo
 
-                
+            # Flatten the list of list of tokens and attentions
+            self.encoder_inputs.append(' '.join(list_encoder))
+            self.decoder_inputs.append(' '.join(list_decoder))
+            self.global_mask.append([attntn for attntns in list_attntn for attntn in attntns])
+
     def add_tokens_tokenizer_model(self):
         '''
         Add unknown token including special tokens to the tokenizer and resize the token embedding of the model.
@@ -208,12 +193,13 @@ class preprocess:
         special_tokens = ['<RULING>', '<ISSUES>', '<FACTS>']
         if not set(special_tokens).issubset(set(self.unknown_tokens)):
             self.unknown_tokens.extend(special_tokens)
-                    
+
         # Add the new tokens to the tokenizer
         self.tokenizer.add_tokens(self.unknown_tokens)
 
         # Resize the model's token embeddings to match the new tokenizer length
         self.LED_model.resize_token_embeddings(len(self.tokenizer))
+        
 
     def find_unknown_token(self):
         '''
@@ -252,7 +238,7 @@ class preprocess:
         # Add a filter to accept only lists with tokens lower than 8192
         indices_to_remove = []
         for i in range(len(self.court_cases)):
-            if len(self.court_cases[i]) > 8192:
+            if len(self.court_cases[i]) > self.encoder_max_token:
                 indices_to_remove.append(i)
         
         # Remove elements from all lists based on indices_to_remove
@@ -292,7 +278,7 @@ class preprocess:
         """
         # More specific substitutions first
         text = re.sub(r"\bno\.\b", "number ", text, flags=re.IGNORECASE)  # Replace "no." with "number"
-        text = re.sub(r"r.a.", "ra ", text, flags=re.IGNORECASE)    # Replace "R.A." with "ra"
+        #text = re.sub(r"r.a.", "ra ", text, flags=re.IGNORECASE)    # Replace "R.A." with "ra"
         text = re.sub(r"section (\d+)\.", r"section \1", text) # Replace "section N." with "section N" where N is a number
         text = re.sub(r"sec.", r"sec", text) # Replace "section N." with "section N" where N is a number
         text = re.sub(r"p.d.", r"pd", text) # Replace ".d." with "pd" where N is a number
