@@ -1,7 +1,0 @@
-nltk==3.8.1
-numpy==2.0.0
-spacy==3.7.5
-tensorflow==2.16.2
-tensorflow_intel==2.16.2
-torch==2.1.0
-transformers==4.37.0
