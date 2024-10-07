@@ -164,7 +164,7 @@ class preprocess:
     
         # Get the count of each class
         label_counts = df_balancing['label'].value_counts()
-        min_count = 30#label_counts.min()  # Find the size of the smallest class (change this back, number is used for presentation only)
+        min_count = label_counts.min()  # Find the size of the smallest class (change this back, number is used for presentation only)
     
         # Separate the DataFrame by label
         df_facts = df_balancing[df_balancing['label'] == 0]
