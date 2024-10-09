@@ -50,10 +50,13 @@ class preprocess:
         self.df.dropna(inplace=True)
         self.df = self.df.drop_duplicates()
         self.preprocess()
+        print('Preprocessing Done!')
 
         # Find and store unknown tokens
         self.find_unknown_token()
+        print('Found Unknown Token!')
         self.set_model_configuration()
+        print('Configured Model!')
 
     def return_model_tokenizer_data(self):
         print('Model configuration: ', self.BART_model.config)
@@ -93,6 +96,7 @@ class preprocess:
             type="torch",
             columns=["input_ids", "attention_mask", "labels"],
         )
+        print('Prepared Data for LED Model!')
 
     def process_data_to_model_inputs(self, batch):
         # Tokenize the inputs
@@ -135,6 +139,9 @@ class preprocess:
         filtered_data = [(sentence, label) for sublist, label_sublist in zip(self.tokenized_sentences, self.segment_labels)
                          for sentence, label in zip(sublist, label_sublist) if len(self.regex_tokenizer.tokenize(sentence)) <= self.max_token]
         
+        # Remove duplicates by converting to a set and back to a list
+        filtered_data = list(set(filtered_data))
+        
         # Unzip the filtered data back into separate lists
         self.tokenized_sentences, self.segment_labels = zip(*filtered_data) if filtered_data else ([], [])
 
@@ -157,7 +164,7 @@ class preprocess:
     
         # Get the count of each class
         label_counts = df_balancing['label'].value_counts()
-        min_count = 2000#label_counts.min()  # Find the size of the smallest class (change this back, number is used for presentation only)
+        min_count = label_counts.min()  # Find the size of the smallest class (change this back, number is used for presentation only)
     
         # Separate the DataFrame by label
         df_facts = df_balancing[df_balancing['label'] == 0]
