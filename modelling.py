@@ -14,6 +14,27 @@ accuracy = evaluate.load("accuracy")
 
 class Modelling:
     def __init__(self, train_data, eval_data, BART_tokenizer, BART_model):
+        """
+        Initializes the class with the training and evaluation datasets, BART tokenizer, and BART model. It also sets up training arguments and the Hugging
+        Face Trainer for managing the training and evaluation processes.
+
+        Parameters:
+        	train_data: Dataset used for training the model.
+        	eval_data: Dataset used for evaluating the model.
+        	BART_tokenizer: Tokenizer for converting text to token IDs, used in both training and evaluation.
+        	BART_model: Pretrained BART model configured for sequence classification tasks.
+
+        Class Variables:
+            all_predictions: List to store model predictions (class IDs) made during evaluation or inference.
+            all_labels: List to store ground truth labels corresponding to the evaluated data.
+            train_data: Training dataset passed to the class, used to train the BART model.
+            eval_data: Evaluation dataset passed to the class, used to validate the model's performance.
+            BART_tokenizer: Tokenizer for the BART model, used to tokenize input text into numerical IDs.
+            BART_model: BART model instance used for sequence classification, initialized with pre-trained weights.
+            accuracy: An accuracy metric from the evaluate library for calculating accuracy during evaluation.
+            training_args: Defines a set of hyperparameters and settings for the training process.
+            trainer: Initializes the Hugging Face Trainer class, which manages the training loop, evaluation, and logging.
+        """
         self.all_predictions = []
         self.all_labels = []
         self.train_data = train_data
@@ -48,9 +69,21 @@ class Modelling:
         )
 
     def train_model(self):
+        """
+        Triggers the training process for the BART model using the datasets and arguments defined during initialization.
+        """
         self.trainer.train()
 
     def compute_metrics(self, eval_pred):
+        """
+        Custom function to compute evaluation metrics based on the model's predictions and ground truth labels.
+        
+        Parameters:
+        	eval_pred: A tuple containing the model's predictions and the corresponding labels during evaluation.
+            
+        Return: 
+        	Dictionary with the computed metrics, including accuracy, F1 score, and recall.
+        """
         try:
             predictions, labels = eval_pred
             try:
@@ -99,6 +132,10 @@ class Modelling:
 
 
     def calc_accuracy(self):
+        """
+        Performs inference on the evaluation dataset and collects the predicted labels and ground truth labels for accuracy and other metric calculations.
+        Moves input data to the appropriate device (GPU or CPU) for processing.
+        """
         # Get the device the model is on (usually 'cuda' if available, otherwise 'cpu')
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
@@ -134,6 +171,10 @@ class Modelling:
 
         
     def plot_accuracy(self):
+        """
+        Plots a confusion matrix based on the predictions and ground truth labels from the evaluation data. It also prints out the accuracy, F1 score, and
+        recall.
+        """
         # Convert lists to numpy arrays
         self.all_predictions = np.array(self.all_predictions)
         self.all_labels = np.array(self.all_labels)
@@ -152,7 +193,8 @@ class Modelling:
         
         # Plot confusion matrix
         plt.figure(figsize=(8, 6))
-        sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=self.BART_model.config.id2label.values(), yticklabels=self.BART_model.config.id2label.values())
+        sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=self.BART_model.config.id2label.values(), 
+                    yticklabels=self.BART_model.config.id2label.values())
         plt.xlabel('Predicted Label')
         plt.ylabel('True Label')
         plt.title('Confusion Matrix')
