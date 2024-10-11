@@ -3,7 +3,25 @@ import re
 
 # Function to preprocess the text
 def preprocess_text(text):
-    
+    """
+    Description:
+        Preprocesses the input text by applying various text cleaning and normalization operations.
+
+        This function performs the following operations on the input text:
+        - Removes phrases that start with "(emphasis" or "(citations" and end with a closing parenthesis.
+        - Replaces Unicode double prime (″) and prime (′) symbols with their respective quotation marks.
+        - Cleans possessive forms (e.g., "person's", "peoples'") by removing the possessive suffix.
+        - Normalizes sections and abbreviations by removing periods (e.g., 'section 1.' -> 'section 1').
+        - Replaces abbreviations with their full forms (e.g., 'no.' -> 'number', 'rtc' -> 'regional trial court').
+        - Removes specified punctuation characters and handles standalone letters.
+        - Reduces multiple spaces to a single space and trims leading/trailing whitespace.
+
+    Parameters:
+        text (str): The input text to be preprocessed.
+
+    Returns:
+        str: The cleaned and normalized text after preprocessing.
+    """
     # Remove all phrases that start with "(emphasis" or "(citations", and end with a closing parenthesis.
     text = re.sub(r"\(emphasis[^\)]*\)", "", text)
     text = re.sub(r"\(emphases[^\)]*\)", "", text)
@@ -63,6 +81,22 @@ def preprocess_text(text):
 
 # Function to extract text line by line, handling NaN values
 def get_lines(text):
+    """
+    Description:
+        Extracts lines from the input text after preprocessing.
+
+        This function checks if the input text is NaN (not a number). If it is NaN,
+        an empty list is returned. If the text is valid, it is converted to lowercase,
+        preprocessed using the `preprocess_text` function, and then split into individual
+        lines. The resulting lines are returned as a list.
+
+    Parameters:
+        text (str or NaN): The input text to be processed, which may be a string or NaN.
+
+    Returns:
+        list: A list of lines extracted from the preprocessed text. Returns an empty list
+        if the input text is NaN.
+    """
     if pd.isna(text):  # Check if the text is NaN
         return []
     # Preprocess the text before splitting into lines
