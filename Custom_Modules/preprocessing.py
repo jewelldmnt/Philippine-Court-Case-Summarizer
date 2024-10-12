@@ -13,7 +13,7 @@ import IPython.display
 from sklearn.utils import resample
 
 class preprocess:
-    def __init__(self, file_path):
+    def __init__(self, file_path, heading_file_path):
         """
         Initializes the preprocessing class by loading the dataset, setting up tokenizers and models, and
         preparing the data for training and evaluation. It also configures the BART model and handles
@@ -52,6 +52,8 @@ class preprocess:
 
         # Data related variables
         self.df = pd.read_csv(file_path)
+        self.heading_df = pd.read_csv(heading_file_path)
+        self.headings = [phrase for phrase in self.heading_df['heading']]
         self.df_balanced = None
         self.two_sentence = []
         self.two_sentence_tokens = []
@@ -200,9 +202,7 @@ class preprocess:
         for index, row in self.df.iterrows():
             token_len = len(self.regex_tokenizer.tokenize(row['heading']))
             
-            if row['label'] == 'issues':
-                continue
-            elif (row['label'] == 'facts' or row['label'] == 'ruling') and token_len > 8:
+            if (token_len > 8 or row['heading'] in self.headings):
                 continue
             else:
                 # Mark this row as invalid
