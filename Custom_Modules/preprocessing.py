@@ -52,6 +52,7 @@ class preprocess:
 
         # Data related variables
         self.df = pd.read_csv(file_path)
+        self.df_balanced = None
         self.two_sentence = []
         self.two_sentence_tokens = []
         self.tokenized_sentences = []
@@ -65,7 +66,7 @@ class preprocess:
 
         # Preprocess and prepare raw data
         self.df.dropna(inplace=True)
-        self.df = self.df.drop_duplicates()
+        self.df = self.df.drop_duplicates('heading')
         self.preprocess()
         print('Preprocessing Done!')
 
@@ -159,21 +160,21 @@ class preprocess:
         Preprocesses the raw text data by cleaning, tokenizing, and segmenting sentences. It also balances
         the dataset by handling class imbalance.
         """
-        # Lowercase the text and Remove unnecessary characters
-        self.two_sentence = [self.change_char(text.lower()) for text in self.df["heading"]]
+        # Remove data that doesnt give that much meaning
+        self.remove_noisy_data()
 
         # Tokenize the text, storing words and numbers only
-        self.two_sentence_tokens = [self.regex_tokenizer.tokenize(text) for text in self.two_sentence]
+        self.sentences_tokens = [self.regex_tokenizer.tokenize(text) for text in self.df["heading"]]
         
         # Join tokens to form full strings for each case
-        self.two_sentence = [' '.join(token) for token in self.two_sentence_tokens]
+        self.sentences = [' '.join(token) for token in self.sentences_tokens]
 
         # Create label-to-ID mapping
         label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
         self.segment_labels = [label_mapping[label] for label in self.df["label"]]
 
         # Tokenize each string into sentences
-        self.tokenized_sentences = [sent_tokenize(sentence)[:5] for sentence in self.two_sentence]
+        self.tokenized_sentences = [sent_tokenize(sentence)[:4] for sentence in self.sentences]
 
         # Add label to each tokenized sentence
         self.segment_labels = [[label] * len(tokens) for label, tokens in zip(self.segment_labels, self.tokenized_sentences)]
@@ -189,8 +190,26 @@ class preprocess:
         self.tokenized_sentences = list(self.tokenized_sentences)
         self.segment_labels = list(self.segment_labels)
 
-        # Balance the labels by upsampling the minority classes
+        # Balance the labels by downsampling the majority classes
         self.balance_labels()
+
+    def remove_noisy_data(self):
+        """
+        Drop unnecesary data, those that may cause noise.
+        """
+        for index, row in self.df.iterrows():
+            token_len = len(self.regex_tokenizer.tokenize(row['heading']))
+            
+            if row['label'] == 'issues':
+                continue
+            elif (row['label'] == 'facts' or row['label'] == 'ruling') and token_len > 8:
+                continue
+            else:
+                # Mark this row as invalid
+                self.df.at[index, 'heading'] = None
+        
+        # Drop rows where 'heading' is None
+        self.df.dropna(subset=['heading'], inplace=True)
 
     def balance_labels(self):
         """
@@ -218,14 +237,14 @@ class preprocess:
         df_rulings_downsampled = resample(df_rulings, replace=False, n_samples=min_count, random_state=42)
     
         # Combine the downsampled dataframes
-        df_balanced = pd.concat([df_facts_downsampled, df_issues_downsampled, df_rulings_downsampled])
+        self.df_balanced = pd.concat([df_facts_downsampled, df_issues_downsampled, df_rulings_downsampled])
     
         # Shuffle the dataset to ensure randomness
-        df_balanced = df_balanced.sample(frac=1, random_state=42).reset_index(drop=True)
+        self.df_balanced = self.df_balanced.sample(frac=1, random_state=42).reset_index(drop=True)
     
         # Update the tokenized sentences and segment labels with the balanced data
-        self.tokenized_sentences = df_balanced['sentence'].tolist()
-        self.segment_labels = df_balanced['label'].tolist()
+        self.tokenized_sentences = self.df_balanced['sentence'].tolist()
+        self.segment_labels = self.df_balanced['label'].tolist()
 
         # Clear the output and print value count
         IPython.display.clear_output(wait=True)
@@ -266,70 +285,3 @@ class preprocess:
             del self.BART_model.config.no_repeat_ngram_size
         if hasattr(self.BART_model.config, 'forced_bos_token_id'):
             del self.BART_model.config.forced_bos_token_id
-
-    def change_char(self, text):
-        """
-        Cleans up the text by removing or replacing specific patterns (e.g., punctuation, abbreviations) to
-        standardize the input.
-
-        Parameters:
-            text (str): The raw input text.
-
-        Returns:
-            text (str): The cleaned and standardized text.
-        """
-        # Remove all phrases that start with "(emphasis" or "(citations", and end with a closing parenthesis.
-        text = re.sub(r"\(emphasis[^\)]*\)", "", text)
-        text = re.sub(r"\(emphases[^\)]*\)", "", text)
-        text = re.sub(r"\(citations[^\)]*\)", "", text)
-        text = re.sub(r"emphasis in the original\.", "", text)
-
-        # Replaces the Unicode double prime symbol (″) with a space.
-        text = re.sub(r"\u2033", '"', text)
-
-        # Replaces the Unicode prime symbol (′) with a space.
-        text = re.sub(r"\u2032", "'", text)
-
-        # Replace possessive forms like "person's" or "persons'"
-        cleaned_text = re.sub(r"(\w+)'s", r'\1', text)  # Handles "person's" -> "person"
-        cleaned_text = re.sub(r"(\w+)s'", r'\1', cleaned_text)  # Handles "peoples'" -> "people"
-
-        # Replaces instances of 'section 1.' (or any number) with 'section 1', removing the dot after the number.
-        text = re.sub(r"section (\d+)\.", r"section \1", text)
-
-        # Replaces 'sec.' with 'sec', removing the period after 'sec'.
-        text = re.sub(r"sec\.", r"sec", text)
-
-        # Replaces 'p.d.' with 'pd', removing the periods.
-        text = re.sub(r"p\.d\.", r"pd", text)
-
-        # Replaces 'no.' with 'number', changing the abbreviation to the full word.
-        text = re.sub(r"\bno\.\b", r"number", text)
-
-        # Replaces the abbreviation 'rtc' with 'regional trial court'.
-        text = re.sub(r"\brtc\b", "regional trial court", text)
-
-        # Removes any of the following punctuation characters: ( ) , ' " ’ ” [ ].
-        text = re.sub(r"[(),'\"’”\[\]]", " ", text)
-
-        # Removes the special characters “ and ” (different types of quotation marks).
-        text = re.sub(r"[“”]", " ", text)
-
-        # Replaces standalone 'g' with a space (possibly targeting abbreviations like 'G').
-        text = re.sub(r"\bg\b", " ", text)
-
-        # Replaces standalone 'r' with a space (possibly targeting abbreviations like 'R').
-        text = re.sub(r"\br\b", " ", text)
-
-        # Replaces multiple spaces (except for newlines) with a single space.
-        text = re.sub(r"([^\S\n]+)", " ", text)
-        
-        # Remove single letters or numbers followed by punctuation like a) or 1.
-        text = re.sub(r"\b[a-zA-Z0-9]\)\s?", "", text)  # Matches single letters or digits followed by ')'
-        text = re.sub(r"\b[a-zA-Z0-9]\.\s?", "", text)  # Matches single letters or digits followed by '.'
-
-        # Remove any kind of leading or trailing invisible characters (including non-breaking spaces)
-        text = re.sub(r'^[\s\u200b\u00a0]+|[\s\u200b\u00a0]+$', '', text, flags=re.MULTILINE)
-
-        # Removes leading and trailing spaces from the text.
-        return text.strip()
