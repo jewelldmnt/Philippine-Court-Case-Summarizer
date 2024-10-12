@@ -25,7 +25,7 @@ def summarize_case(case_text):
     tokenized_paragraphs = preprocessor.tokenize_by_paragraph(cleaned_text)
 
   
-    segmentation = ParagraphSegmentation(model_path='checkpoint-886')
+    segmentation = ParagraphSegmentation(model_path='56')
 
 
     split_paragraphs = segmentation.split_paragraph(tokenized_paragraphs)
@@ -252,7 +252,7 @@ def get_summarized(id):
             return jsonify({"error": "No case text provided"}), 400
 
         
-        summary = summarize_case(court_case_text)
+        summary = "TITLE:"+ "\n" + file.file_name+ "\n\n" + summarize_case(court_case_text)
         print(summary)
 
        
