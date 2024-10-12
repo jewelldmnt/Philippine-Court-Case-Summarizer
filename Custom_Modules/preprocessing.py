@@ -67,6 +67,8 @@ class preprocess:
         self.eval_dataset = None
 
         # Preprocess and prepare raw data
+        # Clear the output and print value count
+        IPython.display.clear_output(wait=True)
         self.df.dropna(inplace=True)
         self.df = self.df.drop_duplicates('heading')
         self.preprocess()
@@ -181,9 +183,13 @@ class preprocess:
         # Add label to each tokenized sentence
         self.segment_labels = [[label] * len(tokens) for label, tokens in zip(self.segment_labels, self.tokenized_sentences)]
 
-        # Flatten the lists while ensuring consistent length between tokenized sentences and segment labels
-        filtered_data = [(sentence, label) for sublist, label_sublist in zip(self.tokenized_sentences, self.segment_labels)
-                         for sentence, label in zip(sublist, label_sublist) if len(self.regex_tokenizer.tokenize(sentence)) <= self.max_token]
+        # Filter and process data: keep only sentences where the number of tokens > 8
+        filtered_data = []
+        for sentence_list, label_list in zip(self.tokenized_sentences, self.segment_labels):
+            for sentence, label in zip(sentence_list, label_list):
+                tokenized_sentence = self.regex_tokenizer.tokenize(sentence)
+                if len(tokenized_sentence) > 8 or sentence in self.headings:  # Keep only sentences with more than 8 tokens
+                    filtered_data.append((sentence, label))
         
         # Unzip the filtered data back into separate lists
         self.tokenized_sentences, self.segment_labels = zip(*filtered_data) if filtered_data else ([], [])
@@ -202,11 +208,11 @@ class preprocess:
         for index, row in self.df.iterrows():
             token_len = len(self.regex_tokenizer.tokenize(row['heading']))
             
-            if (token_len > 8 or row['heading'] in self.headings):
-                continue
-            else:
-                # Mark this row as invalid
-                self.df.at[index, 'heading'] = None
+            # Keep only headings with more than 8 tokens or those specifically allowed in self.headings
+            if token_len <= 8:
+                if row['heading'] not in self.headings:
+                    # Mark this row as invalid
+                    self.df.at[index, 'heading'] = None
         
         # Drop rows where 'heading' is None
         self.df.dropna(subset=['heading'], inplace=True)
@@ -245,9 +251,6 @@ class preprocess:
         # Update the tokenized sentences and segment labels with the balanced data
         self.tokenized_sentences = self.df_balanced['sentence'].tolist()
         self.segment_labels = self.df_balanced['label'].tolist()
-
-        # Clear the output and print value count
-        IPython.display.clear_output(wait=True)
         
 
     def find_unknown_token(self):

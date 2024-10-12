@@ -76,9 +76,15 @@ class paragraph_segmentation:
         self.extract_lines()
 
     def output_segmented_csv(self):
+        """
+        Convert and outputs a csv file of the segmented data
+        """
         self.new_df.to_csv('court_cases_headings_labels.csv', index=False)
 
     def extract_lines(self):
+        """
+        Extract the paragraph into single lines, while also pre-cleaning the data
+        """
         # Loop through each row in the dataframe
         for index, row in self.df.iterrows():
             # Extract lines for each section (facts, issues, ruling) and pre-clean the data
