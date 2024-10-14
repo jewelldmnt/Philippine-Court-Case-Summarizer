@@ -91,6 +91,9 @@ class preprocess:
         """
         Prepares the data for training and evaluation by tokenizing the sentences and mapping them
         to the corresponding labels. It also formats the datasets for compatibility with PyTorch.
+
+        Parameters:
+            tokenizer: The configured BART Tokenizer
         """
         self.BART_tokenizer = tokenizer
         self.data = {
