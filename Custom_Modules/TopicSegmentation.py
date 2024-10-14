@@ -3,11 +3,11 @@ import torch
 from transformers import BartForSequenceClassification, BartTokenizer
 from torch.nn.functional import softmax
 
-class ParagraphSegmentation:
+class TopicSegmentation:
     def __init__(self, model_path: str):
         """
         Description:
-            Initialize the ParagraphSegmentation class with a fine-tuned BART model for sequence classification.
+            Initialize the TopicSegmentation class with a fine-tuned BART model for sequence classification.
 
         Parameters:
             model_path (str): The path to the pre-trained or fine-tuned model.
@@ -17,31 +17,6 @@ class ParagraphSegmentation:
         self.tokenizer = BartTokenizer.from_pretrained(model_path)
         self.model.eval()  # Set model to evaluation mode
 
-    def split_paragraph(self, paragraphs: list) -> dict:
-        """
-        Description:
-            Splits each paragraph into the first 2 sentences and returns a dictionary
-            where the key is the first 2 sentences, and the value is the full paragraph.
-
-        Parameters:
-            paragraphs (list): List of paragraphs to be split.
-
-        Returns:
-            dict: A dictionary with first 2 sentences as the key and full paragraph as the value.
-        """
-        paragraph_dict = {}
-
-        for paragraph in paragraphs:
-            # Split the paragraph into sentences using a regex for sentence end markers
-            sentences = re.split(r'(?<=[.!?]) +', paragraph)
-            
-            # Key is the first 2 sentences, or all sentences if fewer than 2
-            key = " ".join(sentences[:2])
-            
-            # Value is the entire paragraph
-            paragraph_dict[key] = paragraph
-        
-        return paragraph_dict
 
     def sequence_classification(self, tokenized_paragraphs: dict, threshold: float = 0.4) -> dict:
         """
@@ -53,7 +28,7 @@ class ParagraphSegmentation:
             threshold (float): A threshold for the classification confidence.
 
         Returns:
-            dict: A dictionary with paragraph keys and their predicted labels.
+            predicted_labels_dict (dict): A dictionary with paragraph keys and their predicted labels.
         """
         predicted_labels_dict = {}
         previous_label = 'facts'  # To keep track of the previous label
@@ -88,6 +63,36 @@ class ParagraphSegmentation:
             previous_label = predicted_label  # Update previous label for the next iteration
 
         return predicted_labels_dict
+
+    def label_mapping(self, predicted_labels_dict: dict) -> dict:
+        """
+        Description:
+            Organizes paragraphs into categories (facts, issues, ruling) based on their predicted labels.
+
+        Parameters:
+            predicted_labels_dict (dict): A dictionary where keys are paragraphs (or paragraph snippets)
+                                        and values are their predicted labels (e.g., "facts", "issues", "ruling").
+
+        Returns:
+            categorized_dict (dict): A dictionary with keys 'facts', 'issues', 'ruling', and values being lists of paragraphs.
+        """
+        # Initialize the result dictionary with empty lists for each category
+        categorized_dict = {
+            "facts": [],
+            "issues": [],
+            "rulings": []
+        }
+
+        # Iterate through the predicted labels dictionary and categorize the paragraphs
+        for paragraph, label in predicted_labels_dict.items():
+            if label == "facts":
+                categorized_dict["facts"].append(paragraph)
+            elif label == "issues":
+                categorized_dict["issues"].append(paragraph)
+            elif label == "rulings":
+                categorized_dict["rulings"].append(paragraph)
+
+        return categorized_dict
 
     def write_output_segments(self, predicted_labels_dict: dict, output_file: str = "output_segments.txt"):
         """

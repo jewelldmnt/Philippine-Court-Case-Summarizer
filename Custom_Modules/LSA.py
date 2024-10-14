@@ -10,10 +10,11 @@ class LSA:
         Initialize the LSA class with text data and percentage parameters for generating the summary.
 
         Parameters:
-        - text_dict: A dictionary where the key is the sentence and the value is the corresponding label ('facts', 'issues', 'ruling').
+        - text_dict: A dictionary where the key is the label ('facts', 'issues', 'rulings') 
+                     and the value is a list of corresponding sentences.
         - facts_pct: The percentage of sentences to include in the 'facts' section of the summary.
         - issues_pct: The percentage of sentences to include in the 'issues' section of the summary.
-        - ruling_pct: The percentage of sentences to include in the 'ruling' section of the summary.
+        - ruling_pct: The percentage of sentences to include in the 'rulings' section of the summary.
         """
         self.text_dict = text_dict
         self.facts_pct = facts_pct
@@ -24,20 +25,21 @@ class LSA:
     def preprocess_text(self):
         """
         Description:
-        Preprocess the text by splitting sentences and their associated labels in the order they appear.
+        Preprocess the text by concatenating sentences from each label category.
 
         Parameters: None
 
         Return:
-        - sentences: A list of sentences from the input text.
-        - labels: A list of labels corresponding to each sentence ('facts', 'issues', 'ruling').
+        - sentences: A list of all sentences.
+        - labels: A list of labels corresponding to each sentence ('facts', 'issues', 'rulings').
         """
         sentences = []
         labels = []
-        
-        for sentence, label in self.text_dict.items():
-            sentences.append(sentence)
-            labels.append(label)
+
+        for label, sentence_list in self.text_dict.items():
+            for sentence in sentence_list:
+                sentences.append(sentence)
+                labels.append(label)
         
         return sentences, labels
 
@@ -99,19 +101,14 @@ class LSA:
         - labels: List of labels corresponding to each sentence.
 
         Return:
-        - summary: A dictionary containing selected top sentences categorized by 'facts', 'issues', and 'ruling'.
+        - summary: A dictionary containing selected top sentences categorized by 'facts', 'issues', and 'rulings'.
         """
         total_summary_sentences = int(len(sentences) * (self.facts_pct + self.issues_pct + self.ruling_pct))
-        print(f'Total summary sentences: {total_summary_sentences}')
 
-        # Calculate how many sentences to include from each section based on the total summary length
+        # Calculate how many sentences to include from each section
         facts_count = int(self.facts_pct * total_summary_sentences)
-        print(f'facts_count: {facts_count}')
         issues_count = int(self.issues_pct * total_summary_sentences)
-        print(f'issues_count: {issues_count}')
         ruling_count = int(self.ruling_pct * total_summary_sentences)
-        print(f'ruling_count: {ruling_count}')
-
 
         # Adjust issues_count to select all sentences if percentage is too small
         if issues_count == 0:
@@ -119,7 +116,6 @@ class LSA:
 
         # Ensure the total doesn't exceed total_summary_sentences
         remaining_count = total_summary_sentences - (facts_count + issues_count + ruling_count)
-        print(f'remaining count: {remaining_count}')
         if remaining_count > 0:
             ruling_count += remaining_count  # Assign remaining to ruling as a default strategy
 
@@ -174,16 +170,12 @@ class LSA:
 
 # Usage Example
 if __name__ == "__main__":
-    # Example dictionary input: key = sentence, value = label
+    # Example output from label_mapping function
     text_dict = {
-        "The case involves a dispute over a contract.": "facts",
-        "The main issue is whether the contract is valid.": "issues",
-        "The court ruled that the contract was void.": "rulings",
-        "Both parties agreed to the terms initially.": "facts",
-        "However, one party later claimed a breach.": "facts",
-        "The breach was contested in court.": "issues",
-        "The final judgment favored the defendant.": "rulings",
-        "Evidence presented during the trial was insufficient.": "facts"
+        "facts": ["The case involves a dispute over a contract.", "Both parties agreed to the terms initially.", 
+                  "However, one party later claimed a breach.", "Evidence presented during the trial was insufficient."],
+        "issues": ["The main issue is whether the contract is valid.", "The breach was contested in court."],
+        "rulings": ["The court ruled that the contract was void.", "The final judgment favored the defendant."]
     }
 
     lsa = LSA(text_dict)

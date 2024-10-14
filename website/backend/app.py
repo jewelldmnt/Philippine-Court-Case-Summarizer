@@ -11,7 +11,7 @@ import os
 
 def summarize_case(case_text):
     from Custom_Modules.InputConversion import InputConversion
-    from Custom_Modules.TestingParagraphSegmentation import ParagraphSegmentation
+    from Custom_Modules.TopicSegmentation import TopicSegmentation
     from Custom_Modules.TestingPreprocessing import Preprocessing
     from Custom_Modules.LSA import LSA
 
@@ -25,7 +25,7 @@ def summarize_case(case_text):
     tokenized_paragraphs = preprocessor.tokenize_by_paragraph(cleaned_text)
 
   
-    segmentation = ParagraphSegmentation(model_path='56')
+    segmentation = TopicSegmentation(model_path='56')
 
 
     split_paragraphs = segmentation.split_paragraph(tokenized_paragraphs)
