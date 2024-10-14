@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import re
 from nltk.tokenize import  sent_tokenize
-from transformers import Trainer, TrainingArguments, BartTokenizer, BartForSequenceClassification
+from transformers import BartTokenizer, BartForSequenceClassification
 import transformers
 import torch
 from sklearn.model_selection import train_test_split
@@ -13,7 +13,7 @@ import IPython.display
 from sklearn.utils import resample
 
 class preprocess:
-    def __init__(self, file_path, heading_file_path):
+    def __init__(self, file_path, heading_file_path, is_training=True):
         """
         Initializes the preprocessing class by loading the dataset, setting up tokenizers and models, and
         preparing the data for training and evaluation. It also configures the BART model and handles
@@ -23,82 +23,76 @@ class preprocess:
             file_path (str): Path to the dataset CSV file.
 
         Class Variables:
-            self.max_token: Specifies the maximum number of tokens allowed in a sequence.
-            self.id2label: Dictionary that maps numerical IDs to their corresponding label names.
-            self.label2id: Dictionary that maps label names to their corresponding numerical IDs.
             self.BART_tokenizer: Initializes the BART tokenizer by loading the pre-trained tokenizer.
-            self.BART_model: Initializes the BART model for sequence classification by loading the pre-trained model.
             self.df: Reads a CSV file from the specified file_path into a pandas DataFrame.
-            self.two_sentence: List intended to store processed text data.
-            self.two_sentence_tokens: List designated to store tokenized versions of the text data in self.two_sentence.
+            self.heading_df: CSV fiel to be read containing heading tokens.
+            self.columns_to_clean: column names to be cleaned
+            self.sentence: List intended to store processed text data.
+            self.sentence_tokens: List designated to store tokenized versions of the text data in self.two_sentence.
             self.tokenized_sentences: List meant to hold sentences that have been tokenized
             self.segment_labels: List intended to store labels corresponding to segments or sentences within the text data.
             self.data: Dictionary that has the text and labels for further processing or model input.
-            self.unknown_tokens: List designed to keep track of tokens that are not recognized by the tokenizer
             self.train_dataset: Placeholder variable intended to hold the training dataset.
             self.eval_dataset: Placeholder variable intended to hold the evaluation dataset.
         """
-        # Tokenization and cleaning related variable
-        self.regex_tokenizer = RegexpTokenizer(r"[a-zA-Z0-9]+|\.(?![a-zA-Z0-9])")
-        
-        # Model related variables
-        self.max_token = 128
-        self.id2label = {0: "rulings", 1: "facts", 2: "issues"}
-        self.label2id = {"rulings": 0, "facts": 1, "issues": 2}
-        self.BART_tokenizer  = BartTokenizer.from_pretrained("facebook/bart-base")
-        self.BART_model  = BartForSequenceClassification.from_pretrained("facebook/bart-base", num_labels=3, 
-                                                                      id2label=self.id2label, label2id=self.label2id,
-                                                                      problem_type="single_label_classification")
+        if is_training:
+            # Tokenization and cleaning related variable
+            self.regex_tokenizer = RegexpTokenizer(r"[a-zA-Z0-9]+|\.(?![a-zA-Z0-9])")
+            
+            # Model related variables
+            self.max_token = 128
+            self.id2label = {0: "rulings", 1: "facts", 2: "issues"}
+            self.label2id = {"rulings": 0, "facts": 1, "issues": 2}
+            self.BART_tokenizer  = BartTokenizer.from_pretrained("facebook/bart-base")
+            self.BART_model  = BartForSequenceClassification.from_pretrained("facebook/bart-base", num_labels=3, 
+                                                                        id2label=self.id2label, label2id=self.label2id,
+                                                                        problem_type="single_label_classification")
 
-        # Data related variables
-        self.df = pd.read_csv(file_path)
-        self.heading_df = pd.read_csv(heading_file_path)
-        self.headings = [phrase for phrase in self.heading_df['heading']]
-        self.df_balanced = None
-        self.two_sentence = []
-        self.two_sentence_tokens = []
-        self.tokenized_sentences = []
-        self.segment_labels = []
-        self.data = {}
-        self.unknown_tokens = []
+            # Data related variables
+            self.df = pd.read_csv(file_path)
+            self.heading_df = pd.read_csv(heading_file_path)
+            self.segment_heading = [phrase for phrase in self.heading_df['heading']]
+            self.headings = []
+            self.labels = []
+            self.df_balanced = None
+            self.sentences = []
+            self.sentences_tokens = []
+            self.tokenized_sentences = []
+            self.segment_labels = []
+            self.data = {}
+            self.unknown_tokens = []
 
-        # Final preprocessing output
-        self.train_dataset = None
-        self.eval_dataset = None
+            # Final preprocessing output
+            self.train_dataset = None
+            self.eval_dataset = None
 
-        # Preprocess and prepare raw data
-        # Clear the output and print value count
-        IPython.display.clear_output(wait=True)
-        self.df.dropna(inplace=True)
-        self.df = self.df.drop_duplicates('heading')
-        self.preprocess()
-        print('Preprocessing Done!')
+            # Preprocess and prepare raw data
+            # Clear the output and print value count
+            IPython.display.clear_output(wait=True)
+            self.df.dropna(inplace=True)
+            self.preprocess()
+            print('Preprocessing Done!')
+        else:
+            self.remove_unnecesary_char()
+            self.tokenize_by_paragraph
 
-        # Find and store unknown tokens
-        self.find_unknown_token()
-        self.set_model_configuration()
-        print('Model Configured!')
-
-    def return_model_tokenizer_data(self):
+    def return_data(self):
         """
         Returns the model, tokenizer, and the preprocessed train and eval datasets.
 
         Returns:
-            BART_model (BartForSequenceClassification): Configured BART model for sequence classification tasks with three labels.
-            
-            BART_tokenizer (BartTokenizer): Configured Tokenizer used to preprocess and convert input text into token IDs compatible with the BART model.
-            
             train_dataset (datasets.Dataset): Preprocessed dataset used for training, consisting of tokenized input sentences and their corresponding labels.
             
             eval_dataset (datasets.Dataset): Preprocessed dataset used for evaluation, consisting of tokenized input sentences and their corresponding labels.
         """
-        return self.BART_model, self.BART_tokenizer, self.train_dataset, self.eval_dataset
+        return self.train_dataset, self.eval_dataset
 
-    def prepare_LED_data(self):
+    def prepare_LED_data(self, tokenizer):
         """
         Prepares the data for training and evaluation by tokenizing the sentences and mapping them
         to the corresponding labels. It also formats the datasets for compatibility with PyTorch.
         """
+        self.BART_tokenizer = tokenizer
         self.data = {
             'text': self.tokenized_sentences,
             'labels': self.segment_labels,
@@ -164,6 +158,9 @@ class preprocess:
         Preprocesses the raw text data by cleaning, tokenizing, and segmenting sentences. It also balances
         the dataset by handling class imbalance.
         """
+        # Remove tokens and characters that are not helpful for the model and do Paragraph Segmentation
+        self.paragraph_segmentation()
+
         # Remove data that doesnt give that much meaning
         self.remove_noisy_data()
 
@@ -173,33 +170,68 @@ class preprocess:
         # Join tokens to form full strings for each case
         self.sentences = [' '.join(token) for token in self.sentences_tokens]
 
-        # Create label-to-ID mapping
-        label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
-        self.segment_labels = [label_mapping[label] for label in self.df["label"]]
-
-        # Tokenize each string into sentences
-        self.tokenized_sentences = [sent_tokenize(sentence)[:4] for sentence in self.sentences]
-
-        # Add label to each tokenized sentence
-        self.segment_labels = [[label] * len(tokens) for label, tokens in zip(self.segment_labels, self.tokenized_sentences)]
-
-        # Filter and process data: keep only sentences where the number of tokens > 8
-        filtered_data = []
-        for sentence_list, label_list in zip(self.tokenized_sentences, self.segment_labels):
-            for sentence, label in zip(sentence_list, label_list):
-                tokenized_sentence = self.regex_tokenizer.tokenize(sentence)
-                if len(tokenized_sentence) > 8 or sentence in self.headings:  # Keep only sentences with more than 8 tokens
-                    filtered_data.append((sentence, label))
-        
-        # Unzip the filtered data back into separate lists
-        self.tokenized_sentences, self.segment_labels = zip(*filtered_data) if filtered_data else ([], [])
-
-        # Convert to lists (if needed)
-        self.tokenized_sentences = list(self.tokenized_sentences)
-        self.segment_labels = list(self.segment_labels)
+        # Further filtering of irrelevant data
+        self.filter_data()
 
         # Balance the labels by downsampling the majority classes
         self.balance_labels()
+
+    def paragraph_segmentation(self):
+        """
+        Extract the paragraph into single lines, while also pre-cleaning the data
+        """
+        # Loop through each row in the dataframe
+        for index, row in self.df.iterrows():
+            # Extract lines for each section (facts, issues, ruling) and pre-clean the data
+            facts_lines = self.extract_paragraph(self.remove_unnecesary_char(row['facts']))
+            issues_lines = self.extract_paragraph(self.remove_unnecesary_char(row['issues']))
+            ruling_lines = self.extract_paragraph(self.remove_unnecesary_char(row['ruling']))
+
+            # Add the lines and corresponding labels to the lists
+            for line in facts_lines:
+                if line.strip() and line not in self.headings:
+                    self.headings.append(line)
+                    self.labels.append("facts")
+
+            for line in issues_lines:
+                if line.strip() and line not in self.headings:
+                    self.headings.append(line)
+                    self.labels.append("issues")
+
+            for line in ruling_lines:
+                if line.strip() and line not in self.headings:
+                    self.headings.append(line)
+                    self.labels.append("ruling")
+
+        # Create a new dataframe with the headings (lines) and labels
+        self.df = pd.DataFrame({
+            'heading': self.headings,
+            'label': self.labels
+        })
+
+    def extract_paragraph(self, text):
+        """
+        Description:
+            Extracts lines from the input text after preprocessing.
+
+            This function checks if the input text is NaN (not a number). If it is NaN,
+            an empty list is returned. If the text is valid, it is converted to lowercase,
+            preprocessed using the `preprocess_text` function, and then split into individual
+            lines. The resulting lines are returned as a list.
+
+        Parameters:
+            text (str or NaN): The input text to be processed, which may be a string or NaN.
+
+        Returns:
+            list: A list of lines extracted from the preprocessed text. Returns an empty list
+            if the input text is NaN.
+        """
+        if pd.isna(text):  # Check if the text is NaN
+            return []
+        # Preprocess the text before splitting into lines
+        text = text.lower()  # Convert text to lowercase and preprocess
+        return str(text).splitlines()  # Ensure text is a string before splitting into lines
+        
 
     def remove_noisy_data(self):
         """
@@ -216,6 +248,33 @@ class preprocess:
         
         # Drop rows where 'heading' is None
         self.df.dropna(subset=['heading'], inplace=True)
+
+    def filter_data(self):
+        # Create label-to-ID mapping
+        label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
+        self.segment_labels = [label_mapping[label] for label in self.df["label"]]
+
+        # Tokenize each string into sentences storing the first four only
+        self.tokenized_sentences = [sent_tokenize(sentence)[:4] for sentence in self.sentences]
+
+        # Add label to each tokenized sentence
+        self.segment_labels = [[label] * len(tokens) for label, tokens in zip(self.segment_labels, self.tokenized_sentences)]
+
+        # Filter and process data: keep only sentences where the number of tokens > 8
+        filtered_data = []
+        for sentence_list, label_list in zip(self.tokenized_sentences, self.segment_labels):
+            for sentence, label in zip(sentence_list, label_list):
+                tokenized_sentence = self.regex_tokenizer.tokenize(sentence)
+                if len(tokenized_sentence) > 8 or sentence in self.segment_heading:  # Keep only sentences with more than 8 tokens
+                    filtered_data.append((sentence, label))
+        
+        # Unzip the filtered data back into separate lists
+        self.tokenized_sentences, self.segment_labels = zip(*filtered_data) if filtered_data else ([], [])
+
+        # Convert to lists
+        self.tokenized_sentences = list(self.tokenized_sentences)
+        self.segment_labels = list(self.segment_labels)
+
 
     def balance_labels(self):
         """
@@ -251,40 +310,92 @@ class preprocess:
         # Update the tokenized sentences and segment labels with the balanced data
         self.tokenized_sentences = self.df_balanced['sentence'].tolist()
         self.segment_labels = self.df_balanced['label'].tolist()
+
+    def remove_unnecesary_char(self, text: str) -> str:
+        """
+        Cleans up the text by removing or replacing specific patterns (e.g., punctuation, abbreviations) to
+        standardize the input.
+
+        Parameters:
+            text (str): The raw input text.
+
+        Returns:
+            text (str): The cleaned and standardized text.
+        """
+        try:
+            # Remove all phrases that start with "(emphasis" or "(citations", and end with a closing parenthesis.
+            text = re.sub(r"\(emphasis[^\)]*\)", "", text)
+            text = re.sub(r"\(emphases[^\)]*\)", "", text)
+            text = re.sub(r"\(citations[^\)]*\)", "", text)
+            text = re.sub(r"emphasis in the original\.", "", text)
+
+            # Replaces the Unicode double prime symbol (″) with a space.
+            text = re.sub(r"\u2033", '"', text)
+
+            # Replaces the Unicode prime symbol (′) with a space.
+            text = re.sub(r"\u2032", "'", text)
+
+            # Replace possessive forms like "person's" or "persons'"
+            cleaned_text = re.sub(r"(\w+)'s", r'\1', text)  # Handles "person's" -> "person"
+            cleaned_text = re.sub(r"(\w+)s'", r'\1', cleaned_text)  # Handles "peoples'" -> "people"
+
+            # Replaces instances of 'section 1.' (or any number) with 'section 1', removing the dot after the number.
+            text = re.sub(r"section (\d+)\.", r"section \1", text)
+
+            # Replaces 'sec.' with 'sec', removing the period after 'sec'.
+            text = re.sub(r"sec\.", r"sec", text)
+
+            # Replaces 'p.d.' with 'pd', removing the periods.
+            text = re.sub(r"p\.d\.", r"pd", text)
+
+            # Replaces 'no.' with 'number', changing the abbreviation to the full word.
+            text = re.sub(r"\bno\.\b", r"number", text)
+
+            # Replaces the abbreviation 'rtc' with 'regional trial court'.
+            text = re.sub(r"\brtc\b", "regional trial court", text)
+
+            # Removes any of the following punctuation characters: ( ) , ' " ’ ” [ ].
+            text = re.sub(r"[(),'\"’”\[\]]", " ", text)
+
+            # Removes the special characters “ and ” (different types of quotation marks).
+            text = re.sub(r"[“”]", " ", text)
+
+            # Replaces standalone 'g' with a space (possibly targeting abbreviations like 'G').
+            text = re.sub(r"\bg\b", " ", text)
+
+            # Replaces standalone 'r' with a space (possibly targeting abbreviations like 'R').
+            text = re.sub(r"\br\b", " ", text)
+
+            # Replaces multiple spaces (except for newlines) with a single space.
+            text = re.sub(r"([^\S\n]+)", " ", text)
+            
+            # Remove single letters or numbers followed by punctuation like a) or 1.
+            text = re.sub(r"\b[a-zA-Z0-9]\)\s?", "", text)  # Matches single letters or digits followed by ')'
+            text = re.sub(r"\b[a-zA-Z0-9]\.\s?", "", text)  # Matches single letters or digits followed by '.'
+
+            # Remove any kind of leading or trailing invisible characters (including non-breaking spaces)
+            text = re.sub(r'^[\s\u200b\u00a0]+|[\s\u200b\u00a0]+$', '', text, flags=re.MULTILINE)
+
+            # Removes leading and trailing spaces from the text.
+            return text.strip()
+        except Exception as e:
+            return ''
+
+    def tokenize_by_paragraph(self, text: str) -> list:
+        """
+        Description:
+            Tokenizes the text into a list of paragraphs.
         
-
-    def find_unknown_token(self):
-        """
-        Identifies unknown tokens in the dataset that are not present in the tokenizer's vocabulary and
-        adds them to a list of unknown tokens.
-        """
-        unk_id = self.BART_tokenizer.unk_token_id
-        for tokens in self.two_sentence_tokens:
-            input_ids = self.BART_tokenizer.convert_tokens_to_ids(tokens)
-            for i, token_id in enumerate(input_ids):
-                if token_id == unk_id and tokens[i] not in self.unknown_tokens:
-                    self.found_new_unknown_token = True
-                    self.unknown_tokens.append(tokens[i])
-
-    def set_model_configuration(self):
-        """
-        Configures the BART model by resizing token embeddings based on the new vocabulary and removing
-        unnecessary fields for generation. Adds unknown tokens to the tokenizer if found.
-        """
-        # Add the new tokens to the tokenizer
-        if self.unknown_tokens:
-            self.BART_tokenizer.add_tokens(self.unknown_tokens)
-
-        # Resize the model's token embeddings to match the new tokenizer length
-        self.BART_model.resize_token_embeddings(len(self.BART_tokenizer))
-        self.BART_model.config.max_position_embeddings = self.max_token
+        Parameters:
+            text (str): The text to tokenize into paragraphs.
         
-        # Safely delete generation-related fields
-        if hasattr(self.BART_model.config, 'early_stopping'):
-            del self.BART_model.config.early_stopping
-        if hasattr(self.BART_model.config, 'num_beams'):
-            del self.BART_model.config.num_beams
-        if hasattr(self.BART_model.config, 'no_repeat_ngram_size'):
-            del self.BART_model.config.no_repeat_ngram_size
-        if hasattr(self.BART_model.config, 'forced_bos_token_id'):
-            del self.BART_model.config.forced_bos_token_id
+        Returns:
+            list: A list of paragraphs.
+        """
+        # Split the text into paragraphs based on empty lines
+        paragraphs = text.split("\n")
+        
+        # Filter out empty paragraphs and trim any extra spaces
+        paragraph_list = [paragraph.strip() for paragraph in paragraphs if paragraph.strip()]
+        
+        return paragraph_list

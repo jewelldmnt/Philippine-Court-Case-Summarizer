@@ -4,7 +4,7 @@ class Preprocessing:
     def __init__(self):
         pass
 
-    def clean_text(self, text: str) -> str:
+    def remove_unnecesary_char(self, text: str) -> str:
         """
         Description:
             Cleans up text by removing or replacing certain characters and patterns.
