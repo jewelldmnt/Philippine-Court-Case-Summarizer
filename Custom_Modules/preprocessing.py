@@ -13,7 +13,7 @@ import IPython.display
 from sklearn.utils import resample
 
 class preprocess:
-    def __init__(self, file_path, heading_file_path, is_training=True):
+    def __init__(self, file_path=None, heading_file_path=None, is_training=True):
         """
         Initializes the preprocessing class by loading the dataset, setting up tokenizers and models, and
         preparing the data for training and evaluation. It also configures the BART model and handles
@@ -72,9 +72,6 @@ class preprocess:
             self.df.dropna(inplace=True)
             self.preprocess()
             print('Preprocessing Done!')
-        else:
-            self.remove_unnecesary_char()
-            self.tokenize_by_paragraph
 
     def return_data(self):
         """
@@ -390,21 +387,24 @@ class preprocess:
         except Exception as e:
             return ''
 
-    def tokenize_by_paragraph(self, text: str) -> list:
-        """
-        Description:
-            Tokenizes the text into a list of paragraphs.
-        
-        Parameters:
-            text (str): The text to tokenize into paragraphs.
-        
-        Returns:
-            list: A list of paragraphs.
-        """
+    def segment_paragraph(self, text: str) -> dict:
         # Split the text into paragraphs based on empty lines
         paragraphs = text.split("\n")
         
         # Filter out empty paragraphs and trim any extra spaces
         paragraph_list = [paragraph.strip() for paragraph in paragraphs if paragraph.strip()]
         
-        return paragraph_list
+        paragraph_dict = {}
+        
+        for paragraph in paragraph_list:
+            # Split the paragraph into sentences using a regex for sentence end markers
+            sentences = re.split(r'(?<=[.!?]) +', paragraph)
+            
+            # Key is the first 2 sentences, or all sentences if fewer than 2
+            key = " ".join(sentences[:2])
+            
+            # Value is the entire paragraph
+            paragraph_dict[key] = paragraph
+        
+        return paragraph_dict
+    
