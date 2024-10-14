@@ -250,6 +250,12 @@ class preprocess:
         self.df.dropna(subset=['heading'], inplace=True)
 
     def filter_data(self):
+        """
+        Further preprocess the data by filtering useful data such as: 
+            - taking 8 tokens and above only
+            - taking the first four sentence
+            - mapping the tokens with their labels
+        """
         # Create label-to-ID mapping
         label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
         self.segment_labels = [label_mapping[label] for label in self.df["label"]]
