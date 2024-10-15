@@ -6,15 +6,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#4D91E2",
-        secondary: "#FC5271",
-        background: "#021526",
-        box: "#192E40",
-        wordCount: "#3B5366",
-        active: "#B1D8FB",
+        customLightBlue: "#649AC2", // Use for Light Blue Blackground
+        customRbox:"#2C77AD", // Use for light color of rounded box
+        primary: "#0D2541",
+        secondary: "#DF1619",
+        background: "#649AC2",
+        wordCount: "#155686",
+        active: "#052B4D",
         delete: "#D90429",
         summarize: "#1F8146",
-        icon: {
+        icon: { 
           10: "#FDAD15",
           20: "#FF6252",
           30: "#61BB5F",

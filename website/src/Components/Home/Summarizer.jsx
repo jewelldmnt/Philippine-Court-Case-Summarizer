@@ -190,14 +190,14 @@ const Summarizer = () => {
         loading={loading}
       />
 
-      <div className="bg-background text-white h-screen">
+      <div className="bg-customLightBlue text-white h-screen">
         <NavBar activePage="Summarizer" />
         <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
           <div>
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               LIST OF COURT CASES
             </p>
-            <div className="font-sans text-sm bg-box rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
+            <div className="font-sans text-sm bg-customRbox rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
               <ol className="list-decimal list-inside">
                 {existingFiles.length > 0 ? (
                   existingFiles.map((file, index) => (
@@ -248,7 +248,7 @@ const Summarizer = () => {
             </p>
             <div className="relative">
               <textarea
-                className="bg-box rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
+                className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
                 value={courtCaseValue}
                 onChange={(e) => setCourtCaseValue(e.target.value)}
                 readOnly={!editCase}
@@ -309,12 +309,12 @@ const Summarizer = () => {
             </p>
             <div className="relative">
               {loading ? (
-                <div className="bg-box rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar flex justify-center items-center">
+                <div className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar flex justify-center items-center">
                   <div className="spinner"></div>
                 </div>
               ) : (
                 <textarea
-                  className="bg-box rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
+                  className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
                   readOnly
                   value={summarizedCase}
                   style={{ paddingBottom: "2.5rem" }}
