@@ -195,14 +195,14 @@ const Statistics = () => {
 
   return (
     <>
-      <div className="bg-background text-white h-screen">
+      <div className="bg-customGray text-black h-screen">
         <NavBar activePage="Statistics" />
         <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
           <div>
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               LIST OF COURT CASES
             </p>
-            <div className="font-sans text-sm bg-box rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
+            <div className="font-sans text-sm bg-customRbox rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
               <ol className="list-decimal list-inside">
                 {existingFiles.length > 0 ? (
                   existingFiles.map((file, index) => (
@@ -231,7 +231,7 @@ const Statistics = () => {
             </p>
 
             {/* Unigram Statistics Table */}
-            <div className="bg-box rounded-xl py-6 w-full h-full max-h-[240px] overflow-y-auto custom-scrollbar">
+            <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[240px] overflow-y-auto custom-scrollbar">
               <table className="table-fixed w-full">
                 <thead>
                   <tr>
@@ -267,7 +267,7 @@ const Statistics = () => {
             </div>
 
             {/* Bigram Statistics Table */}
-            <div className="bg-box rounded-xl py-6 pb-10 h-full max-h-[240px] w-full overflow-y-auto custom-scrollbar">
+            <div className="bg-customRbox rounded-xl py-6 pb-10 h-full max-h-[240px] w-full overflow-y-auto custom-scrollbar">
               <table className="table-fixed w-full">
                 <thead>
                   <tr>
@@ -305,7 +305,7 @@ const Statistics = () => {
 
           {/* WordClouds Section */}
           <div className="flex flex-col space-y-6">
-            <div className="bg-box rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
+            <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
               <p className="font-bold text-[15px] ml-4 mb-2">
                 Unigram Word Cloud
               </p>
@@ -313,7 +313,7 @@ const Statistics = () => {
                 <WordCloud stats={wordStatsList} />
               </div>
             </div>
-            <div className="bg-box rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
+            <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
               <p className="font-bold text-[15px] ml-4 mb-2">
                 Bigram Word Cloud
               </p>

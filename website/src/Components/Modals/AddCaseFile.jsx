@@ -14,12 +14,12 @@ const AddCaseModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white text-black p-6 rounded-lg w-[400px]">
+      <div className="bg-customRbox text-black p-6 rounded-lg w-[400px]">
         <h2 className="text-lg font-bold mb-4">Add Court Case</h2>
         <label className="block mb-2 font-semibold">Enter link:</label>
         <input
           type="text"
-          className="border w-full p-2 rounded mb-4"
+          className="border w-full p-2 rounded mb-4 text-black placeholder-gray-400"
           value={courtCaseLink}
           onChange={(e) => setCourtCaseLink(e.target.value)}
           disabled={loading} // Disable input while loading
@@ -35,7 +35,7 @@ const AddCaseModal = ({
 
         <div className="flex justify-between">
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="bg-primary -500 text-white px-4 py-2 rounded"
             onClick={handleFileAdd}
             disabled={loading} // Disable button while loading
           >

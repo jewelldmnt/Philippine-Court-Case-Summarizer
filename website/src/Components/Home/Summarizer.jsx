@@ -32,41 +32,6 @@ const Summarizer = () => {
     text: "no case is selected yet",
   });
 
-  // useEffect(() => {
-  //   const incrementProgress = async (start, end, duration) => {
-  //     const step = (end - start) / (duration / 50); // Calculate the step size
-  //     let currentProgress = start;
-
-  //     return new Promise((resolve) => {
-  //       const intervalId = setInterval(() => {
-  //         currentProgress += step;
-
-  //         // Only update progress if the value is greater
-  //         setProgress((prevProgress) => {
-  //           if (currentProgress > prevProgress) {
-  //             return currentProgress;
-  //           }
-  //           return prevProgress;
-  //         });
-
-  //         if (currentProgress >= end) {
-  //           clearInterval(intervalId);
-  //           resolve();
-  //         }
-  //       }, 50); // Update every 50ms for smooth animation
-  //     });
-  //   };
-
-  //   const runProgressUpdate = async () => {
-  //     await incrementProgress(0, 25, 10000);
-  //     await incrementProgress(26, 50, 50000);
-  //     await incrementProgress(51, 80, 100000);
-  //     await incrementProgress(81, 100, 10000);
-  //   };
-
-  //   runProgressUpdate(); // Call the async function inside useEffect
-  // }, [loading]);
-
   useEffect(() => {
     axios
       .get("http://127.0.0.1:5000/get-files")
@@ -279,14 +244,14 @@ const Summarizer = () => {
         loading={loading}
       />
 
-      <div className="bg-background text-white h-screen">
+      <div className="bg-customGray text-black h-screen">
         <NavBar activePage="Summarizer" />
         <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
           <div>
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               LIST OF COURT CASES
             </p>
-            <div className="font-sans text-sm bg-box rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
+            <div className="font-sans text-sm bg-customRbox rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
               <ol className="list-decimal list-inside">
                 {existingFiles.length > 0 ? (
                   existingFiles.map((file, index) => (
@@ -312,7 +277,7 @@ const Summarizer = () => {
                 className="flex items-center cursor-pointer"
                 onClick={() => setIsModalOpen(true)}
               >
-                <FaCirclePlus className="size-6 text-icon-10" />
+                <FaCirclePlus className="size-6 text-icon-40" />
                 <p className="font-bold font-sans text-[14px] ml-2">Add Case</p>
               </label>
               <button onClick={handleFileDelete} className="flex items-center">
@@ -329,34 +294,34 @@ const Summarizer = () => {
               ORIGINAL COURT CASE
               {editCase ? (
                 <>
-                  <HiMiniLockOpen className="ml-2 size-6 text-primary" />
+                  <HiMiniLockOpen className="ml-2 size-6 text-customLock" />
                 </>
               ) : (
                 <>
-                  <HiMiniLockClosed className="ml-2 size-6 text-primary" />
+                  <HiMiniLockClosed className="ml-2 size-6 text-customLock" />
                 </>
               )}
             </p>
             <div className="relative">
               <textarea
-                className="bg-box rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
+                className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
                 value={courtCaseValue}
                 onChange={(e) => setCourtCaseValue(e.target.value)}
                 readOnly={!editCase}
                 style={{ paddingBottom: "2.5rem" }}
               />
               <div className="gap-2 flex items-center font-sans font-bold text-xs absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl rounded-br-xl p-4 z-10">
-                <p>Word Count:</p>
-                <p className="text-active">
+                <p className="text-white">Word Count:</p>
+                <p className="text-customWC">
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <label
-                  className="flex items-center cursor-pointer h-6 bg-summarize justify-center rounded-xl shadow-xl"
+                  className="flex items-center cursor-pointer h-8 bg-summarize justify-center rounded-xl shadow-xl"
                   onClick={() => {
                     handleSummarizedCase();
                   }}
                 >
-                  <p className="font-bold font-sans text-xs m-2">Summarize</p>
+                  <p className="font-bold font-sans text-xs m-3">Summarize</p>
                   <input type="button" className="hidden" />
                 </label>
               </div>
@@ -400,7 +365,7 @@ const Summarizer = () => {
             </p>
             <div className="relative">
               {loading ? (
-                <div className="bg-box rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center">
+                <div className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center">
                   <p
                     className={`loading-text fade-text ${
                       isFadingOut ? "hidden" : ""
@@ -412,7 +377,7 @@ const Summarizer = () => {
                 </div>
               ) : (
                 <textarea
-                  className="bg-box rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
+                  className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
                   readOnly
                   value={summarizedCase}
                   style={{ paddingBottom: "2.5rem" }}
@@ -420,8 +385,8 @@ const Summarizer = () => {
               )}
 
               <div className="gap-2 flex items-center font-sans font-bold text-xs absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl rounded-br-xl p-4 z-10">
-                <p>Word Count:</p>
-                <p className="text-active">
+                <p className="text-white">Word Count:</p>
+                <p className="text-customWC">
                   {loading
                     ? ""
                     : summarizedCase.split(/\s+/).filter(Boolean).length}
@@ -435,9 +400,7 @@ const Summarizer = () => {
                 onClick={handleTextDownload}
               >
                 <ImCloudDownload className="text-icon-30 size-6" />
-                <p className="font-bold font-sans text-[14px] ml-2">
-                  Download Summarized Case as txt
-                </p>
+                <p className="font-bold font-sans text-[14px] ml-2">Download</p>
               </button>
             </div>
           </div>
