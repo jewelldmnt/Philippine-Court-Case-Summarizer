@@ -190,7 +190,7 @@ const Summarizer = () => {
         loading={loading}
       />
 
-      <div className="bg-customLightBlue text-white h-screen">
+      <div className="bg-customGray text-black h-screen">
         <NavBar activePage="Summarizer" />
         <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
           <div>
@@ -238,11 +238,11 @@ const Summarizer = () => {
               ORIGINAL COURT CASE
               {editCase ? (
                 <>
-                  <HiMiniLockOpen className="ml-2 size-6 text-primary" />
+                  <HiMiniLockOpen className="ml-2 size-6 text-customLock" />
                 </>
               ) : (
                 <>
-                  <HiMiniLockClosed className="ml-2 size-6 text-primary" />
+                  <HiMiniLockClosed className="ml-2 size-6 text-customLock" />
                 </>
               )}
             </p>
@@ -255,17 +255,17 @@ const Summarizer = () => {
                 style={{ paddingBottom: "2.5rem" }}
               />
               <div className="gap-2 flex items-center font-sans font-bold text-xs absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl rounded-br-xl p-4 z-10">
-                <p>Word Count:</p>
-                <p className="text-active">
+                <p className="text-white">Word Count:</p>
+                <p className="text-customWC">
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <label
-                  className="flex items-center cursor-pointer h-6 bg-summarize justify-center rounded-xl shadow-xl"
+                  className="flex items-center cursor-pointer h-8 bg-summarize justify-center rounded-xl shadow-xl"
                   onClick={() => {
                     handleSummarizedCase();
                   }}
                 >
-                  <p className="font-bold font-sans text-xs m-2">Summarize</p>
+                  <p className="font-bold font-sans text-xs m-3">Summarize</p>
                   <input type="button" className="hidden" />
                 </label>
               </div>
@@ -321,8 +321,8 @@ const Summarizer = () => {
                 />
               )}
               <div className="gap-2 flex items-center font-sans font-bold text-xs absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl rounded-br-xl p-4 z-10">
-                <p>Word Count:</p>
-                <p className="text-active">
+                <p className="text-white">Word Count:</p>
+                <p className="text-customWC">
                   {summarizedCase.split(/\s+/).filter(Boolean).length}
                 </p>
               </div>
@@ -335,7 +335,7 @@ const Summarizer = () => {
               >
                 <ImCloudDownload className="text-icon-30 size-6" />
                 <p className="font-bold font-sans text-[14px] ml-2">
-                  Download Summarized Case as txt
+                  Download
                 </p>
               </button>
             </div>

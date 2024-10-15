@@ -14,7 +14,7 @@ const AddCaseModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-customRbox text-white p-6 rounded-lg w-[400px]">
+      <div className="bg-customRbox text-black p-6 rounded-lg w-[400px]">
         <h2 className="text-lg font-bold mb-4">Add Court Case</h2>
         <label className="block mb-2 font-semibold">Enter link:</label>
         <input

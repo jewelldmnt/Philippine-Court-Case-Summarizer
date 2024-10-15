@@ -90,7 +90,7 @@ const Statistics = () => {
 
   return (
     <>
-      <div className="bg-customLightBlue text-white h-screen">
+      <div className="bg-customGray text-black h-screen">
         <NavBar activePage="Statistics" />
         <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
           <div>

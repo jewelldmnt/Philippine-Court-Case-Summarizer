@@ -9,7 +9,7 @@ const Delete = ({open, del, cancel}) => {
   return (
     <>
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 z-50 ">
-          <div className='font-sans text-white bg-box w-[350px] h-[270px] flex flex-col justify-center items-center text-center rounded-xl'>
+          <div className='font-sans text-black bg-box w-[350px] h-[270px] flex flex-col justify-center items-center text-center rounded-xl'>
             <IoWarningOutline className="text-delete w-[61px] h-[61px]" />
             <h1 className='font-bold text-[20px] tablet-xs:text-[24px]'>Are you sure you want to <br />remove this case?</h1>
             <p className='mt-2 text-gray-400 text-[10px] tablet-xs:text-xs whitespace'>This action cannot be undone.</p>
