@@ -380,7 +380,7 @@ class preprocess:
             text = re.sub(r"\b[a-zA-Z0-9]\.\s?", "", text)  # Matches single letters or digits followed by '.'
 
             # Remove any kind of leading or trailing invisible characters (including non-breaking spaces)
-            text = re.sub(r'^[\s\u200b\u00a0]+|[\s\u200b\u00a0]+$', '', text, flags=re.MULTILINE)
+            text = re.sub(r'^\s*\n', '', text, flags=re.MULTILINE)
 
             # Removes leading and trailing spaces from the text.
             return text.strip()

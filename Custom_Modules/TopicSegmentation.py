@@ -51,17 +51,19 @@ class TopicSegmentation:
             predicted_class_id = torch.argmax(probabilities, dim=-1).item()
             max_probability = probabilities[0][predicted_class_id].item()  # Get the max probability
 
-            # Check if the probability is below the threshold
-            if max_probability < threshold:
-                predicted_label = previous_label  # Use the previous label if below threshold
-            else:
-                id2label = self.model.config.id2label  # Get the label mapping from model config
-                predicted_label = id2label[predicted_class_id]  # Map class ID to label
-
+            # # Check if the probability is below the threshold
+            # if max_probability < threshold:
+            #     predicted_label = previous_label  # Use the previous label if below threshold
+            # else:
+            #     id2label = self.model.config.id2label  # Get the label mapping from model config
+            #     predicted_label = id2label[predicted_class_id]  # Map class ID to label
+            id2label = self.model.config.id2label  # Get the label mapping from model config
+            predicted_label = id2label[predicted_class_id]  # Map class ID to label
             # Store the predicted label in the dictionary
             predicted_labels_dict[key] = predicted_label
             previous_label = predicted_label  # Update previous label for the next iteration
 
+            print(f'Text: {value}\nLabel: {predicted_label}\nProbability: {max_probability}\n\n')
         return predicted_labels_dict
 
     def label_mapping(self, predicted_labels_dict: dict) -> dict:
