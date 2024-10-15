@@ -1,5 +1,7 @@
 from transformers import BartTokenizer, BartForSequenceClassification
 import IPython.display
+# Clear the output and print value count
+IPython.display.clear_output(wait=True)
 
 class model_configure:
     def __init__(self):
