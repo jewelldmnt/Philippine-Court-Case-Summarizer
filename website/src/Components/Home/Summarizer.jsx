@@ -221,7 +221,7 @@ const Summarizer = () => {
                 className="flex items-center cursor-pointer"
                 onClick={() => setIsModalOpen(true)}
               >
-                <FaCirclePlus className="size-6 text-icon-10" />
+                <FaCirclePlus className="size-6 text-icon-40" />
                 <p className="font-bold font-sans text-[14px] ml-2">Add Case</p>
               </label>
               <button onClick={handleFileDelete} className="flex items-center">
