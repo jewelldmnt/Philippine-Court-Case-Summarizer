@@ -8,6 +8,7 @@ export default {
       colors: {
         customLightBlue: "#649AC2", // Use for Light Blue Blackground
         customRbox:"#2C77AD", // Use for light color of rounded box
+        customRedText: "#972338",
         primary: "#0D2541",
         secondary: "#DF1619",
         background: "#649AC2",
