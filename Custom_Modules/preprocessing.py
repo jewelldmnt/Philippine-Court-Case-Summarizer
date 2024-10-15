@@ -171,7 +171,7 @@ class preprocess:
         self.remove_noisy_data()
 
         # Tokenize the text, storing words and numbers only
-        self.sentences_tokens = [[token for token in self.regex_tokenizer.tokenize(text) if token.lower() not in self.stop_words] for text in self.df["heading"]]
+        self.sentences_tokens = [self.regex_tokenizer.tokenize(text) for text in self.df["heading"]]
         
         # Join tokens to form full strings for each case
         self.sentences = [' '.join(token) for token in self.sentences_tokens]
@@ -277,6 +277,8 @@ class preprocess:
         for sentence, label in zip(self.tokenized_sentences, self.segment_labels):
             tokenized_sentence = self.regex_tokenizer.tokenize(sentence)
             if len(tokenized_sentence) > 8 or sentence in self.segment_heading:  # Keep only sentences with more than 8 tokens
+                if sentence in self.segment_heading:
+                    print(sentence)
                 filtered_data.append((sentence, label))
         
         # Unzip the filtered data back into separate lists
@@ -385,7 +387,7 @@ class preprocess:
             text = re.sub(r"\b[a-zA-Z0-9]\.\s?", "", text)  # Matches single letters or digits followed by '.'
 
             # Remove any kind of leading or trailing invisible characters (including non-breaking spaces)
-            text = re.sub(r'^[\s\u200b\u00a0]+|[\s\u200b\u00a0]+$', '', text, flags=re.MULTILINE)
+            text = re.sub(r'^\s*\n', '', text, flags=re.MULTILINE)
 
             # Removes leading and trailing spaces from the text.
             return text.strip()

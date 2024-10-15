@@ -60,9 +60,9 @@ class TopicSegmentation:
 
             # Store the predicted label in the dictionary
             predicted_labels_dict[value] = predicted_label
-            print('label:',predicted_label)
-            print('key: ',key,'\n')
             previous_label = predicted_label  # Update previous label for the next iteration
+            
+            print(f'Text: {value}\nLabel: {predicted_label}\nProbability: {max_probability}\n\n')
 
         return predicted_labels_dict
 
@@ -87,8 +87,6 @@ class TopicSegmentation:
         print('\n\n')
         # Iterate through the predicted labels dictionary and categorize the paragraphs
         for paragraph, label in predicted_labels_dict.items():
-            print('label: ', label)
-            print('paragraph: ', paragraph,'\n')
             if label == "facts":
                 categorized_dict["facts"].append(paragraph)
             elif label == "issues":
