@@ -9,6 +9,9 @@ import torch
 from sklearn.model_selection import train_test_split
 from datasets import Dataset
 from nltk.tokenize import sent_tokenize
+import nltk
+from nltk.corpus import stopwords
+nltk.download('stopwords')
 import IPython.display
 from sklearn.utils import resample
 
@@ -52,6 +55,9 @@ class preprocess:
             self.df = pd.read_csv(file_path)
             self.heading_df = pd.read_csv(heading_file_path)
             self.segment_heading = [phrase for phrase in self.heading_df['heading']]
+            self.stop_words = set(stopwords.words('english'))
+            custom_stopwords = {'s', 'g','r','gr'}
+            self.stop_words.update(custom_stopwords)
             self.headings = []
             self.labels = []
             self.df_balanced = None
@@ -165,7 +171,7 @@ class preprocess:
         self.remove_noisy_data()
 
         # Tokenize the text, storing words and numbers only
-        self.sentences_tokens = [self.regex_tokenizer.tokenize(text) for text in self.df["heading"]]
+        self.sentences_tokens = [[token for token in self.regex_tokenizer.tokenize(text) if token.lower() not in self.stop_words] for text in self.df["heading"]]
         
         # Join tokens to form full strings for each case
         self.sentences = [' '.join(token) for token in self.sentences_tokens]
@@ -253,26 +259,25 @@ class preprocess:
         """
         Further preprocess the data by filtering useful data such as: 
             - taking 8 tokens and above only
-            - taking the first four sentence
+            - taking the first two sentence and concatenating them
             - mapping the tokens with their labels
         """
         # Create label-to-ID mapping
         label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
         self.segment_labels = [label_mapping[label] for label in self.df["label"]]
 
-        # Tokenize each string into sentences storing the first four only
-        self.tokenized_sentences = [sent_tokenize(sentence)[:4] for sentence in self.sentences]
+        # Tokenize each string into sentences storing the first two only
+        self.tokenized_sentences = [sent_tokenize(sentence)[:2] for sentence in self.sentences]
 
-        # Add label to each tokenized sentence
-        self.segment_labels = [[label] * len(tokens) for label, tokens in zip(self.segment_labels, self.tokenized_sentences)]
+        # Join the two sentence together
+        self.tokenized_sentences = [' '.join(sentences) for sentences in self.tokenized_sentences]
 
         # Filter and process data: keep only sentences where the number of tokens > 8
         filtered_data = []
-        for sentence_list, label_list in zip(self.tokenized_sentences, self.segment_labels):
-            for sentence, label in zip(sentence_list, label_list):
-                tokenized_sentence = self.regex_tokenizer.tokenize(sentence)
-                if len(tokenized_sentence) > 8 or sentence in self.segment_heading:  # Keep only sentences with more than 8 tokens
-                    filtered_data.append((sentence, label))
+        for sentence, label in zip(self.tokenized_sentences, self.segment_labels):
+            tokenized_sentence = self.regex_tokenizer.tokenize(sentence)
+            if len(tokenized_sentence) > 8 or sentence in self.segment_heading:  # Keep only sentences with more than 8 tokens
+                filtered_data.append((sentence, label))
         
         # Unzip the filtered data back into separate lists
         self.tokenized_sentences, self.segment_labels = zip(*filtered_data) if filtered_data else ([], [])
