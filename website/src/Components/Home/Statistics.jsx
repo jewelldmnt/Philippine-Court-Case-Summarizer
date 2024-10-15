@@ -11,11 +11,115 @@ const Statistics = () => {
   const [wordStatsList, setWordStatsList] = useState([]);
   const [bigramStatsList, setBigramStatsList] = useState([]);
 
+  const stopwords = [
+    "the",
+    "and",
+    "a",
+    "is",
+    "in",
+    "it",
+    "of",
+    "to",
+    "that",
+    "this",
+    "with",
+    "for",
+    "on",
+    "at",
+    "by",
+    "an",
+    "as",
+    "be",
+    "are",
+    "from",
+    "or",
+    "was",
+    "which",
+    "but",
+    "if",
+    "not",
+    "all",
+    "can",
+    "has",
+    "had",
+    "have",
+    "he",
+    "her",
+    "his",
+    "i",
+    "me",
+    "my",
+    "you",
+    "we",
+    "they",
+    "their",
+    "our",
+    "us",
+    "will",
+    "would",
+    "there",
+    "what",
+    "so",
+    "when",
+    "where",
+    "who",
+    "why",
+    "how",
+    "up",
+    "down",
+    "out",
+    "about",
+    "into",
+    "over",
+    "then",
+    "than",
+    "too",
+    "also",
+    "only",
+    "just",
+    "even",
+    "did",
+    "does",
+    "do",
+    "no",
+    "yes",
+    "more",
+    "now",
+    "very",
+    "here",
+    "some",
+    "such",
+    "could",
+    "should",
+    "must",
+    "being",
+    "were",
+    "before",
+    "after",
+    "through",
+    "between",
+    "under",
+    "again",
+    "both",
+    "any",
+    "each",
+    "because",
+    "during",
+    "once",
+    "few",
+    "many",
+    "most",
+    "other",
+    "these",
+    "those",
+  ];
+
   const calculateWordFrequencies = (text) => {
     const words = text
       .toLowerCase()
       .replace(/[^\w\s]/g, "")
-      .split(/\s+/);
+      .split(/\s+/)
+      .filter((word) => !stopwords.includes(word)); // Remove stopwords
 
     const frequencyMap = words.reduce((map, word) => {
       map[word] = (map[word] || 0) + 1;
@@ -39,7 +143,8 @@ const Statistics = () => {
     const words = text
       .toLowerCase()
       .replace(/[^\w\s]/g, "")
-      .split(/\s+/);
+      .split(/\s+/)
+      .filter((word) => !stopwords.includes(word)); // Remove stopwords
 
     const bigrams = [];
     for (let i = 0; i < words.length - 1; i++) {
@@ -108,7 +213,9 @@ const Statistics = () => {
                       }`}
                       onClick={() => handleFileClick(file)}
                     >
-                      {file.file_name}
+                      {file.file_name.length > 35
+                        ? `${file.file_name.slice(0, 35)}...`
+                        : file.file_name}
                     </li>
                   ))
                 ) : (

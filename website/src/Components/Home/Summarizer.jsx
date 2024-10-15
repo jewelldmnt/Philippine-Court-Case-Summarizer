@@ -11,6 +11,7 @@ import { FaCirclePlus, FaCircleMinus } from "react-icons/fa6";
 import { HiMiniLockOpen, HiMiniLockClosed } from "react-icons/hi2";
 import AddCaseModal from "../Modals/AddCaseFile";
 import "../../assets/spinner.css";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const Summarizer = () => {
   const [editCase, setEditCase] = useState(false);
@@ -23,10 +24,48 @@ const Summarizer = () => {
   const [courtCaseLink, setCourtCaseLink] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("");
+  const [progress, setProgress] = useState(0); // Track the progress percentage
+  const [isFadingOut, setIsFadingOut] = useState(false);
 
   const [input, setInput] = useState({
     text: "no case is selected yet",
   });
+
+  // useEffect(() => {
+  //   const incrementProgress = async (start, end, duration) => {
+  //     const step = (end - start) / (duration / 50); // Calculate the step size
+  //     let currentProgress = start;
+
+  //     return new Promise((resolve) => {
+  //       const intervalId = setInterval(() => {
+  //         currentProgress += step;
+
+  //         // Only update progress if the value is greater
+  //         setProgress((prevProgress) => {
+  //           if (currentProgress > prevProgress) {
+  //             return currentProgress;
+  //           }
+  //           return prevProgress;
+  //         });
+
+  //         if (currentProgress >= end) {
+  //           clearInterval(intervalId);
+  //           resolve();
+  //         }
+  //       }, 50); // Update every 50ms for smooth animation
+  //     });
+  //   };
+
+  //   const runProgressUpdate = async () => {
+  //     await incrementProgress(0, 25, 10000);
+  //     await incrementProgress(26, 50, 50000);
+  //     await incrementProgress(51, 80, 100000);
+  //     await incrementProgress(81, 100, 10000);
+  //   };
+
+  //   runProgressUpdate(); // Call the async function inside useEffect
+  // }, [loading]);
 
   useEffect(() => {
     axios
@@ -45,6 +84,38 @@ const Summarizer = () => {
       setCourtCaseValue(activeFile.file_text);
     }
   }, [cancelEdit, activeFile]);
+
+  useEffect(() => {
+    const tasks = ["Pre-processing..", "Segmenting..", "Summarizing.."];
+    let taskIndex = 0;
+
+    // Set initial loading text
+    setLoadingText(tasks[taskIndex]);
+
+    // Track fading state
+    let fadeOutTimeout;
+
+    const updateText = () => {
+      // After the fade-out completes, show the new text
+      fadeOutTimeout = setTimeout(() => {
+        taskIndex = (taskIndex + 1) % tasks.length; // Increment index and loop back to 0 if it exceeds array length
+        setLoadingText(tasks[taskIndex]);
+      }, 1000); // 1 second for fade-out duration
+    };
+
+    // Set an interval to update loading text every 5 seconds
+    const intervalId = setInterval(() => {
+      setIsFadingOut(true); // Start fading out
+      updateText();
+      setIsFadingOut(false); // Reset fade state
+    }, 5000); // 5 seconds
+
+    // Clean up interval and timeout when component unmounts or when the effect is re-executed
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(fadeOutTimeout);
+    };
+  }, [loading]);
 
   const handleFileClick = (file) => {
     setActiveFile(file);
@@ -154,17 +225,35 @@ const Summarizer = () => {
   };
 
   const handleSummarizedCase = async () => {
-    setLoading(true); // Set loading to true when starting the summarization
+    setLoading(true);
+    setProgress(0); // Reset progress at the beginning of the process
+
+    // Function to slowly increment progress over time
+
     try {
-      const res = await axios.get(
-        `http://127.0.0.1:5000/get-summarized/${activeFile.id}`
+      const preprocess_res = await axios.post(
+        `http://127.0.0.1:5000/get-preprocessed/${activeFile.id}`,
+        {},
+        { headers: { "Content-Type": "application/json" } }
       );
-      console.log("response: ", res.data.summary);
-      setSummarizedCase(res.data.summary);
+
+      const segmented_res = await axios.post(
+        `http://127.0.0.1:5000/get-segmented`,
+        { cleaned_text: preprocess_res.data.cleaned_text },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      const summarized_res = await axios.post(
+        `http://127.0.0.1:5000/get-summarized/${activeFile.id}`,
+        { segmented_case: segmented_res.data.segmented_case },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      setSummarizedCase(summarized_res.data.summary);
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
-      setLoading(false); // Set loading to false when summarization is done
+      setLoading(false);
     }
   };
 
@@ -208,7 +297,9 @@ const Summarizer = () => {
                       }`}
                       onClick={() => handleFileClick(file)}
                     >
-                      {file.file_name}
+                      {file.file_name.length > 35
+                        ? `${file.file_name.slice(0, 35)}...`
+                        : file.file_name}
                     </li>
                   ))
                 ) : (
@@ -309,7 +400,14 @@ const Summarizer = () => {
             </p>
             <div className="relative">
               {loading ? (
-                <div className="bg-box rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar flex justify-center items-center">
+                <div className="bg-box rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center">
+                  <p
+                    className={`loading-text fade-text ${
+                      isFadingOut ? "hidden" : ""
+                    }`}
+                  >
+                    {loadingText}
+                  </p>
                   <div className="spinner"></div>
                 </div>
               ) : (
@@ -320,10 +418,13 @@ const Summarizer = () => {
                   style={{ paddingBottom: "2.5rem" }}
                 />
               )}
+
               <div className="gap-2 flex items-center font-sans font-bold text-xs absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl rounded-br-xl p-4 z-10">
                 <p>Word Count:</p>
                 <p className="text-active">
-                  {summarizedCase.split(/\s+/).filter(Boolean).length}
+                  {loading
+                    ? ""
+                    : summarizedCase.split(/\s+/).filter(Boolean).length}
                 </p>
               </div>
             </div>
