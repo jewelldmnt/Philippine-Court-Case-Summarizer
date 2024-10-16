@@ -74,4 +74,4 @@ class model_configure:
         if hasattr(self.BART_model.config, 'forced_bos_token_id'):
             del self.BART_model.config.forced_bos_token_id
 
-        print('Model Configured!')
+        print('Model Configuration Completed')

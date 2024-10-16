@@ -54,7 +54,9 @@ class preprocess:
             # Data related variables
             self.df = pd.read_csv(file_path)
             self.heading_df = pd.read_csv(heading_file_path)
+            self.label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
             self.segment_heading = [phrase for phrase in self.heading_df['heading']]
+            self.segment_heading_labels = [self.label_mapping[label] for label in self.heading_df['label']]
             self.stop_words = set(stopwords.words('english'))
             custom_stopwords = {'s', 'g','r','gr'}
             self.stop_words.update(custom_stopwords)
@@ -72,25 +74,148 @@ class preprocess:
             self.train_dataset = None
             self.eval_dataset = None
 
-            # Preprocess and prepare raw data
             # Clear the output and print value count
             IPython.display.clear_output(wait=True)
+
+            # Preprocess and prepare raw data
             self.df.dropna(inplace=True)
-            self.preprocess()
-            print('Preprocessing Done!')
 
-    def return_data(self):
+    def paragraph_segmentation(self):
         """
-        Returns the model, tokenizer, and the preprocessed train and eval datasets.
+        Extract the paragraph into single lines, while also pre-cleaning the data
+        """
+        # Loop through each row in the dataframe
+        for index, row in self.df.iterrows():
+            # Extract lines for each section (facts, issues, ruling) and clean the data
+            facts_lines = self.extract_paragraph(self.remove_unnecesary_char(row['facts']))
+            issues_lines = self.extract_paragraph(self.remove_unnecesary_char(row['issues']))
+            ruling_lines = self.extract_paragraph(self.remove_unnecesary_char(row['ruling']))
 
-        Returns:
-            train_dataset (datasets.Dataset): Preprocessed dataset used for training, consisting of tokenized input sentences and their corresponding labels.
+            # Add the lines and corresponding labels to the lists
+            for line in facts_lines:
+                if line.strip() and line not in self.headings:
+                    self.headings.append(line)
+                    self.labels.append("facts")
+
+            for line in issues_lines:
+                if line.strip() and line not in self.headings:
+                    self.headings.append(line)
+                    self.labels.append("issues")
+
+            for line in ruling_lines:
+                if line.strip() and line not in self.headings:
+                    self.headings.append(line)
+                    self.labels.append("ruling")
+
+        # Create a new dataframe with the headings (lines) and labels
+        self.df = pd.DataFrame({
+            'heading': self.headings,
+            'label': self.labels
+        })
+        print('Removing Unnecesary Characters Completed')
+        print('Paragraph Segmentation Completed')
+
+    def remove_noisy_data(self):
+        """
+        Drop unnecesary data, those that may cause noise.
+        """
+        for index, row in self.df.iterrows():
+            token_len = len(self.regex_tokenizer.tokenize(row['heading']))
             
-            eval_dataset (datasets.Dataset): Preprocessed dataset used for evaluation, consisting of tokenized input sentences and their corresponding labels.
-        """
-        return self.train_dataset, self.eval_dataset
+            # Keep only headings with more than 8 tokens or those specifically allowed in self.headings
+            if token_len <= 8:
+                if row['heading'] not in self.segment_heading:
+                    # Mark this row as invalid
+                    self.df.at[index, 'heading'] = None
+        
+        # Drop rows where 'heading' is None
+        self.df.dropna(subset=['heading'], inplace=True)
+        print('Removing Noisy Data Completed')
 
-    def prepare_LED_data(self, tokenizer):
+    def tokenize(self):
+        """
+        Tokenize the data by filtering useful data such as: 
+            - tokenizing by words and number and sentence enders
+            - taking 8 tokens and above only
+            - taking the first two sentence and concatenating them
+            - mapping the tokens with their labels
+        """
+        # Tokenize the text, storing words and numbers only
+        self.sentences_tokens = [self.regex_tokenizer.tokenize(text) for text in self.df["heading"]]
+        
+        # Join tokens to form full strings for each case
+        self.sentences = [' '.join(token) for token in self.sentences_tokens]
+
+        # Create label-to-ID mapping
+        self.segment_labels = [self.label_mapping[label] for label in self.df["label"]]
+
+        # Tokenize each string into sentences storing the first two only
+        self.tokenized_sentences = [sent_tokenize(sentence)[:2] for sentence in self.sentences]
+
+        # Join the two sentence together
+        self.tokenized_sentences = [' '.join(sentences) for sentences in self.tokenized_sentences]
+
+        # Filter and process data: keep only sentences where the number of tokens > 8
+        filtered_data = []
+        for sentence, label in zip(self.tokenized_sentences, self.segment_labels):
+            tokenized_sentence = self.regex_tokenizer.tokenize(sentence)
+            if len(tokenized_sentence) > 8 or sentence in self.segment_heading:  # Keep only sentences with more than 8 tokens
+                filtered_data.append((sentence, label))
+        
+        # Unzip the filtered data back into separate lists
+        self.tokenized_sentences, self.segment_labels = zip(*filtered_data) if filtered_data else ([], [])
+
+        # Convert to lists
+        self.tokenized_sentences = list(self.tokenized_sentences)
+        self.segment_labels = list(self.segment_labels)
+        print('Tokenization Completed')
+
+    def balance_labels(self):
+        """
+        Balances the dataset by downsampling majority classes to match the size of the minority class, ensuring
+        that all labels are represented equally in the training data.
+        """
+        # Create the DataFrame from tokenized sentences and labels
+        df_balancing = pd.DataFrame({
+            'sentence': self.tokenized_sentences,
+            'label': self.segment_labels
+        })
+
+        # Get the count of each class
+        label_counts = df_balancing['label'].value_counts()
+        print(label_counts)
+
+        # Separate the DataFrame by label
+        df_facts = df_balancing[df_balancing['label'] == 0]
+        df_issues = df_balancing[df_balancing['label'] == 1]
+        df_rulings = df_balancing[df_balancing['label'] == 2]
+
+        # Downsample labels 0 and 2 to 8000 samples each
+        df_facts_downsampled = resample(df_facts, replace=False, n_samples=8000, random_state=42)
+        df_rulings_downsampled = resample(df_rulings, replace=False, n_samples=8000, random_state=42)
+
+        # Upsample label 1 to 8000 samples if needed
+        df_issues_upsampled = resample(df_issues, replace=True, n_samples=8000, random_state=42)
+
+        # Combine the balanced datasets
+        self.df_balanced = pd.concat([df_facts_downsampled, df_issues_upsampled, df_rulings_downsampled])
+
+        # Shuffle the dataset to ensure randomness
+        self.df_balanced = self.df_balanced.sample(frac=1, random_state=42).reset_index(drop=True)
+        print(self.df_balanced['label'].value_counts())
+    
+        # Update the tokenized sentences and segment labels with the balanced data
+        self.tokenized_sentences = self.df_balanced['sentence'].tolist()
+        self.segment_labels = self.df_balanced['label'].tolist()
+
+        # Add heading labels
+        self.tokenized_sentences = self.tokenized_sentences + self.segment_heading
+        self.segment_labels = self.segment_labels + self.segment_heading_labels
+
+        # Update user
+        print('Data Balancing Completed')
+
+    def prepare_BART_data(self, tokenizer):
         """
         Prepares the data for training and evaluation by tokenizing the sentences and mapping them
         to the corresponding labels. It also formats the datasets for compatibility with PyTorch.
@@ -159,62 +284,6 @@ class preprocess:
 
         return batch
 
-    def preprocess(self):
-        """
-        Preprocesses the raw text data by cleaning, tokenizing, and segmenting sentences. It also balances
-        the dataset by handling class imbalance.
-        """
-        # Remove tokens and characters that are not helpful for the model and do Paragraph Segmentation
-        self.paragraph_segmentation()
-
-        # Remove data that doesnt give that much meaning
-        self.remove_noisy_data()
-
-        # Tokenize the text, storing words and numbers only
-        self.sentences_tokens = [self.regex_tokenizer.tokenize(text) for text in self.df["heading"]]
-        
-        # Join tokens to form full strings for each case
-        self.sentences = [' '.join(token) for token in self.sentences_tokens]
-
-        # Further filtering of irrelevant data
-        self.filter_data()
-
-        # Balance the labels by downsampling the majority classes
-        self.balance_labels()
-
-    def paragraph_segmentation(self):
-        """
-        Extract the paragraph into single lines, while also pre-cleaning the data
-        """
-        # Loop through each row in the dataframe
-        for index, row in self.df.iterrows():
-            # Extract lines for each section (facts, issues, ruling) and pre-clean the data
-            facts_lines = self.extract_paragraph(self.remove_unnecesary_char(row['facts']))
-            issues_lines = self.extract_paragraph(self.remove_unnecesary_char(row['issues']))
-            ruling_lines = self.extract_paragraph(self.remove_unnecesary_char(row['ruling']))
-
-            # Add the lines and corresponding labels to the lists
-            for line in facts_lines:
-                if line.strip() and line not in self.headings:
-                    self.headings.append(line)
-                    self.labels.append("facts")
-
-            for line in issues_lines:
-                if line.strip() and line not in self.headings:
-                    self.headings.append(line)
-                    self.labels.append("issues")
-
-            for line in ruling_lines:
-                if line.strip() and line not in self.headings:
-                    self.headings.append(line)
-                    self.labels.append("ruling")
-
-        # Create a new dataframe with the headings (lines) and labels
-        self.df = pd.DataFrame({
-            'heading': self.headings,
-            'label': self.labels
-        })
-
     def extract_paragraph(self, text):
         """
         Description:
@@ -237,92 +306,6 @@ class preprocess:
         # Preprocess the text before splitting into lines
         text = text.lower()  # Convert text to lowercase and preprocess
         return str(text).splitlines()  # Ensure text is a string before splitting into lines
-        
-
-    def remove_noisy_data(self):
-        """
-        Drop unnecesary data, those that may cause noise.
-        """
-        for index, row in self.df.iterrows():
-            token_len = len(self.regex_tokenizer.tokenize(row['heading']))
-            
-            # Keep only headings with more than 8 tokens or those specifically allowed in self.headings
-            if token_len <= 8:
-                if row['heading'] not in self.headings:
-                    # Mark this row as invalid
-                    self.df.at[index, 'heading'] = None
-        
-        # Drop rows where 'heading' is None
-        self.df.dropna(subset=['heading'], inplace=True)
-
-    def filter_data(self):
-        """
-        Further preprocess the data by filtering useful data such as: 
-            - taking 8 tokens and above only
-            - taking the first two sentence and concatenating them
-            - mapping the tokens with their labels
-        """
-        # Create label-to-ID mapping
-        label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
-        self.segment_labels = [label_mapping[label] for label in self.df["label"]]
-
-        # Tokenize each string into sentences storing the first two only
-        self.tokenized_sentences = [sent_tokenize(sentence)[:2] for sentence in self.sentences]
-
-        # Join the two sentence together
-        self.tokenized_sentences = [' '.join(sentences) for sentences in self.tokenized_sentences]
-
-        # Filter and process data: keep only sentences where the number of tokens > 8
-        filtered_data = []
-        for sentence, label in zip(self.tokenized_sentences, self.segment_labels):
-            tokenized_sentence = self.regex_tokenizer.tokenize(sentence)
-            if len(tokenized_sentence) > 8 or sentence in self.segment_heading:  # Keep only sentences with more than 8 tokens
-                if sentence in self.segment_heading:
-                    print(sentence)
-                filtered_data.append((sentence, label))
-        
-        # Unzip the filtered data back into separate lists
-        self.tokenized_sentences, self.segment_labels = zip(*filtered_data) if filtered_data else ([], [])
-
-        # Convert to lists
-        self.tokenized_sentences = list(self.tokenized_sentences)
-        self.segment_labels = list(self.segment_labels)
-
-
-    def balance_labels(self):
-        """
-        Balances the dataset by downsampling majority classes to match the size of the minority class, ensuring
-        that all labels are represented equally in the training data.
-        """
-        # Create a DataFrame from tokenized sentences and labels for easy manipulation
-        df_balancing = pd.DataFrame({
-            'sentence': self.tokenized_sentences,
-            'label': self.segment_labels
-        })
-    
-        # Get the count of each class
-        label_counts = df_balancing['label'].value_counts()
-        min_count = label_counts.min()  # Find the size of the smallest class
-    
-        # Separate the DataFrame by label
-        df_facts = df_balancing[df_balancing['label'] == 0]
-        df_issues = df_balancing[df_balancing['label'] == 1]
-        df_rulings = df_balancing[df_balancing['label'] == 2]
-    
-        # Downsample the majority classes to match the smallest class
-        df_facts_downsampled = resample(df_facts, replace=False, n_samples=min_count, random_state=42)
-        df_issues_downsampled = resample(df_issues, replace=False, n_samples=min_count, random_state=42)
-        df_rulings_downsampled = resample(df_rulings, replace=False, n_samples=min_count, random_state=42)
-    
-        # Combine the downsampled dataframes
-        self.df_balanced = pd.concat([df_facts_downsampled, df_issues_downsampled, df_rulings_downsampled])
-    
-        # Shuffle the dataset to ensure randomness
-        self.df_balanced = self.df_balanced.sample(frac=1, random_state=42).reset_index(drop=True)
-    
-        # Update the tokenized sentences and segment labels with the balanced data
-        self.tokenized_sentences = self.df_balanced['sentence'].tolist()
-        self.segment_labels = self.df_balanced['label'].tolist()
 
     def remove_unnecesary_char(self, text: str) -> str:
         """
@@ -415,3 +398,22 @@ class preprocess:
         
         return paragraph_dict
     
+    def return_data(self):
+        """
+        Returns the model, tokenizer, and the preprocessed train and eval datasets.
+
+        Returns:
+            train_dataset (datasets.Dataset): Preprocessed dataset used for training, consisting of tokenized input sentences and their corresponding labels.
+            
+            eval_dataset (datasets.Dataset): Preprocessed dataset used for evaluation, consisting of tokenized input sentences and their corresponding labels.
+        """
+        return self.train_dataset, self.eval_dataset
+    
+    def output_csv_file(self, filepath = 'preprocessed_sentence_label.csv'):
+        """
+        Outputs a csv file.
+
+        Parameters:
+            filepath (str): the file path of the csv file and must end with .csv
+        """
+        self.df_balanced.to_csv(filepath)
