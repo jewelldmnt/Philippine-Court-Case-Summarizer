@@ -54,7 +54,9 @@ class preprocess:
             # Data related variables
             self.df = pd.read_csv(file_path)
             self.heading_df = pd.read_csv(heading_file_path)
+            self.label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
             self.segment_heading = [phrase for phrase in self.heading_df['heading']]
+            self.segment_heading_labels = [self.label_mapping[label] for label in self.heading_df['label']]
             self.stop_words = set(stopwords.words('english'))
             custom_stopwords = {'s', 'g','r','gr'}
             self.stop_words.update(custom_stopwords)
@@ -122,7 +124,7 @@ class preprocess:
             
             # Keep only headings with more than 8 tokens or those specifically allowed in self.headings
             if token_len <= 8:
-                if row['heading'] not in self.headings:
+                if row['heading'] not in self.segment_heading:
                     # Mark this row as invalid
                     self.df.at[index, 'heading'] = None
         
@@ -145,8 +147,7 @@ class preprocess:
         self.sentences = [' '.join(token) for token in self.sentences_tokens]
 
         # Create label-to-ID mapping
-        label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
-        self.segment_labels = [label_mapping[label] for label in self.df["label"]]
+        self.segment_labels = [self.label_mapping[label] for label in self.df["label"]]
 
         # Tokenize each string into sentences storing the first two only
         self.tokenized_sentences = [sent_tokenize(sentence)[:2] for sentence in self.sentences]
@@ -169,72 +170,47 @@ class preprocess:
         self.segment_labels = list(self.segment_labels)
         print('Tokenization Completed')
 
-    def filter_data(self):
-        """
-        Further preprocess the data by filtering useful data such as: 
-            - taking 8 tokens and above only
-            - taking the first two sentence and concatenating them
-            - mapping the tokens with their labels
-        """
-        # Create label-to-ID mapping
-        label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
-        self.segment_labels = [label_mapping[label] for label in self.df["label"]]
-
-        # Tokenize each string into sentences storing the first two only
-        self.tokenized_sentences = [sent_tokenize(sentence)[:2] for sentence in self.sentences]
-
-        # Join the two sentence together
-        self.tokenized_sentences = [' '.join(sentences) for sentences in self.tokenized_sentences]
-
-        # Filter and process data: keep only sentences where the number of tokens > 8
-        filtered_data = []
-        for sentence, label in zip(self.tokenized_sentences, self.segment_labels):
-            tokenized_sentence = self.regex_tokenizer.tokenize(sentence)
-            if len(tokenized_sentence) > 8 or sentence in self.segment_heading:  # Keep only sentences with more than 8 tokens
-                filtered_data.append((sentence, label))
-        
-        # Unzip the filtered data back into separate lists
-        self.tokenized_sentences, self.segment_labels = zip(*filtered_data) if filtered_data else ([], [])
-
-        # Convert to lists
-        self.tokenized_sentences = list(self.tokenized_sentences)
-        self.segment_labels = list(self.segment_labels)
-        print('Data Filtering Completed')
-
     def balance_labels(self):
         """
         Balances the dataset by downsampling majority classes to match the size of the minority class, ensuring
         that all labels are represented equally in the training data.
         """
-        # Create a DataFrame from tokenized sentences and labels for easy manipulation
+        # Create the DataFrame from tokenized sentences and labels
         df_balancing = pd.DataFrame({
             'sentence': self.tokenized_sentences,
             'label': self.segment_labels
         })
-    
+
         # Get the count of each class
         label_counts = df_balancing['label'].value_counts()
-        min_count = label_counts.min()  # Find the size of the smallest class
-    
+        print(label_counts)
+
         # Separate the DataFrame by label
         df_facts = df_balancing[df_balancing['label'] == 0]
         df_issues = df_balancing[df_balancing['label'] == 1]
         df_rulings = df_balancing[df_balancing['label'] == 2]
-    
-        # Downsample the majority classes to match the smallest class
-        df_facts_downsampled = resample(df_facts, replace=False, n_samples=min_count, random_state=42)
-        df_issues_downsampled = resample(df_issues, replace=False, n_samples=min_count, random_state=42)
-        df_rulings_downsampled = resample(df_rulings, replace=False, n_samples=min_count, random_state=42)
-    
-        # Combine the downsampled dataframes
-        self.df_balanced = pd.concat([df_facts_downsampled, df_issues_downsampled, df_rulings_downsampled])
-    
+
+        # Downsample labels 0 and 2 to 8000 samples each
+        df_facts_downsampled = resample(df_facts, replace=False, n_samples=8000, random_state=42)
+        df_rulings_downsampled = resample(df_rulings, replace=False, n_samples=8000, random_state=42)
+
+        # Upsample label 1 to 8000 samples if needed
+        df_issues_upsampled = resample(df_issues, replace=True, n_samples=8000, random_state=42)
+
+        # Combine the balanced datasets
+        self.df_balanced = pd.concat([df_facts_downsampled, df_issues_upsampled, df_rulings_downsampled])
+
         # Shuffle the dataset to ensure randomness
         self.df_balanced = self.df_balanced.sample(frac=1, random_state=42).reset_index(drop=True)
+        print(self.df_balanced['label'].value_counts())
     
         # Update the tokenized sentences and segment labels with the balanced data
         self.tokenized_sentences = self.df_balanced['sentence'].tolist()
         self.segment_labels = self.df_balanced['label'].tolist()
+
+        # Add heading labels
+        self.tokenized_sentences = self.tokenized_sentences + self.segment_heading
+        self.segment_labels = self.segment_labels + self.segment_heading_labels
 
         # Update user
         print('Data Balancing Completed')
