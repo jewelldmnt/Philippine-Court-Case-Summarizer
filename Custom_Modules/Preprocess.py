@@ -416,4 +416,5 @@ class preprocess:
         Parameters:
             filepath (str): the file path of the csv file and must end with .csv
         """
+        # Output CSV file
         self.df_balanced.to_csv(filepath)
