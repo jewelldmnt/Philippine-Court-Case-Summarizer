@@ -13,3 +13,8 @@ website/backend/56/optimizer.pt
 .history
 website/backend/75/optimizer.pt
 website/instance/test.db
+*.csv
+website/backend/checkpoint-886
+website/backend/checkpoint-886/optimizer.pt
+.history
+Tester.ipynb
