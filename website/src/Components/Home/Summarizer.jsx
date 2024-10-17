@@ -253,8 +253,8 @@ const Summarizer = () => {
                   existingFiles.map((file, index) => (
                     <li
                       key={index}
-                      className={`hover:bg-wordCount w-full px-4 cursor-pointer mb-2 ${
-                        activeFile?.id === file.id ? "bg-active" : ""
+                      className={`hover:bg-customHoverC w-full px-4 cursor-pointer mb-2 ${
+                        activeFile?.id === file.id ? "bg-customHoverC" : ""
                       }`}
                       onClick={() => handleFileClick(file)}
                     >
