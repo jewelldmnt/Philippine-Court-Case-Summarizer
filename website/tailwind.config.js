@@ -6,18 +6,26 @@ export default {
   theme: {
     extend: {
       colors: {
+        customLight: "#FFFFFF", // Use for Navbar Color
+        customGray: "#EEEEEE", // Use for Background
+        customWC: "#62B5FF",
+        customRbox:"#FFFFFF", // Use for light color of rounded box
+        customLock: "#FDAD15", // Use for lock button
+        customRedText: "#972338",
         primary: "#4D91E2",
-        secondary: "#FC5271",
-        background: "#021526",
-        box: "#192E40",
-        wordCount: "#3B5366",
-        active: "#B1D8FB",
+        secondary: "#DF1619",
+        tertiary: "#192E40",
+        background: "#EEEEEE",
+        wordCount: "#205D93",
+        active: "#F01212",
+        active1: "#192E40",
         delete: "#D90429",
-        summarize: "#1F8146",
-        icon: {
-          10: "#FDAD15",
-          20: "#FF6252",
-          30: "#61BB5F",
+        summarize: "#EBF4FB",
+        icon: { 
+          10: "#F67F3B",
+          20: "#F05546",
+          30: "#329A30",
+          40: "#FFC14B",
         },
       },
     },

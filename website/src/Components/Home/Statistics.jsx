@@ -11,11 +11,115 @@ const Statistics = () => {
   const [wordStatsList, setWordStatsList] = useState([]);
   const [bigramStatsList, setBigramStatsList] = useState([]);
 
+  const stopwords = [
+    "the",
+    "and",
+    "a",
+    "is",
+    "in",
+    "it",
+    "of",
+    "to",
+    "that",
+    "this",
+    "with",
+    "for",
+    "on",
+    "at",
+    "by",
+    "an",
+    "as",
+    "be",
+    "are",
+    "from",
+    "or",
+    "was",
+    "which",
+    "but",
+    "if",
+    "not",
+    "all",
+    "can",
+    "has",
+    "had",
+    "have",
+    "he",
+    "her",
+    "his",
+    "i",
+    "me",
+    "my",
+    "you",
+    "we",
+    "they",
+    "their",
+    "our",
+    "us",
+    "will",
+    "would",
+    "there",
+    "what",
+    "so",
+    "when",
+    "where",
+    "who",
+    "why",
+    "how",
+    "up",
+    "down",
+    "out",
+    "about",
+    "into",
+    "over",
+    "then",
+    "than",
+    "too",
+    "also",
+    "only",
+    "just",
+    "even",
+    "did",
+    "does",
+    "do",
+    "no",
+    "yes",
+    "more",
+    "now",
+    "very",
+    "here",
+    "some",
+    "such",
+    "could",
+    "should",
+    "must",
+    "being",
+    "were",
+    "before",
+    "after",
+    "through",
+    "between",
+    "under",
+    "again",
+    "both",
+    "any",
+    "each",
+    "because",
+    "during",
+    "once",
+    "few",
+    "many",
+    "most",
+    "other",
+    "these",
+    "those",
+  ];
+
   const calculateWordFrequencies = (text) => {
     const words = text
       .toLowerCase()
       .replace(/[^\w\s]/g, "")
-      .split(/\s+/);
+      .split(/\s+/)
+      .filter((word) => !stopwords.includes(word)); // Remove stopwords
 
     const frequencyMap = words.reduce((map, word) => {
       map[word] = (map[word] || 0) + 1;
@@ -39,7 +143,8 @@ const Statistics = () => {
     const words = text
       .toLowerCase()
       .replace(/[^\w\s]/g, "")
-      .split(/\s+/);
+      .split(/\s+/)
+      .filter((word) => !stopwords.includes(word)); // Remove stopwords
 
     const bigrams = [];
     for (let i = 0; i < words.length - 1; i++) {
@@ -90,14 +195,14 @@ const Statistics = () => {
 
   return (
     <>
-      <div className="bg-background text-white h-screen">
+      <div className="bg-customGray text-black h-screen">
         <NavBar activePage="Statistics" />
         <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
           <div>
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               LIST OF COURT CASES
             </p>
-            <div className="font-sans text-sm bg-box rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
+            <div className="font-sans text-sm bg-customRbox rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
               <ol className="list-decimal list-inside">
                 {existingFiles.length > 0 ? (
                   existingFiles.map((file, index) => (
@@ -108,7 +213,9 @@ const Statistics = () => {
                       }`}
                       onClick={() => handleFileClick(file)}
                     >
-                      {file.file_name}
+                      {file.file_name.length > 35
+                        ? `${file.file_name.slice(0, 35)}...`
+                        : file.file_name}
                     </li>
                   ))
                 ) : (
@@ -124,7 +231,7 @@ const Statistics = () => {
             </p>
 
             {/* Unigram Statistics Table */}
-            <div className="bg-box rounded-xl py-6 w-full h-full max-h-[240px] overflow-y-auto custom-scrollbar">
+            <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[240px] overflow-y-auto custom-scrollbar">
               <table className="table-fixed w-full">
                 <thead>
                   <tr>
@@ -160,7 +267,7 @@ const Statistics = () => {
             </div>
 
             {/* Bigram Statistics Table */}
-            <div className="bg-box rounded-xl py-6 pb-10 h-full max-h-[240px] w-full overflow-y-auto custom-scrollbar">
+            <div className="bg-customRbox rounded-xl py-6 pb-10 h-full max-h-[240px] w-full overflow-y-auto custom-scrollbar">
               <table className="table-fixed w-full">
                 <thead>
                   <tr>
@@ -196,21 +303,26 @@ const Statistics = () => {
             </div>
           </div>
 
-          {/* WordClouds Section */}
           <div className="flex flex-col space-y-6">
-            <div className="bg-box rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
+            <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
+              STATISTICS OF THE PRODUCED SUMMARY
+            </p>
+            {/* Unigram Word Cloud */}
+            <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
               <p className="font-bold text-[15px] ml-4 mb-2">
                 Unigram Word Cloud
               </p>
-              <div className="flex justify-center">
+              <div className="relative w-full h-full flex justify-center">
                 <WordCloud stats={wordStatsList} />
               </div>
             </div>
-            <div className="bg-box rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
+
+            {/* Bigram Word Cloud */}
+            <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
               <p className="font-bold text-[15px] ml-4 mb-2">
                 Bigram Word Cloud
               </p>
-              <div className="flex justify-center">
+              <div className="relative w-full h-full flex justify-center">
                 <WordCloud stats={bigramStatsList} />
               </div>
             </div>

@@ -11,6 +11,7 @@ import { FaCirclePlus, FaCircleMinus } from "react-icons/fa6";
 import { HiMiniLockOpen, HiMiniLockClosed } from "react-icons/hi2";
 import AddCaseModal from "../Modals/AddCaseFile";
 import "../../assets/spinner.css";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const Summarizer = () => {
   const [editCase, setEditCase] = useState(false);
@@ -23,6 +24,10 @@ const Summarizer = () => {
   const [courtCaseLink, setCourtCaseLink] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("");
+  const [progress, setProgress] = useState(0); // Track the progress percentage
+  const [isFadingOut, setIsFadingOut] = useState(false);
+  const [loadingModal, setLoadingModal] = useState(false);
 
   const [input, setInput] = useState({
     text: "no case is selected yet",
@@ -41,20 +46,40 @@ const Summarizer = () => {
   }, [activeFile]);
 
   useEffect(() => {
-    if (cancelEdit && activeFile) {
-      setCourtCaseValue(activeFile.file_text);
-    }
-  }, [cancelEdit, activeFile]);
+    const tasks = ["Pre-processing..", "Segmenting..", "Summarizing.."];
+    let taskIndex = 0;
+
+    // Set initial loading text
+    setLoadingText(tasks[taskIndex]);
+
+    // Track fading state
+    let fadeOutTimeout;
+
+    const updateText = () => {
+      // After the fade-out completes, show the new text
+      fadeOutTimeout = setTimeout(() => {
+        taskIndex = (taskIndex + 1) % tasks.length; // Increment index and loop back to 0 if it exceeds array length
+        setLoadingText(tasks[taskIndex]);
+      }, 1000);
+    };
+
+    // Set an interval to update loading text every 5 seconds
+    const intervalId = setInterval(() => {
+      setIsFadingOut(true); // Start fading out
+      updateText();
+      setIsFadingOut(false); // Reset fade state
+    }, 5000); // 5 seconds
+
+    // Clean up interval and timeout when component unmounts or when the effect is re-executed
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(fadeOutTimeout);
+    };
+  }, [loading]);
 
   const handleFileClick = (file) => {
     setActiveFile(file);
     setCourtCaseValue(file.file_text);
-  };
-
-  const handleCancelEdit = () => {
-    setCancelEdit(false);
-    setEditCase(false);
-    setCourtCaseValue(activeFile.file_text);
   };
 
   const handleSaveEdit = async () => {
@@ -64,30 +89,37 @@ const Summarizer = () => {
       file_content: activeFile.file_content,
     };
 
-    await axios
-      .patch(`http://127.0.0.1:5000/update-file/${activeFile.id}`, newFile)
-      .then((res) => {
-        console.log(res.data);
+    try {
+      // Update the file on the backend
+      await axios.patch(
+        `http://127.0.0.1:5000/update-file/${activeFile.id}`,
+        newFile
+      );
 
-        setExistingFiles((prev) =>
-          prev.map((file) =>
-            file.id === activeFile.id
-              ? { ...file, file_text: courtCaseValue }
-              : file
-          )
-        );
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+      // Update the existing files in the state
+      setExistingFiles((prev) =>
+        prev.map((file) =>
+          file.id === activeFile.id
+            ? { ...file, file_text: courtCaseValue }
+            : file
+        )
+      );
+      setEditCase(false); // Exit edit mode after saving
+      setCancelEdit(false); // Reset cancel state
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
+  const handleCancelEdit = () => {
     setCancelEdit(false);
-    setEditCase(false);
+    setEditCase(false); // Exit edit mode
+    setCourtCaseValue(activeFile.file_text); // Reset the text area to its original state
   };
 
   const handleFileAdd = async () => {
     console.log(courtCaseLink);
-    setLoading(true);
+    setLoadingModal(true);
     try {
       const response = await axios.post("http://127.0.0.1:5000/send-file", {
         link: courtCaseLink,
@@ -108,7 +140,7 @@ const Summarizer = () => {
     } catch (error) {
       console.error("Error adding file:", error);
     } finally {
-      setLoading(false);
+      setLoadingModal(false);
       setIsModalOpen(false);
     }
 
@@ -154,17 +186,35 @@ const Summarizer = () => {
   };
 
   const handleSummarizedCase = async () => {
-    setLoading(true); // Set loading to true when starting the summarization
+    setLoading(true);
+    setProgress(0); // Reset progress at the beginning of the process
+
+    // Function to slowly increment progress over time
+
     try {
-      const res = await axios.get(
-        `http://127.0.0.1:5000/get-summarized/${activeFile.id}`
+      const preprocess_res = await axios.post(
+        `http://127.0.0.1:5000/get-preprocessed/${activeFile.id}`,
+        {},
+        { headers: { "Content-Type": "application/json" } }
       );
-      console.log("response: ", res.data.summary);
-      setSummarizedCase(res.data.summary);
+
+      const segmented_res = await axios.post(
+        `http://127.0.0.1:5000/get-segmented`,
+        { cleaned_text: preprocess_res.data.cleaned_text },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      const summarized_res = await axios.post(
+        `http://127.0.0.1:5000/get-summarized/${activeFile.id}`,
+        { segmented_case: segmented_res.data.segmented_case },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      setSummarizedCase(summarized_res.data.summary);
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
-      setLoading(false); // Set loading to false when summarization is done
+      setLoading(false);
     }
   };
 
@@ -187,17 +237,17 @@ const Summarizer = () => {
         courtCaseLink={courtCaseLink}
         setCourtCaseLink={setCourtCaseLink}
         handleFileAdd={handleFileAdd}
-        loading={loading}
+        loading={loadingModal}
       />
 
-      <div className="bg-background text-white h-screen">
+      <div className="bg-customGray text-black h-screen">
         <NavBar activePage="Summarizer" />
         <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
           <div>
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               LIST OF COURT CASES
             </p>
-            <div className="font-sans text-sm bg-box rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
+            <div className="font-sans text-sm bg-customRbox rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
               <ol className="list-decimal list-inside">
                 {existingFiles.length > 0 ? (
                   existingFiles.map((file, index) => (
@@ -208,7 +258,9 @@ const Summarizer = () => {
                       }`}
                       onClick={() => handleFileClick(file)}
                     >
-                      {file.file_name}
+                      {file.file_name && file.file_name.length > 35
+                        ? `${file.file_name.slice(0, 35)}...`
+                        : file.file_name || "Untitled"}
                     </li>
                   ))
                 ) : (
@@ -221,7 +273,7 @@ const Summarizer = () => {
                 className="flex items-center cursor-pointer"
                 onClick={() => setIsModalOpen(true)}
               >
-                <FaCirclePlus className="size-6 text-icon-10" />
+                <FaCirclePlus className="size-6 text-icon-40" />
                 <p className="font-bold font-sans text-[14px] ml-2">Add Case</p>
               </label>
               <button onClick={handleFileDelete} className="flex items-center">
@@ -238,34 +290,34 @@ const Summarizer = () => {
               ORIGINAL COURT CASE
               {editCase ? (
                 <>
-                  <HiMiniLockOpen className="ml-2 size-6 text-primary" />
+                  <HiMiniLockOpen className="ml-2 size-6 text-customLock" />
                 </>
               ) : (
                 <>
-                  <HiMiniLockClosed className="ml-2 size-6 text-primary" />
+                  <HiMiniLockClosed className="ml-2 size-6 text-customLock" />
                 </>
               )}
             </p>
             <div className="relative">
               <textarea
-                className="bg-box rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
-                value={courtCaseValue}
+                className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
+                value={courtCaseValue ? courtCaseValue : "No case selected"}
                 onChange={(e) => setCourtCaseValue(e.target.value)}
                 readOnly={!editCase}
                 style={{ paddingBottom: "2.5rem" }}
               />
               <div className="gap-2 flex items-center font-sans font-bold text-xs absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl rounded-br-xl p-4 z-10">
-                <p>Word Count:</p>
-                <p className="text-active">
+                <p className="text-white">Word Count:</p>
+                <p className="text-customWC">
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <label
-                  className="flex items-center cursor-pointer h-6 bg-summarize justify-center rounded-xl shadow-xl"
+                  className="flex items-center cursor-pointer h-8 bg-summarize justify-center rounded-xl shadow-xl"
                   onClick={() => {
                     handleSummarizedCase();
                   }}
                 >
-                  <p className="font-bold font-sans text-xs m-2">Summarize</p>
+                  <p className="font-bold font-sans text-xs m-3">Summarize</p>
                   <input type="button" className="hidden" />
                 </label>
               </div>
@@ -309,21 +361,32 @@ const Summarizer = () => {
             </p>
             <div className="relative">
               {loading ? (
-                <div className="bg-box rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar flex justify-center items-center">
+                <div className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center">
+                  <p
+                    className={`loading-text fade-text ${
+                      isFadingOut ? "hidden" : ""
+                    }`}
+                    style={{ color: "black" }}
+                  >
+                    {loadingText}
+                  </p>
                   <div className="spinner"></div>
                 </div>
               ) : (
                 <textarea
-                  className="bg-box rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
+                  className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
                   readOnly
                   value={summarizedCase}
                   style={{ paddingBottom: "2.5rem" }}
                 />
               )}
+
               <div className="gap-2 flex items-center font-sans font-bold text-xs absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl rounded-br-xl p-4 z-10">
-                <p>Word Count:</p>
-                <p className="text-active">
-                  {summarizedCase.split(/\s+/).filter(Boolean).length}
+                <p className="text-white">Word Count:</p>
+                <p className="text-customWC">
+                  {loading
+                    ? ""
+                    : summarizedCase.split(/\s+/).filter(Boolean).length}
                 </p>
               </div>
             </div>
@@ -334,9 +397,7 @@ const Summarizer = () => {
                 onClick={handleTextDownload}
               >
                 <ImCloudDownload className="text-icon-30 size-6" />
-                <p className="font-bold font-sans text-[14px] ml-2">
-                  Download Summarized Case as txt
-                </p>
+                <p className="font-bold font-sans text-[14px] ml-2">Download</p>
               </button>
             </div>
           </div>

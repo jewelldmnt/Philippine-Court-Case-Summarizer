@@ -1,5 +1,12 @@
 .wordcloud-container {
-    border: 1px solid red; /* Debugging CSS */
-    width: 100%;
-    height: 300px; /* Ensure it has enough space */
-  }
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Hide overflowed words */
+}
+
+.wordcloud-container .absolute {
+  white-space: nowrap;
+  pointer-events: none; /* Prevent interaction */
+  transform-origin: center;
+}

@@ -8,93 +8,73 @@ import requests
 import re
 import os
 
-
-def summarize_case(case_text):
-    from Custom_Modules.InputConversion import InputConversion
-    from Custom_Modules.TopicSegmentation import TopicSegmentation
-    from Custom_Modules.TestingPreprocessing import Preprocessing
-    from Custom_Modules.LSA import LSA
-
-
-    preprocessor = Preprocessing()
-
-
-    cleaned_text = preprocessor.clean_text(case_text)
-
-
-    tokenized_paragraphs = preprocessor.tokenize_by_paragraph(cleaned_text)
-
-  
-    segmentation = TopicSegmentation(model_path='56')
-
-
-    split_paragraphs = segmentation.split_paragraph(tokenized_paragraphs)
-
-
-    predicted_labels = segmentation.sequence_classification(split_paragraphs)
-    lsa = LSA(predicted_labels)
-    summary = lsa.create_summary()
-
-    return summary
+import requests
+from bs4 import BeautifulSoup
+import re
 
 def scrape_court_case(url):
     try:
         result = requests.get(url)
-        if result.status_code != 200:
-            raise ValueError(f"Error fetching the court case: {result.status_code}")
-
+        result.raise_for_status()  # Raises an error for any non-200 status codes
+        
         doc = BeautifulSoup(result.text, "html.parser")
 
         content_class = "entry-content alignfull wp-block-post-content has-global-padding is-layout-constrained wp-block-post-content-is-layout-constrained"
         title_element = doc.find_all("h3")
         
-
         if not title_element:
             raise ValueError("Title not found in the document")
 
         title = title_element[0]
 
-
         paragraphs = title.find_all("p")
-        if not paragraphs or len(paragraphs) == 0:
+        if not paragraphs:
             raise ValueError("No paragraphs found under title")
 
-        decision_text = paragraphs[-1].text.replace(" ", "")
-        paragraphs[-1].extract()  
-
+        decision_text = paragraphs[-1].text.strip()  # Keep only leading/trailing spaces
+        paragraphs[-1].extract()
 
         content = doc.find(class_=content_class)
         if content is None:
             raise ValueError("Content class not found in the document")
 
-       
+        # Remove unnecessary tags
         for i in content.find_all(["h2", "h3", "sup", "tbody", "strong"]):
             i.extract()
+            
+        for blockquote in content.find_all("blockquote"):
+            prev_sibling = blockquote.find_previous_sibling()
 
 
-        hr_tag = content.find("hr")
-        if hr_tag:
-            for sibling in hr_tag.find_next_siblings():
-                sibling.extract()
+            # Check if the previous sibling is a <p> tag
+            if prev_sibling and prev_sibling.name == 'p':
+
+                prev_sibling.append(f" {blockquote.get_text()}")
 
 
-        new_content = BeautifulSoup(str(content), "html.parser")
-        new_content_text = new_content.text
+                # Remove the blockquote after merging its content
+                blockquote.extract()
 
+                # Clean up text using regular expressions
+                new_content_text = content.get_text()
 
-        new_content_text = re.sub(r'\[(?:\bx\s+)+x\b\]', '', new_content_text)
-        new_content_text = re.sub(r'(?:\b.\s+)+x\b', '', new_content_text)
-        new_content_text = re.sub(r'\.{2,}', '', new_content_text)
-        new_content_text = re.sub(r'…', '', new_content_text)
-        new_content_text = re.sub(r'. . . .', '', new_content_text)
-        new_content_text = re.sub(r'x{2,}', '', new_content_text)
-        new_content_text = re.sub(r'X{2,}', '', new_content_text)
+        patterns_to_clean = [
+            r'\[(?:\bx\s+)+x\b\]',  # e.g., [x x]
+            r'(?:\b.\s+)+x\b',  # e.g., . x
+            r'\.{2,}',  # multiple dots
+            r'…',  # ellipsis
+            r'x{2,}',  # multiple x's
+            r'X{2,}',  # multiple X's
+            r'\. \. \. \. '  # spaced dots
+        ]
+        
+        for pattern in patterns_to_clean:
+            new_content_text = re.sub(pattern, '', new_content_text)
 
-
+        # Slice content up to "SO ORDERED"
         sliced_content = new_content_text.strip()
         if "SO ORDERED" in sliced_content:
             sliced_content = sliced_content[:sliced_content.rfind("SO ORDERED") + 11]
-
 
         title_text = title.text.strip().replace("\n", " ")
 
@@ -103,9 +83,13 @@ def scrape_court_case(url):
             "case_text": sliced_content
         }
 
+    except requests.exceptions.RequestException as req_err:
+        print(f"Network error: {str(req_err)}")
+        return None
     except Exception as e:
         print(f"Error in scrape_court_case: {str(e)}")
-        return None 
+        return None
+
 
 
 
@@ -149,49 +133,77 @@ def get_files():
 
 
 
+
+
 @app.route("/send-file", methods=["POST"])
 def send_file():
+    import re
     try:
+
         if request.method == "POST":
             data = request.json
             court_case_link = data.get('link')
-            print(court_case_link)
 
+            if not court_case_link:
+                return jsonify({"error": "No court case link provided"}), 400
 
             court_case = scrape_court_case(court_case_link)
-            print("Scraped court case:", court_case)  
-
 
             if not court_case or 'title' not in court_case or 'case_text' not in court_case:
                 return jsonify({"error": "Invalid court case data"}), 400
 
+            case_title = court_case["title"]
 
-            case_title = court_case["title"].replace('/', '-')  
-            case_text = court_case["case_text"]
-            txt_file_name = f"{case_title}.txt"
+            # Sanitize the case title to create a valid file name
+            case_title = re.sub(r'[\\/*?:"<>|]', "-", case_title)  # Replace invalid characters with '-'
+            case_title = re.sub(r'[\.,]', "", case_title)  # Optionally remove commas and periods
 
+            # Limit the filename length (for example, to 150 characters)
+            max_length = 150
+            txt_case_title = case_title[:max_length] if len(case_title) > max_length else case_title
 
-            with open(txt_file_name, "w", encoding="utf-8") as f:
-                f.write(case_text)
+            txt_file_name = f"{txt_case_title}.txt"
 
+            try:
+                # Writing the court case text to a .txt file
+                with open(txt_file_name, "w", encoding="utf-8") as f:
+                    f.write(court_case["case_text"])
 
-            with open(txt_file_name, "rb") as f:
-                file_content = f.read()  
+                # Reading the file content for storage
+                with open(txt_file_name, "rb") as f:
+                    file_content = f.read()
 
-            upload = File(
-                file_name=case_title,
-                file_text=case_text,
-                file_content=file_content  
-            )
+            except IOError as e:
+                return jsonify({"error": "File handling error: " + str(e)}), 500
 
-            db.session.add(upload)
-            db.session.commit()
+            # Uploading the file to the database
+            try:
+                upload = File(
+                    file_name=case_title,
+                    file_text=court_case["case_text"],
+                    file_content=file_content
+                )
+
+                db.session.add(upload)
+                db.session.commit()
+
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({"error": "Database error: " + str(e)}), 500
+
+            # Optionally delete the file after saving to the database
+            try:
+                os.remove(txt_file_name)
+            except OSError as e:
+                return jsonify({"error": "File deletion error: " + str(e)}), 500
 
             return jsonify({"msg": "successful", "file": txt_file_name})
+
     except Exception as e:
         print(e)
         db.session.rollback()
-        return jsonify({"error": str(e)})
+        return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+
 
 
 
@@ -236,9 +248,10 @@ def update_file(id):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/get-summarized/<int:id>", methods=["GET"])
-def get_summarized(id):
+@app.route("/get-preprocessed/<int:id>", methods=["POST"])
+def get_preprocessed(id):
     try:
+        from Custom_Modules.TestingPreprocessing import Preprocessing
 
         file = db.session.get(File, id)
         if file is None:
@@ -251,16 +264,75 @@ def get_summarized(id):
         if not court_case_text:
             return jsonify({"error": "No case text provided"}), 400
 
-        
-        summary = "TITLE:"+ "\n" + file.file_name+ "\n\n" + summarize_case(court_case_text)
+
+        # summary = "TITLE:"+ "\n" + file.file_name+ "\n\n" + summarize_case(court_case_text)
+        # print(summary)
+
+        preprocessor = Preprocessing()
+
+
+        cleaned_text = preprocessor.clean_text(court_case_text)
+        tokenized_paragraphs = preprocessor.tokenize_by_paragraph(cleaned_text)
+
+
+        return jsonify({"cleaned_text": tokenized_paragraphs}), 200
+
+    except Exception as e:
+        print("Error during preprocess:", e)
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/get-segmented", methods=["POST"])
+def get_segmented():
+    try:
+        from Custom_Modules.TestingParagraphSegmentation import ParagraphSegmentation
+
+        data = request.json
+        preprocessed_case = data.get('cleaned_text')
+
+
+        segmentation = ParagraphSegmentation(model_path='75')
+        split_paragraphs = segmentation.split_paragraph(preprocessed_case)
+        print(split_paragraphs)
+        predicted_labels = segmentation.sequence_classification(split_paragraphs)
+
+
+        if not preprocessed_case:
+            return jsonify({"error": "No case text provided"}), 400
+
+
+        return jsonify({"segmented_case": predicted_labels}), 200
+
+    except Exception as e:
+        print("Error during segmentation:", e)
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/get-summarized/<int:id>", methods=["POST"])
+def get_summarized(id):
+    try:
+        from Custom_Modules.LSA import LSA
+
+        data = request.json
+        segmented_case = data.get('segmented_case')
+
+
+        if not segmented_case:
+            return jsonify({"error": "No case text provided"}), 400
+
+        lsa = LSA(segmented_case)
+        summarize_case = lsa.create_summary()
+
+        file = db.session.get(File, id)
+
+        summary = "TITLE:"+ "\n" + file.file_name+ "\n\n" + summarize_case
         print(summary)
 
-       
+
         return jsonify({"summary": summary}), 200
 
     except Exception as e:
         print("Error during summarization:", e)
         return jsonify({"error": str(e)}), 500
+
 
 
 

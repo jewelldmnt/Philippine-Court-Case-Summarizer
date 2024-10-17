@@ -8,6 +8,11 @@ testing and fucking debugging/issues_seq_to_seq.keras
 testing and fucking debugging/miguel_fix/my_awesome_model/checkpoint-337/optimizer.pt
 my_awesome_model/checkpoint-337/optimizer.pt
 /my_awesome_model
+website/backend/56
+website/backend/56/optimizer.pt
+.history
+website/backend/75/optimizer.pt
+website/instance/test.db
 *.csv
 website/backend/checkpoint-886
 website/backend/checkpoint-886/optimizer.pt
