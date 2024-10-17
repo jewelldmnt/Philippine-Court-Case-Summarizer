@@ -43,7 +43,7 @@ const Summarizer = () => {
       .catch((err) => {
         console.log(err);
       });
-  }, [existingFiles]);
+  }, [activeFile]);
 
   useEffect(() => {
     const tasks = ["Pre-processing..", "Segmenting..", "Summarizing.."];
