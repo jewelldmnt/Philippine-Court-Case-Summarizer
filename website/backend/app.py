@@ -133,11 +133,13 @@ def get_files():
 
 
 
-import re
+
 
 @app.route("/send-file", methods=["POST"])
 def send_file():
+    import re
     try:
+
         if request.method == "POST":
             data = request.json
             court_case_link = data.get('link')
@@ -288,7 +290,7 @@ def get_segmented():
         preprocessed_case = data.get('cleaned_text')
 
 
-        segmentation = ParagraphSegmentation(model_path='56')
+        segmentation = ParagraphSegmentation(model_path='75')
         split_paragraphs = segmentation.split_paragraph(preprocessed_case)
         print(split_paragraphs)
         predicted_labels = segmentation.sequence_classification(split_paragraphs)

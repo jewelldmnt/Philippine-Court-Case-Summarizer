@@ -27,6 +27,7 @@ const Summarizer = () => {
   const [loadingText, setLoadingText] = useState("");
   const [progress, setProgress] = useState(0); // Track the progress percentage
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [loadingModal, setLoadingModal] = useState(false);
 
   const [input, setInput] = useState({
     text: "no case is selected yet",
@@ -42,13 +43,7 @@ const Summarizer = () => {
       .catch((err) => {
         console.log(err);
       });
-  }, [activeFile]);
-
-  useEffect(() => {
-    if (cancelEdit && activeFile) {
-      setCourtCaseValue(activeFile.file_text);
-    }
-  }, [cancelEdit, activeFile]);
+  }, [existingFiles]);
 
   useEffect(() => {
     const tasks = ["Pre-processing..", "Segmenting..", "Summarizing.."];
@@ -65,7 +60,7 @@ const Summarizer = () => {
       fadeOutTimeout = setTimeout(() => {
         taskIndex = (taskIndex + 1) % tasks.length; // Increment index and loop back to 0 if it exceeds array length
         setLoadingText(tasks[taskIndex]);
-      }, 1000); // 1 second for fade-out duration
+      }, 1000);
     };
 
     // Set an interval to update loading text every 5 seconds
@@ -87,12 +82,6 @@ const Summarizer = () => {
     setCourtCaseValue(file.file_text);
   };
 
-  const handleCancelEdit = () => {
-    setCancelEdit(false);
-    setEditCase(false);
-    setCourtCaseValue(activeFile.file_text);
-  };
-
   const handleSaveEdit = async () => {
     const newFile = {
       file_name: activeFile.file_name,
@@ -100,30 +89,37 @@ const Summarizer = () => {
       file_content: activeFile.file_content,
     };
 
-    await axios
-      .patch(`http://127.0.0.1:5000/update-file/${activeFile.id}`, newFile)
-      .then((res) => {
-        console.log(res.data);
+    try {
+      // Update the file on the backend
+      await axios.patch(
+        `http://127.0.0.1:5000/update-file/${activeFile.id}`,
+        newFile
+      );
 
-        setExistingFiles((prev) =>
-          prev.map((file) =>
-            file.id === activeFile.id
-              ? { ...file, file_text: courtCaseValue }
-              : file
-          )
-        );
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+      // Update the existing files in the state
+      setExistingFiles((prev) =>
+        prev.map((file) =>
+          file.id === activeFile.id
+            ? { ...file, file_text: courtCaseValue }
+            : file
+        )
+      );
+      setEditCase(false); // Exit edit mode after saving
+      setCancelEdit(false); // Reset cancel state
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
+  const handleCancelEdit = () => {
     setCancelEdit(false);
-    setEditCase(false);
+    setEditCase(false); // Exit edit mode
+    setCourtCaseValue(activeFile.file_text); // Reset the text area to its original state
   };
 
   const handleFileAdd = async () => {
     console.log(courtCaseLink);
-    setLoading(true);
+    setLoadingModal(true);
     try {
       const response = await axios.post("http://127.0.0.1:5000/send-file", {
         link: courtCaseLink,
@@ -144,7 +140,7 @@ const Summarizer = () => {
     } catch (error) {
       console.error("Error adding file:", error);
     } finally {
-      setLoading(false);
+      setLoadingModal(false);
       setIsModalOpen(false);
     }
 
@@ -241,7 +237,7 @@ const Summarizer = () => {
         courtCaseLink={courtCaseLink}
         setCourtCaseLink={setCourtCaseLink}
         handleFileAdd={handleFileAdd}
-        loading={loading}
+        loading={loadingModal}
       />
 
       <div className="bg-customGray text-black h-screen">
@@ -262,9 +258,9 @@ const Summarizer = () => {
                       }`}
                       onClick={() => handleFileClick(file)}
                     >
-                      {file.file_name.length > 35
+                      {file.file_name && file.file_name.length > 35
                         ? `${file.file_name.slice(0, 35)}...`
-                        : file.file_name}
+                        : file.file_name || "Untitled"}
                     </li>
                   ))
                 ) : (
@@ -305,7 +301,7 @@ const Summarizer = () => {
             <div className="relative">
               <textarea
                 className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
-                value={courtCaseValue}
+                value={courtCaseValue ? courtCaseValue : "No case selected"}
                 onChange={(e) => setCourtCaseValue(e.target.value)}
                 readOnly={!editCase}
                 style={{ paddingBottom: "2.5rem" }}
@@ -370,6 +366,7 @@ const Summarizer = () => {
                     className={`loading-text fade-text ${
                       isFadingOut ? "hidden" : ""
                     }`}
+                    style={{ color: "black" }}
                   >
                     {loadingText}
                   </p>

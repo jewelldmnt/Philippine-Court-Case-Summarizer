@@ -303,21 +303,26 @@ const Statistics = () => {
             </div>
           </div>
 
-          {/* WordClouds Section */}
           <div className="flex flex-col space-y-6">
+            <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
+              STATISTICS OF THE PRODUCED SUMMARY
+            </p>
+            {/* Unigram Word Cloud */}
             <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
               <p className="font-bold text-[15px] ml-4 mb-2">
                 Unigram Word Cloud
               </p>
-              <div className="flex justify-center">
+              <div className="relative w-full h-full flex justify-center">
                 <WordCloud stats={wordStatsList} />
               </div>
             </div>
+
+            {/* Bigram Word Cloud */}
             <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
               <p className="font-bold text-[15px] ml-4 mb-2">
                 Bigram Word Cloud
               </p>
-              <div className="flex justify-center">
+              <div className="relative w-full h-full flex justify-center">
                 <WordCloud stats={bigramStatsList} />
               </div>
             </div>
