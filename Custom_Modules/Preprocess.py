@@ -331,9 +331,14 @@ class preprocess:
             # Replaces the Unicode prime symbol (′) with a space.
             text = re.sub(r"\u2032", "'", text)
 
-            # Replace possessive forms like "person's" or "persons'"
-            cleaned_text = re.sub(r"(\w+)'s", r'\1', text)  # Handles "person's" -> "person"
-            cleaned_text = re.sub(r"(\w+)s'", r'\1', cleaned_text)  # Handles "peoples'" -> "people"
+            # Replaces the symbol (’) with (').
+            text = re.sub(r"’", "'", text)
+            
+            # Replaces the symbol (’) with (').
+            text = re.sub(r"”", '"', text)
+
+            # Handles "person's" -> "person" and "peoples'" -> "people"
+            text = re.sub(r"(\w+)'s|(\w+)s'", r"\1\2", text) 
 
             # Replaces instances of 'section 1.' (or any number) with 'section 1', removing the dot after the number.
             text = re.sub(r"section (\d+)\.", r"section \1", text)
