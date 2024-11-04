@@ -1,3 +1,9 @@
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore virtual environment folder
+venv/
 
 testing and fucking debugging/facts_seq_to_seq.keras
 testing and fucking debugging/issues_seq_to_seq.keras
