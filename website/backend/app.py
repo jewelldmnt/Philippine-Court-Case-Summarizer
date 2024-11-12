@@ -387,7 +387,7 @@ def get_preprocessed(id):
     - JSON: An error message if preprocessing fails or if the file is not found.
     """
     try:
-        from Custom_Modules.TestingPreprocessing import Preprocessing
+        from Custom_Modules.Preprocess import preprocess
 
         file = db.session.get(File, id)
         if file is None:
@@ -401,10 +401,10 @@ def get_preprocessed(id):
         # summary = "TITLE:"+ "\n" + file.file_name+ "\n\n" + summarize_case(court_case_text)
         # print(summary)
 
-        preprocessor = Preprocessing()
+        preprocessor = preprocess(is_training=False)
 
-        cleaned_text = preprocessor.clean_text(court_case_text)
-        tokenized_paragraphs = preprocessor.tokenize_by_paragraph(cleaned_text)
+        cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
+        tokenized_paragraphs = preprocessor.segment_paragraph(cleaned_text)
 
         return jsonify({"cleaned_text": tokenized_paragraphs}), 200
 
@@ -427,18 +427,15 @@ def get_segmented():
     - JSON: An error message if segmentation fails.
     """
     try:
-        from Custom_Modules.TestingParagraphSegmentation import (
-            ParagraphSegmentation,
-        )
+        from Custom_Modules.TopicSegmentation import TopicSegmentation
 
         data = request.json
         preprocessed_case = data.get("cleaned_text")
 
-        segmentation = ParagraphSegmentation(model_path="75")
-        split_paragraphs = segmentation.split_paragraph(preprocessed_case)
+        segmentation = TopicSegmentation(model_path="75")
         print(split_paragraphs)
         predicted_labels = segmentation.sequence_classification(
-            split_paragraphs
+            preprocessed_case, threshold=0.5
         )
 
         if not preprocessed_case:
