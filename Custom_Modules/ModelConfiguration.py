@@ -1,3 +1,41 @@
+# =============================================================================
+# Program Title: BART Model Configuration for Sequence Classification
+# Programmers: Miguel Tolentino
+# Date Written: September 29, 2024
+# Date Revised: October 14, 2024
+#
+# Purpose: 
+#     This program is designed to configure and preprocess a BART model for sequence classification tasks. 
+#     The model classifies text into three categories: 'rulings', 'facts', and 'issues'. It includes the 
+#     configuration of the BART model and tokenizer, as well as handling unknown tokens that may appear 
+#     in the input data.
+#     
+#     The goal is to configure a pre-trained BART model for classification tasks, allowing it to classify 
+#     legal text or other types of documents into predefined categories.
+#
+# Where the program fits in the general system design:
+#     This program is part of a larger pipeline for document classification. It processes the input data by 
+#     tokenizing and identifying unknown tokens that need to be added to the model's tokenizer. Once the model 
+#     is configured, it can be used for tasks such as text classification, specifically categorizing legal text 
+#     into 'rulings', 'facts', and 'issues'.
+#
+# Data Structures, Algorithms, and Control:
+#     - Data Structures:
+#         - **Dictionary (`id2label`)**: A mapping from label IDs to label names ('rulings', 'facts', 'issues').
+#         - **Dictionary (`label2id`)**: A mapping from label names ('rulings', 'facts', 'issues') to label IDs.
+#         - **List (`unknown_tokens`)**: A list of tokens that are not found in the tokenizer's vocabulary.
+#     - Algorithms:
+#         - **Tokenization**: Prepares the input data by converting text into tokens using the BART tokenizer.
+#         - **Unknown Token Detection**: Identifies tokens not found in the tokenizer's vocabulary and adds them to the 
+#           model's tokenizer.
+#         - **Model Configuration**: Resizes the model's token embeddings based on the updated vocabulary and removes 
+#           unnecessary fields for generation.
+#     - Control:
+#         - The program follows a sequential execution flow: tokenization, unknown token detection, model configuration, 
+#           and resizing of token embeddings. Error handling is built-in to handle issues such as unknown tokens.
+# =============================================================================
+
+
 from transformers import BartTokenizer, BartForSequenceClassification
 import IPython.display
 # Clear the output and print value count

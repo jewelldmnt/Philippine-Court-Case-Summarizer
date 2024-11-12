@@ -1,3 +1,44 @@
+# =============================================================================
+# Program Title: Token Analysis and Visualization for Tokenized Text Data
+# Programmer: Miguel Tolentino
+# Date Written: October 1, 2024
+# Date Revised: [October 1, 2024
+#
+# Purpose:
+#     This program provides various visualization and analysis methods for working with tokenized text data.
+#     It includes functions for generating word clouds, plotting token counts, calculating averages,
+#     and analyzing token lengths in lists of tokenized text. The program aims to help users gain insights into 
+#     token distributions and other statistics by providing visual and numerical representations of tokenized data.
+#
+# Where the program fits in the general system design:
+#     This program can be integrated into text analysis systems that require token-level analysis and visualization,
+#     such as natural language processing (NLP) pipelines, document summarization tools, or any system where 
+#     understanding token usage and distribution is essential. It can also be used in educational contexts to teach 
+#     tokenization and token-based analysis techniques.
+#
+# Data Structures, Algorithms, and Control:
+#     - Data Structures:
+#         - **List of Lists (`lists_of_tokens`)**: A list of tokenized text data where each sublist represents 
+#           tokens from a specific document or text segment.
+#         - **Dictionary (`token_counts`)**: Stores the frequency of each token in the entire dataset, used in 
+#           functions like `wordcloud` and `plot_top_tokens`.
+#     - Algorithms:
+#         - **Token Frequency Counting**: The `wordcloud` and `plot_top_tokens` functions utilize a frequency counting 
+#           algorithm to identify the most common tokens within the provided token lists.
+#         - **Visualization**: The `wordcloud` function generates a word cloud, and `plot_top_tokens` creates a bar 
+#           chart displaying the most frequent tokens.
+#         - **Token Length Analysis**: The `average_token_length` function computes the average, highest, and lowest 
+#           token lengths in a given dataset.
+#     - Control:
+#         - The program includes functions for:
+#           1. Generating word clouds based on token frequencies.
+#           2. Plotting the most frequent tokens using bar charts.
+#           3. Plotting token counts for three different lists of tokens.
+#           4. Printing out the average, highest, and lowest token counts for three different lists.
+#         - Exception handling is embedded in the `average_token_length` function to manage cases where there are no tokens.
+# =============================================================================
+
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np

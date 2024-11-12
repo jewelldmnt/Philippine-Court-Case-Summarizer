@@ -1,3 +1,37 @@
+# =============================================================================
+# Program Title: BART Model Training, Evaluation, and Metric Calculation for Legal Document Classification
+# Programmer: Miguel Tolentino
+# Date Written: September 29, 2024
+# Date Revised: October 9, 2024
+#
+# Purpose:
+#     This program is designed to train and evaluate a BART model for the classification of legal documents. 
+#     It preprocesses and tokenizes data, trains the BART model using the Hugging Face Trainer, and computes 
+#     various evaluation metrics such as accuracy, F1 score, and recall. The program also includes functionality 
+#     for visualizing the model's performance through confusion matrices.
+#     
+# Where the program fits in the general system design:
+#     This program is part of a broader legal document classification system that automates the categorization of 
+#     legal texts into predefined classes. It processes datasets, trains the BART model on them, evaluates its 
+#     performance, and presents visual and quantitative results that inform system improvements.
+#
+# Data Structures, Algorithms, and Control:
+#     - Data Structures:
+#         - **Dataset (`train_data`, `eval_data`)**: Used for training and evaluating the BART model.
+#         - **List (`all_predictions`, `all_labels`)**: Used to store predictions and labels during evaluation.
+#         - **TrainingArguments**: Contains configuration parameters for the training process.
+#         - **Trainer**: Hugging Face Trainer class used to manage the training and evaluation pipeline.
+#     - Algorithms:
+#         - **Text Preprocessing**: Tokenizes and prepares data using the BART tokenizer.
+#         - **BART Model Training**: Utilizes the Hugging Face Trainer for efficient model training.
+#         - **Metrics Calculation**: Computes accuracy, F1 score, and recall during evaluation using custom metrics.
+#         - **Confusion Matrix Plotting**: Uses sklearn and seaborn to visualize model predictions vs. actual labels.
+#     - Control:
+#         - The program is organized into a sequential flow: initialization, training, evaluation, and metric calculation.
+#         - Exception handling is employed to ensure robust processing and safe access to tensor data types and shapes.
+# =============================================================================
+
+
 import evaluate
 import numpy as np
 import torch

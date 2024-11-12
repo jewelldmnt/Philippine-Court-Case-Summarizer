@@ -1,3 +1,47 @@
+# =============================================================================
+# Program Title: Topic Segmentation Using Fine-tuned BART Model
+# Programmer: Jewell Anne Diamante
+# Date Written: October 9, 2024
+# Date Revised: October 14, 2024
+#
+# Purpose:
+#     This program leverages a fine-tuned BART (Bidirectional and Auto-Regressive Transformer) model for sequence 
+#     classification to perform topic segmentation on textual data. It classifies text paragraphs into predefined 
+#     categories such as 'facts', 'issues', and 'rulings' based on their content. The model's predictions are 
+#     then used to organize the paragraphs into respective segments and output them in a structured format.
+#
+# Where the program fits in the general system design:
+#     This program fits into a natural language processing (NLP) pipeline where the goal is to segment legal or 
+#     similar structured documents into meaningful sections. It could be part of a larger system used for document 
+#     classification, summarization, or information extraction, specifically in contexts like legal case analysis 
+#     or other structured text domains.
+#
+# Data Structures, Algorithms, and Control:
+#     - Data Structures:
+#         - **Dictionary (`tokenized_paragraphs`)**: Holds paragraphs as keys and their respective tokens or content as values. 
+#           This is used for sequential classification where each paragraph is evaluated individually.
+#         - **Dictionary (`predicted_labels_dict`)**: Stores the predicted labels for each paragraph, mapping the content to the 
+#           predicted category ('facts', 'issues', 'rulings').
+#         - **Dictionary (`categorized_dict`)**: This dictionary organizes paragraphs into categories based on their predicted labels. 
+#           The keys are 'facts', 'issues', and 'rulings', with values being lists of paragraphs belonging to those categories.
+#     - Algorithms:
+#         - **Sequence Classification**: The `sequence_classification` method tokenizes input paragraphs, performs inference with 
+#           the fine-tuned BART model, and assigns labels ('facts', 'issues', 'rulings') to each paragraph based on predicted 
+#           probabilities. The class also tracks the previous label to avoid shifting classification when the model's confidence 
+#           is below a specified threshold.
+#         - **Label Mapping and Segmentation**: The `label_mapping` function organizes paragraphs into their respective categories 
+#           ('facts', 'issues', 'rulings') based on predicted labels.
+#         - **Writing Output**: The `write_output_segments` function sorts the paragraphs into categories and writes the segmented 
+#           output into a text file for easy viewing and further processing.
+#     - Control:
+#         - The program flows sequentially, starting with loading the model, followed by classifying the text, categorizing 
+#           the paragraphs, and finally writing the categorized output into a text file.
+#         - It uses a threshold to ensure that only confident predictions are considered valid. If the model's probability is 
+#           below the threshold, the program retains the previous label to maintain consistency in the segmentation process.
+#         - File operations (reading and writing) are implemented with careful handling to ensure proper encoding and output.
+# =============================================================================
+
+
 import re
 import torch
 from transformers import BartForSequenceClassification, BartTokenizer

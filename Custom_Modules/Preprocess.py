@@ -1,3 +1,48 @@
+# =============================================================================
+# Program Title: Data Preprocessing
+# Programmer: Miguel Tolentino, Jewell Anne Diamante
+# Date Written: September 29, 2024
+# Date Revised: October 16, 2024
+#
+# Purpose:
+#     This program is designed to preprocess legal document datasets to prepare them for input into a finetuned BART model 
+#     for classification. It performs tokenization, padding, truncation, and cleaning of text data to ensure that 
+#     the input is in the correct format for the model. The preprocessing steps are tailored for handling legal text 
+#     documents, ensuring that all relevant information is captured while ensuring efficient model performance.
+#     
+# Where the program fits in the general system design:
+#     This program is part of a legal document classification system where preprocessing is a crucial first step 
+#     before training the model. By transforming raw legal text data into tokenized and clean input, the system ensures 
+#     that the BART model can learn from well-prepared data, ultimately improving the classification accuracy.
+#     
+# Data Structures, Algorithms, and Control:
+#     - Data Structures:
+#         - **Dataset (`raw_data`, `preprocessed_data`)**: The `raw_data` consists of legal documents in their original 
+#           form. The `preprocessed_data` is the tokenized and cleaned dataset that is ready for model input.
+#         - **List (`tokens`)**: Stores tokenized text for each document. Each document's text is split into tokens 
+#           using the BART tokenizer.
+#         - **TextField/Tokenize (`BART tokenizer`)**: A tokenizer that converts raw text data into tokenized format 
+#           compatible with the BART model, handling subword tokenization.
+#     
+#     - Algorithms:
+#         - **Text Cleaning**: The preprocessing step includes removing unnecessary characters (e.g., punctuation, 
+#           special characters), standardizing text (e.g., converting all text to lowercase), and eliminating stopwords 
+#           and other irrelevant data to focus the model's attention on the most meaningful parts of the legal documents.
+#         - **Tokenization**: The BART tokenizer converts raw text into tokens, with each token representing words, 
+#           subwords, or characters, depending on the model's needs. This step also handles padding and truncation of text 
+#           sequences to ensure they fit within the model’s maximum sequence length.
+#         - **Padding and Truncation**: This step ensures that all tokenized inputs are of uniform length by padding 
+#           shorter sequences and truncating longer ones to the predefined maximum length set by the BART model. This 
+#           ensures compatibility with the model’s architecture, which requires inputs of the same size.
+#     
+#     - Control:
+#         - The program processes data in a sequential flow: text is first cleaned, then tokenized, followed by padding 
+#           and truncation. Afterward, the preprocessed data is prepared for input into the model. 
+#         - Exception handling is applied to ensure the text is clean and properly tokenized, and that the dataset is 
+#           correctly formatted for the model’s input layer.
+# =============================================================================
+
+
 from nltk.tokenize import RegexpTokenizer
 import pandas as pd
 import numpy as np

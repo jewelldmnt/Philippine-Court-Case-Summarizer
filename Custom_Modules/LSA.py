@@ -1,3 +1,44 @@
+# =============================================================================
+# Program Title: Latent Semantic Analysis (LSA)
+# Programmers: Jewell Anne Diamante
+# Date Written: September 10, 2024
+# Date Revised: October 11, 2024
+#
+# Purpose: 
+#     This program processes legal texts by segmenting them into sections (facts, issues, and rulings) 
+#     and generates a concise summary using Latent Semantic Analysis (LSA). The output summary allows 
+#     legal professionals and automated systems to quickly obtain an overview of the case content.
+#     
+#     The program supports efficient legal document analysis, enhancing workflows by providing a structured 
+#     summary of complex court cases.
+#
+# Where the program fits in the general system design: 
+#     The LSA-based Text Summarization module is a core component within a legal document analysis system. 
+#     It automates the extraction and summarization of court case information, aiding in quick retrieval and 
+#     understanding of key case elements. This module contributes to downstream system features like search, 
+#     classification, and recommendation engines, facilitating improved document management and analysis.
+#
+# Data Structures, Algorithms, and Control:
+#     - Data Structures:
+#         - **text_dict**: A dictionary holding segmented text data for "facts," "issues," and "rulings".
+#         - **summary**: A dictionary that stores the top-ranked sentences for each section after processing.
+#     - Algorithms:
+#         - **TF-IDF Vectorization**: Transforms sentences into a term-sentence matrix for feature extraction.
+#         - **Singular Value Decomposition (SVD)**: Reduces dimensionality of the term-sentence matrix, identifying 
+#           the most relevant sentences.
+#         - **Sentence Ranking**: Sentences are ranked by relevance scores, with the top-ranked sentences selected 
+#           for inclusion in the final summary.
+#     - Control:
+#         - The program follows a linear execution flow: 
+#           1. text preprocessing 
+#           2. topic segmentatioin
+#           3. matrix creation
+#           4. SVD application, 
+#           5. sentence ranking
+#           6. summary generation. 
+# =============================================================================
+
+
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer

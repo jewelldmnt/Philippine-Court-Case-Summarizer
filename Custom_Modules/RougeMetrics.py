@@ -1,3 +1,44 @@
+# =============================================================================
+# Program Title: ROUGE Score Computation for Summarization Evaluation
+# Programmer: Jewell Anne Diamante
+# Date Written: October 9, 2024
+# Date Revised: October 14, 2024
+#
+# Purpose:
+#     This program is designed to compute the ROUGE (Recall-Oriented Understudy for Gisting Evaluation) scores 
+#     between human-generated and AI-generated summaries. The ROUGE metric evaluates the quality of summaries by 
+#     comparing n-grams, word sequences, and sentence-level structures between a reference (human) summary and 
+#     the candidate (AI-generated) summary. It calculates three primary components: recall, precision, and F1 score 
+#     for ROUGE-1 (unigram), ROUGE-2 (bigram), and ROUGE-L (longest common subsequence).
+#
+# Where the program fits in the general system design:
+#     This program serves as part of an automated evaluation system for summarization tasks, specifically comparing 
+#     AI-generated summaries against human references. It aids in assessing the quality of AI models and tuning them for 
+#     better summarization performance, which is critical in NLP-based applications like legal document summarization, 
+#     news summarization, and research paper summarization.
+#
+# Data Structures, Algorithms, and Control:
+#     - Data Structures:
+#         - **String (`human_summary`)**: The reference human-generated summary, read from a file.
+#         - **String (`ai_summary`)**: The candidate AI-generated summary, read from a file.
+#         - **Dictionary (`rouge_scores`)**: Contains ROUGE scores (recall, precision, and F1) for each ROUGE metric 
+#           (ROUGE-1, ROUGE-2, ROUGE-L).
+#     - Algorithms:
+#         - **File Reading**: The `read_file` function reads the content of text files and returns it as a string. It raises 
+#           a `FileNotFoundError` if the file does not exist.
+#         - **ROUGE Scoring**: The `compute_rouge_scores` function utilizes the `rouge_scorer` from the `rouge_score` library 
+#           to compute ROUGE scores (recall, precision, and F1) between a human summary and an AI summary. It computes the 
+#           ROUGE-1 metric by default and can be extended to other ROUGE metrics.
+#     - Control:
+#         - The program follows a step-by-step procedure:
+#           1. It reads the human summary and AI-generated summary from specified file paths.
+#           2. It computes ROUGE scores by calling the `compute_rouge_scores` function.
+#           3. It prints the computed ROUGE scores (recall, precision, F1) for each metric (ROUGE-1).
+#         - Exception handling is implemented in the `read_file` function to ensure safe file access and prevent crashes 
+#           if a file is missing.
+# =============================================================================
+
+
 from rouge_score import rouge_scorer
 import os
 
