@@ -1,3 +1,57 @@
+# =============================================================================
+# Program Title: Legal Document Analysis Application
+# Programmers: Nicholas Dela Torre
+# Date Written: October 12, 2024
+# Date Revised: October 16, 2024
+#
+# Purpose:
+#     This application serves as the main entry point for a comprehensive
+#     legal document analysis system, offering segmentation, summarization,
+#     and insight generation from court case texts. It utilizes Latent
+#     Semantic Analysis (LSA) to extract key information and present
+#     a concise summary that highlights essential case elements (facts,
+#     issues, and rulings).
+#
+#     By providing structured, summarized information, this application
+#     enables legal professionals and automated systems to quickly review
+#     complex legal documents, enhancing efficiency in legal research
+#     and document management tasks.
+#
+# Where the program fits in the general system design:
+#     As the main application driver, app.py orchestrates the loading,
+#     processing, and summarizing of legal texts within the system. It
+#     interacts with other components like the LSA module, topic segmentation,
+#     and a document repository to provide end-to-end analysis and summary
+#     generation.
+#     
+#     The application is intended for use in legal research tools, content
+#     management systems, or integrated workflows, supporting rapid document
+#     retrieval, classification, and recommendation.
+#
+# Data Structures, Algorithms, and Control:
+#     - Data Structures:
+#         - **case_data**: A dictionary storing raw and processed text data
+#           for legal documents, including segments for facts, issues, and
+#           rulings.
+#         - **summaries**: A dictionary holding generated summaries for each
+#           document, organized by section.
+#     - Algorithms:
+#         - **Text Preprocessing**: Cleans and prepares raw text for
+#           analysis, including tokenization and stopword removal.
+#         - **Topic Segmentation**: Divides documents into meaningful sections
+#           (facts, issues, rulings) for targeted summarization.
+#         - **Latent Semantic Analysis (LSA)**: Applies TF-IDF vectorization
+#           and Singular Value Decomposition (SVD) to identify and rank
+#           the most relevant sentences in each section.
+#     - Control:
+#         - The main application flow follows these steps:
+#           1. Document loading and preprocessing
+#           2. Topic segmentation
+#           3. LSA-based summarization
+#           4. Summary generation and display
+# =============================================================================
+
+
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -14,6 +68,20 @@ import re
 
 
 def scrape_court_case(url):
+    """
+    Description:
+    Scrapes a court case from the specified URL, extracting the title and main content text,
+    while cleaning and formatting the text.
+
+    Parameters:
+    - url (str): The URL of the court case to scrape.
+
+    Returns:
+    - dict: A dictionary with the following keys:
+        - "title" (str): The title of the court case.
+        - "case_text" (str): The cleaned text content of the court case.
+    - None: Returns None if there was an error during scraping or processing.
+    """
     try:
         result = requests.get(url)
         result.raise_for_status()  # Raises an error for any non-200 status codes
@@ -118,11 +186,29 @@ class File(db.Model):
 
 @app.route("/hello")
 def hello():
+    """
+    Description:
+    A simple test endpoint to verify the server is running.
+
+    Parameters: None
+
+    Returns:
+    - str: A "hello" message.
+    """
     return "hello"
 
 
 @app.route("/get-files", methods=["GET"])
 def get_files():
+    """
+    Description:
+    Retrieves all file entries from the database and returns them in JSON format.
+
+    Parameters: None
+
+    Returns:
+    - JSON: A JSON array of files, where each file is represented as a dictionary.
+    """
     files = File.query.all()
     result = [file.to_json() for file in files]
     return jsonify(result)
@@ -130,6 +216,17 @@ def get_files():
 
 @app.route("/send-file", methods=["POST"])
 def send_file():
+    """
+    Description:
+    Processes a court case from a provided link, saves its text content to a file,
+    stores the file in the database, and deletes the temporary file.
+
+    Parameters: None (expects JSON body with "link" field)
+
+    Returns:
+    - JSON: A JSON message indicating success and the file name.
+    - JSON: Error messages if any part of the process fails (400 or 500 status).
+    """
     import re
 
     try:
@@ -216,6 +313,17 @@ def send_file():
 
 @app.route("/delete-file/<int:id>", methods=["DELETE"])
 def delete_file(id):
+    """
+    Description:
+    Deletes a specified file entry from the database based on its ID.
+
+    Parameters:
+    - id (int): The ID of the file to delete.
+
+    Returns:
+    - JSON: A success message if the file was deleted.
+    - JSON: An error message if the file was not found or if deletion failed.
+    """
     try:
         file = db.session.get(File, id)
         if file is None:
@@ -231,6 +339,17 @@ def delete_file(id):
 
 @app.route("/update-file/<int:id>", methods=["PATCH"])
 def update_file(id):
+    """
+    Description:
+    Updates an existing file's name, text, and content in the database.
+
+    Parameters:
+    - id (int): The ID of the file to update.
+
+    Returns:
+    - JSON: The updated file information in JSON format.
+    - JSON: Error messages if the file is not found or if the update failed.
+    """
     try:
         file = db.session.get(File, id)
         if file is None:
@@ -255,6 +374,18 @@ def update_file(id):
 
 @app.route("/get-preprocessed/<int:id>", methods=["POST"])
 def get_preprocessed(id):
+    """
+    Description:
+    Retrieves and preprocesses the text of a specified court case file using custom preprocessing,
+    such as cleaning and tokenizing paragraphs.
+
+    Parameters:
+    - id (int): The ID of the court case file.
+
+    Returns:
+    - JSON: The cleaned and tokenized paragraphs of the case text.
+    - JSON: An error message if preprocessing fails or if the file is not found.
+    """
     try:
         from Custom_Modules.TestingPreprocessing import Preprocessing
 
@@ -284,6 +415,17 @@ def get_preprocessed(id):
 
 @app.route("/get-segmented", methods=["POST"])
 def get_segmented():
+    """
+    Description:
+    Segments the preprocessed court case text into labeled sections (e.g., facts, issues, rulings)
+    using a custom paragraph segmentation model.
+
+    Parameters: None (expects JSON body with "cleaned_text" field)
+
+    Returns:
+    - JSON: The segmented case text with predicted labels.
+    - JSON: An error message if segmentation fails.
+    """
     try:
         from Custom_Modules.TestingParagraphSegmentation import (
             ParagraphSegmentation,
@@ -311,6 +453,17 @@ def get_segmented():
 
 @app.route("/get-summarized/<int:id>", methods=["POST"])
 def get_summarized(id):
+    """
+    Description:
+    Generates a summary for a segmented court case text using Latent Semantic Analysis (LSA).
+
+    Parameters:
+    - id (int): The ID of the court case file.
+
+    Returns:
+    - JSON: The generated summary with the case title.
+    - JSON: An error message if summarization fails or if the case file is not found.
+    """
     try:
         from Custom_Modules.LSA import LSA
 
