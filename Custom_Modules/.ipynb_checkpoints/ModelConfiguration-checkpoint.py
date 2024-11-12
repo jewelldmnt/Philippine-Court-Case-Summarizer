@@ -1,4 +1,23 @@
+'''
+Program Title: TopicSegmentation
+
+Programmers: Miguel Tolentino
+
+Where the program fits in the general system designs: (add)
+
+Date written and revised: (add)
+
+Purpose: (add)
+
+Data structures, algorithms, and control: (add)
+
+'''
+
+
 from transformers import BartTokenizer, BartForSequenceClassification
+import IPython.display
+# Clear the output and print value count
+IPython.display.clear_output(wait=True)
 
 class model_configure:
     def __init__(self):
@@ -29,6 +48,9 @@ class model_configure:
         """
         Identifies unknown tokens in the dataset that are not present in the tokenizer's vocabulary and
         adds them to a list of unknown tokens.
+
+        Parameters:
+            sentence_tokens: List of tokens of each sentences in the dataset.
         """
         unk_id = self.BART_tokenizer.unk_token_id
         for tokens in sentence_tokens:
@@ -42,7 +64,12 @@ class model_configure:
         """
         Configures the BART model by resizing token embeddings based on the new vocabulary and removing
         unnecessary fields for generation. Adds unknown tokens to the tokenizer if found.
+
+        Parameters:
+            sentence_tokens: List of tokens of each sentences in the dataset.
         """
+        # Clear the output and print value count
+        IPython.display.clear_output(wait=True)
         self.find_unknown_token(sentence_tokens)
         
         # Add the new tokens to the tokenizer
@@ -63,4 +90,4 @@ class model_configure:
         if hasattr(self.BART_model.config, 'forced_bos_token_id'):
             del self.BART_model.config.forced_bos_token_id
 
-        print('Model Configured!')
+        print('Model Configuration Completed')

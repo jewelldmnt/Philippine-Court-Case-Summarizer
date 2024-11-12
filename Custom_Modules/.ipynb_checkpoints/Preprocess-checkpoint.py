@@ -1,3 +1,19 @@
+'''
+Program Title: Preprocess
+
+Programmers: Miguel Tolentino, Jewell Anne Diamante
+
+Where the program fits in the general system designs: The program is designed to accept raw data, a CSV file
+
+Date written and revised: (add)
+
+Purpose: (add)
+
+Data structures, algorithms, and control: (add)
+
+'''
+
+
 from nltk.tokenize import RegexpTokenizer
 import pandas as pd
 import numpy as np
