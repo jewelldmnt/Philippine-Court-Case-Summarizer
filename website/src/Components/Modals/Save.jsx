@@ -1,3 +1,37 @@
+/**
+ * Program Title: Court Case Summarizer - Save Component
+ *
+ * Programmer: Nicholas Dela Torre
+ * Date Written: October 12, 2024
+ * Date Revised: October 12, 2024
+ *
+ * Purpose:
+ *    This component displays a success message when changes to a court case
+ *    have been successfully saved. It provides a visual confirmation to the user,
+ *    letting them know that their changes have been applied.
+ *
+ * Where the Program Fits in the General System Design:
+ *    The Save component serves as a feedback mechanism to inform the user
+ *    that their changes have been successfully saved. It can be used in various
+ *    parts of the application where changes are made to court cases, such as
+ *    after editing or updating case details.
+ *
+ * Dependencies and Resources:
+ *    - React: Functional component for rendering and handling user interactions.
+ *    - react-icons: Used for the success checkmark icon (IoCheckmarkDone).
+ *    - Tailwind CSS: Used for styling the modal, text, and button elements.
+ *
+ * Control Flow and Logic:
+ *    1. `open`: Controls the visibility of the modal. The modal will only be visible if `open` is true.
+ *    2. `save`: Function to close the modal and acknowledge the saved changes.
+ *    3. The modal includes a single action button:
+ *       - `Okay`: Closes the modal and confirms the changes have been saved.
+ *
+ * Key Variables:
+ *    - `open`: Boolean value that determines whether the modal is visible.
+ *    - `save`: Function to handle the closure of the modal and acknowledge the success.
+ */
+
 import { IoCheckmarkDone } from "react-icons/io5";
 
 const Save = ({ open, save }) => {

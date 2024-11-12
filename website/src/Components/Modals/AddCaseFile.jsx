@@ -1,3 +1,43 @@
+/**
+ * Program Title: Court Case Summarizer - AddCaseModal Component
+ *
+ * Programmer: Nicholas Dela Torre
+ * Date Written: October 12, 2024
+ * Date Revised: October 12, 2024
+ *
+ * Purpose:
+ *    This component provides a modal dialog for adding a new court case to the
+ *    system. It allows users to input a link to a court case, display a loading
+ *    spinner while the case is being added, and handles the process of adding the
+ *    case via the backend.
+ *
+ * Where the Program Fits in the General System Design:
+ *    The AddCaseModal component serves as a user interface element for interacting
+ *    with the backend, facilitating the addition of new court cases. It integrates
+ *    with the court case summarizer system to upload new cases and manage them within
+ *    the system.
+ *
+ * Dependencies and Resources:
+ *    - React: Functional component for rendering and handling user input.
+ *    - react-icons: Used for the "Add" button icon (FaCirclePlus).
+ *    - Tailwind CSS: For styling modal and form elements.
+ *    - Custom spinner: CSS for handling the loading spinner animation.
+ *
+ * Control Flow and Logic:
+ *    1. `open`: Controls the visibility of the modal. If `open` is false, the modal
+ *       will not render.
+ *    2. `handleFileAdd`: Handles the submission of the court case link to the backend.
+ *    3. Conditional Rendering: Displays the loading spinner and disables form elements
+ *       while the case is being added.
+ *    4. `onClose`: Closes the modal when the cancel button is clicked.
+ *
+ * Key Variables:
+ *    - `courtCaseLink`: Holds the value of the court case link entered by the user.
+ *    - `setCourtCaseLink`: Function to update the `courtCaseLink` state.
+ *    - `loading`: Boolean value indicating whether the case is being processed.
+ *    - `handleFileAdd`: Function triggered to add the court case.
+ */
+
 import React from "react";
 import { FaCirclePlus } from "react-icons/fa6";
 import "../../assets/spinner.css";

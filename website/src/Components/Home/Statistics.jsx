@@ -1,3 +1,55 @@
+/**
+ * Program Title: Court Case Summarizer - Statistics Component
+ *
+ * Programmers: Nicholas Dela Torre, Jino Llamado
+ * Date Written: October 12, 2024
+ * Date Revised: October 12, 2024
+ *
+ * Purpose:
+ *    This component is part of the Court Case Summarizer project and is designed
+ *    to analyze and display word statistics and frequency visualizations (unigrams
+ *    and bigrams) for selected court case files. It enables users to understand
+ *    key terms and phrase patterns within each case file.
+ *
+ * Where the Program Fits in the General System Design:
+ *    The Statistics component is part of the frontend user interface, connecting
+ *    to a backend API to retrieve court case files. It computes word and bigram
+ *    frequencies, displaying them as tables and word clouds. This component supports
+ *    the Summarizer's goal of enhancing readability and comprehension of lengthy
+ *    legal documents.
+ *
+ * Dependencies and Resources:
+ *    - React: Functional component structure for rendering and managing state.
+ *    - Axios: For HTTP requests to fetch court case data from the backend API.
+ *    - WordCloud (Custom Component): For visualizing word and bigram frequency
+ *      as word clouds.
+ *    - CSS (WordCloud Styling): Custom styles are imported from
+ *      "assets/wordcloud.css" for word cloud visuals.
+ *    - Tailwind CSS classes: Used extensively for styling the layout and components.
+ *
+ * Control Flow and Logic:
+ *    1. `calculateWordFrequencies`: Processes court case text, removes stopwords,
+ *       and calculates unigram frequencies.
+ *    2. `calculateBigramFrequencies`: Processes text to generate and calculate
+ *       bigram frequencies.
+ *    3. `handleFileClick`: Sets the active file and computes unigram and bigram
+ *       statistics for the selected file.
+ *    4. `useEffect`: Fetches the list of available files from the backend API
+ *       when the component mounts.
+ *
+ * Key Variables:
+ *    - `existingFiles`: Stores the list of court case files retrieved from the
+ *      backend.
+ *    - `activeFile`: Tracks the currently selected court case file.
+ *    - `courtCaseValue`: Holds the text of the active court case for analysis.
+ *    - `wordStatsList`: Contains the top 10 unigrams based on frequency for the
+ *      active file.
+ *    - `bigramStatsList`: Contains the top 10 bigrams based on frequency for the
+ *      active file.
+ *    - `stopwords`: An array of common words to exclude from frequency calculations
+ *      to enhance relevance.
+ */
+
 import NavBar from "../Navigation/NavBar";
 import WordCloud from "./WordCloud";
 import { useEffect, useState } from "react";

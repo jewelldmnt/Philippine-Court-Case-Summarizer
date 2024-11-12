@@ -1,3 +1,36 @@
+/**
+ * Program Title: Court Case Summarizer - Summarizer Component
+ *
+ * Programmer: Nicholas Dela Torre, Jino Llamado
+ * Date Written: October 12, 2024
+ * Date Revised: October 12, 2024
+ *
+ * Purpose:
+ *    This component is part of the Court Case Summarizer project. It provides a
+ *    user interface for uploading court case documents, allowing users to select
+ *    files, validate formats, and initiate uploads for backend analysis.
+ *
+ * Where the Program Fits in the General System Design:
+ *    The Summarizer component is a key entry point for data in the frontend.
+ *    It connects to the backend API to send and store files for processing,
+ *    enabling new court case files to enter the system for summarization.
+ *
+ * Dependencies and Resources:
+ *    - React: Functional component for handling user inputs and managing state.
+ *    - Axios: For sending HTTP requests to upload files to the backend.
+ *    - Tailwind CSS classes: Used extensively for layout and responsive styling.
+ *
+ * Control Flow and Logic:
+ *    1. `handleFileChange`: Validates the selected file format and updates state.
+ *    2. `handleUpload`: Sends the selected file to the backend API for storage.
+ *    3. `useEffect`: Logs the success or failure of the upload, handling errors.
+ *
+ * Key Variables:
+ *    - `selectedFile`: Tracks the currently chosen file to be uploaded.
+ *    - `uploadStatus`: Stores the current upload status ('pending', 'success', etc.).
+ *    - `allowedFormats`: Array of acceptable file formats (e.g., .pdf, .docx).
+ */
+
 import NavBar from "../Navigation/NavBar";
 import Delete from "../Modals/Delete";
 import Cancel from "../Modals/Cancel";
