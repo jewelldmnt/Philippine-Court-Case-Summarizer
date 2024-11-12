@@ -3,8 +3,11 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 
+
 class LSA:
-    def __init__(self, text_dict: dict, facts_pct=0.35, issues_pct=0.05, ruling_pct=0.60):
+    def __init__(
+        self, text_dict: dict, facts_pct=0.35, issues_pct=0.05, ruling_pct=0.60
+    ):
         """
         Description:
         Initialize the LSA class with text data and percentage parameters for generating the summary.
@@ -19,7 +22,7 @@ class LSA:
         self.facts_pct = facts_pct
         self.issues_pct = issues_pct
         self.ruling_pct = ruling_pct
-        self.labels = ['facts', 'issues', 'rulings']
+        self.labels = ["facts", "issues", "rulings"]
 
     def preprocess_text(self):
         """
@@ -34,11 +37,11 @@ class LSA:
         """
         sentences = []
         labels = []
-        
+
         for sentence, label in self.text_dict.items():
             sentences.append(sentence)
             labels.append(label)
-        
+
         return sentences, labels
 
     def create_term_matrix(self, sentences):
@@ -53,7 +56,7 @@ class LSA:
         - term_matrix: The term-sentence matrix produced by the TF-IDF vectorizer.
         - vectorizer: The fitted TF-IDF vectorizer.
         """
-        vectorizer = TfidfVectorizer(stop_words='english')
+        vectorizer = TfidfVectorizer(stop_words="english")
         term_matrix = vectorizer.fit_transform(sentences)
         return term_matrix, vectorizer
 
@@ -85,7 +88,9 @@ class LSA:
         - ranked_indices: A list of indices representing sentences ranked by relevance in descending order.
         """
         sentence_scores = np.sum(svd_matrix, axis=1)
-        ranked_indices = np.argsort(sentence_scores)[::-1]  # Sort sentences by score in descending order
+        ranked_indices = np.argsort(sentence_scores)[
+            ::-1
+        ]  # Sort sentences by score in descending order
         return ranked_indices
 
     def select_top_sentences(self, ranked_indices, sentences, labels):
@@ -101,25 +106,29 @@ class LSA:
         Return:
         - summary: A dictionary containing selected top sentences categorized by 'facts', 'issues', and 'ruling'.
         """
-        total_summary_sentences = int(len(sentences) * (self.facts_pct + self.issues_pct + self.ruling_pct))
-        print(f'Total summary sentences: {total_summary_sentences}')
+        total_summary_sentences = int(
+            len(sentences)
+            * (self.facts_pct + self.issues_pct + self.ruling_pct)
+        )
+        print(f"Total summary sentences: {total_summary_sentences}")
 
         # Calculate how many sentences to include from each section based on the total summary length
         facts_count = int(self.facts_pct * total_summary_sentences)
-        print(f'facts_count: {facts_count}')
+        print(f"facts_count: {facts_count}")
         issues_count = int(self.issues_pct * total_summary_sentences)
-        print(f'issues_count: {issues_count}')
+        print(f"issues_count: {issues_count}")
         ruling_count = int(self.ruling_pct * total_summary_sentences)
-        print(f'ruling_count: {ruling_count}')
-
+        print(f"ruling_count: {ruling_count}")
 
         # Adjust issues_count to select all sentences if percentage is too small
         if issues_count == 0:
-            issues_count = sum(1 for label in labels if label == 'issues')
+            issues_count = sum(1 for label in labels if label == "issues")
 
         # Ensure the total doesn't exceed total_summary_sentences
-        remaining_count = total_summary_sentences - (facts_count + issues_count + ruling_count)
-        print(f'remaining count: {remaining_count}')
+        remaining_count = total_summary_sentences - (
+            facts_count + issues_count + ruling_count
+        )
+        print(f"remaining count: {remaining_count}")
         if remaining_count > 0:
             ruling_count += remaining_count  # Assign remaining to ruling as a default strategy
 
@@ -128,12 +137,12 @@ class LSA:
         # Select top sentences based on ranking while maintaining original order
         ranked_sentences = [(sentences[i], labels[i]) for i in ranked_indices]
         for sentence, label in ranked_sentences:
-            if label == 'facts' and len(summary['facts']) < facts_count:
-                summary['facts'].append(sentence)
-            elif label == 'issues' and len(summary['issues']) < issues_count:
-                summary['issues'].append(sentence)
-            elif label == 'rulings' and len(summary['rulings']) < ruling_count:
-                summary['rulings'].append(sentence)
+            if label == "facts" and len(summary["facts"]) < facts_count:
+                summary["facts"].append(sentence)
+            elif label == "issues" and len(summary["issues"]) < issues_count:
+                summary["issues"].append(sentence)
+            elif label == "rulings" and len(summary["rulings"]) < ruling_count:
+                summary["rulings"].append(sentence)
 
         return summary
 
@@ -164,13 +173,38 @@ class LSA:
 
         # Construct the output in proper order for each section
         summary_output = "FACTS:\n"
-        summary_output += " ".join([sentence for sentence in sentences if sentence in summary['facts']]) + "\n\n"
+        summary_output += (
+            " ".join(
+                [
+                    sentence
+                    for sentence in sentences
+                    if sentence in summary["facts"]
+                ]
+            )
+            + "\n\n"
+        )
         summary_output += "ISSUES:\n"
-        summary_output += " ".join([sentence for sentence in sentences if sentence in summary['issues']]) + "\n\n"
+        summary_output += (
+            " ".join(
+                [
+                    sentence
+                    for sentence in sentences
+                    if sentence in summary["issues"]
+                ]
+            )
+            + "\n\n"
+        )
         summary_output += "RULINGS:\n"
-        summary_output += " ".join([sentence for sentence in sentences if sentence in summary['rulings']])
+        summary_output += " ".join(
+            [
+                sentence
+                for sentence in sentences
+                if sentence in summary["rulings"]
+            ]
+        )
 
         return summary_output
+
 
 # Usage Example
 if __name__ == "__main__":
@@ -183,7 +217,7 @@ if __name__ == "__main__":
         "However, one party later claimed a breach.": "facts",
         "The breach was contested in court.": "issues",
         "The final judgment favored the defendant.": "rulings",
-        "Evidence presented during the trial was insufficient.": "facts"
+        "Evidence presented during the trial was insufficient.": "facts",
     }
 
     lsa = LSA(text_dict)

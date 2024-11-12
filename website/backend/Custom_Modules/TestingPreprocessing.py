@@ -1,5 +1,6 @@
 import re
 
+
 class Preprocessing:
     def __init__(self):
         pass
@@ -8,7 +9,7 @@ class Preprocessing:
         """
         Description:
             Cleans up text by removing or replacing certain characters and patterns.
-        
+
         Parameters:
             text (str): The text to clean up.
         Returns:
@@ -53,22 +54,23 @@ class Preprocessing:
         # Removes leading and trailing spaces from the text.
         return text.strip()
 
-
     def tokenize_by_paragraph(self, text: str) -> list:
         """
         Description:
             Tokenizes the text into a list of paragraphs.
-        
+
         Parameters:
             text (str): The text to tokenize into paragraphs.
-        
+
         Returns:
             list: A list of paragraphs.
         """
         # Split the text into paragraphs based on empty lines
         paragraphs = text.split("\n")
-        
+
         # Filter out empty paragraphs and trim any extra spaces
-        paragraph_list = [paragraph.strip() for paragraph in paragraphs if paragraph.strip()]
-        
+        paragraph_list = [
+            paragraph.strip() for paragraph in paragraphs if paragraph.strip()
+        ]
+
         return paragraph_list
