@@ -405,6 +405,8 @@ def get_preprocessed(id):
 
         cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
         segmented_paragraph = preprocessor.segment_paragraph(cleaned_text)
+        
+        print("segmented paragraph", segmented_paragraph)
 
         return jsonify({"segmented_paragraph": segmented_paragraph}), 200
 
@@ -440,7 +442,7 @@ def get_segmented():
         )
         segmentation_output = segmentation.label_mapping(predicted_labels)
 
-        if not preprocessed_case:
+        if not segmentation_output:
             return jsonify({"error": "No case text provided"}), 400
 
         return jsonify({"segmentation_output": segmentation_output}), 200
