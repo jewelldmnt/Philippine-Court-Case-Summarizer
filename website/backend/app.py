@@ -387,7 +387,7 @@ def get_preprocessed(id):
     - JSON: An error message if preprocessing fails or if the file is not found.
     """
     try:
-        from Custom_Modules.TestingPreprocessing import Preprocessing
+        from Custom_Modules.Preprocess import preprocess
 
         file = db.session.get(File, id)
         if file is None:
@@ -401,12 +401,14 @@ def get_preprocessed(id):
         # summary = "TITLE:"+ "\n" + file.file_name+ "\n\n" + summarize_case(court_case_text)
         # print(summary)
 
-        preprocessor = Preprocessing()
+        preprocessor = preprocess(is_training=False)
 
-        cleaned_text = preprocessor.clean_text(court_case_text)
-        tokenized_paragraphs = preprocessor.tokenize_by_paragraph(cleaned_text)
+        cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
+        segmented_paragraph = preprocessor.segment_paragraph(cleaned_text)
+        
+        print("segmented paragraph", segmented_paragraph)
 
-        return jsonify({"cleaned_text": tokenized_paragraphs}), 200
+        return jsonify({"segmented_paragraph": segmented_paragraph}), 200
 
     except Exception as e:
         print("Error during preprocess:", e)
@@ -427,24 +429,23 @@ def get_segmented():
     - JSON: An error message if segmentation fails.
     """
     try:
-        from Custom_Modules.TestingParagraphSegmentation import (
-            ParagraphSegmentation,
-        )
+        from Custom_Modules.TopicSegmentation import TopicSegmentation
 
         data = request.json
-        preprocessed_case = data.get("cleaned_text")
+        segmented_paragraph = data.get("segmented_paragraph")
 
-        segmentation = ParagraphSegmentation(model_path="75")
-        split_paragraphs = segmentation.split_paragraph(preprocessed_case)
-        print(split_paragraphs)
+        segmentation = TopicSegmentation(model_path="79")
+
+
         predicted_labels = segmentation.sequence_classification(
-            split_paragraphs
+            segmented_paragraph, threshold=0.5
         )
+        segmentation_output = segmentation.label_mapping(predicted_labels)
 
-        if not preprocessed_case:
+        if not segmentation_output:
             return jsonify({"error": "No case text provided"}), 400
 
-        return jsonify({"segmented_case": predicted_labels}), 200
+        return jsonify({"segmentation_output": segmentation_output}), 200
 
     except Exception as e:
         print("Error during segmentation:", e)
@@ -468,12 +469,12 @@ def get_summarized(id):
         from Custom_Modules.LSA import LSA
 
         data = request.json
-        segmented_case = data.get("segmented_case")
+        segmentation_output = data.get("segmentation_output")
 
-        if not segmented_case:
+        if not segmentation_output:
             return jsonify({"error": "No case text provided"}), 400
 
-        lsa = LSA(segmented_case)
+        lsa = LSA(segmentation_output)
         summarize_case = lsa.create_summary()
 
         file = db.session.get(File, id)

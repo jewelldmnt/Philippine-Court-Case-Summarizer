@@ -233,13 +233,13 @@ const Summarizer = () => {
 
       const segmented_res = await axios.post(
         `http://127.0.0.1:5000/get-segmented`,
-        { cleaned_text: preprocess_res.data.cleaned_text },
+        { segmented_paragraph: preprocess_res.data.segmented_paragraph },
         { headers: { "Content-Type": "application/json" } }
       );
 
       const summarized_res = await axios.post(
         `http://127.0.0.1:5000/get-summarized/${activeFile.id}`,
-        { segmented_case: segmented_res.data.segmented_case },
+        { segmentation_output: segmented_res.data.segmentation_output },
         { headers: { "Content-Type": "application/json" } }
       );
 
