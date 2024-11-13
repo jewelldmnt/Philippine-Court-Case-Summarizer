@@ -1,4 +1,52 @@
-from preprocessing_v3 import *
+# =============================================================================
+# Program Title: BART Model Training, Evaluation, and Metric Calculation for
+#                Legal Document Classification
+# Programmer: Miguel Tolentino
+# Date Written: September 29, 2024
+# Date Revised: October 9, 2024
+#
+# Purpose:
+#     This program is designed to train and evaluate a BART model for the
+#     classification of legal documents. It preprocesses and tokenizes data,
+#     trains the BART model using the Hugging Face Trainer, and computes various
+#     evaluation metrics such as accuracy, F1 score, and recall. The program
+#     also includes functionality for visualizing the model's performance through
+#     confusion matrices.
+#
+# Where the program fits in the general system design:
+#     This program is part of a broader legal document classification system
+#     that automates the categorization of legal texts into predefined classes.
+#     It processes datasets, trains the BART model on them, evaluates its
+#     performance, and presents visual and quantitative results that inform
+#     system improvements.
+#
+# Data Structures, Algorithms, and Control:
+#     - Data Structures:
+#         - **Dataset (`train_data`, `eval_data`)**: Used for training and
+#           evaluating the BART model.
+#         - **List (`all_predictions`, `all_labels`)**: Used to store predictions
+#           and labels during evaluation.
+#         - **TrainingArguments**: Contains configuration parameters for the
+#           training process.
+#         - **Trainer**: Hugging Face Trainer class used to manage the training
+#           and evaluation pipeline.
+#     - Algorithms:
+#         - **Text Preprocessing**: Tokenizes and prepares data using the BART
+#           tokenizer.
+#         - **BART Model Training**: Utilizes the Hugging Face Trainer for efficient
+#           model training.
+#         - **Metrics Calculation**: Computes accuracy, F1 score, and recall during
+#           evaluation using custom metrics.
+#         - **Confusion Matrix Plotting**: Uses sklearn and seaborn to visualize
+#           model predictions vs. actual labels.
+#     - Control:
+#         - The program is organized into a sequential flow: initialization,
+#           training, evaluation, and metric calculation.
+#         - Exception handling is employed to ensure robust processing and safe
+#           access to tensor data types and shapes.
+# =============================================================================
+
+
 import evaluate
 import numpy as np
 import torch
@@ -22,25 +70,36 @@ accuracy = evaluate.load("accuracy")
 class Modelling:
     def __init__(self, train_data, eval_data, BART_tokenizer, BART_model):
         """
-        Initializes the class with the training and evaluation datasets, BART tokenizer, and BART model. It also sets up training arguments and the Hugging
-        Face Trainer for managing the training and evaluation processes.
+        Initializes the class with the training and evaluation datasets, BART 
+        tokenizer, and BART model. It also sets up training arguments and the 
+        Hugging Face Trainer for managing the training and evaluation processes.
 
         Parameters:
                 train_data: Dataset used for training the model.
                 eval_data: Dataset used for evaluating the model.
-                BART_tokenizer: Tokenizer for converting text to token IDs, used in both training and evaluation.
-                BART_model: Pretrained BART model configured for sequence classification tasks.
+                BART_tokenizer: Tokenizer for converting text to token IDs, used 
+                in both training and evaluation. BART_model: Pretrained BART model 
+                configured for sequence classification tasks.
 
         Class Variables:
-            all_predictions: List to store model predictions (class IDs) made during evaluation or inference.
-            all_labels: List to store ground truth labels corresponding to the evaluated data.
-            train_data: Training dataset passed to the class, used to train the BART model.
-            eval_data: Evaluation dataset passed to the class, used to validate the model's performance.
-            BART_tokenizer: Tokenizer for the BART model, used to tokenize input text into numerical IDs.
-            BART_model: BART model instance used for sequence classification, initialized with pre-trained weights.
-            accuracy: An accuracy metric from the evaluate library for calculating accuracy during evaluation.
-            training_args: Defines a set of hyperparameters and settings for the training process.
-            trainer: Initializes the Hugging Face Trainer class, which manages the training loop, evaluation, and logging.
+            all_predictions: List to store model predictions (class IDs) made 
+                                during evaluation or inference.
+            all_labels: List to store ground truth labels corresponding to the 
+                                evaluated data.
+            train_data: Training dataset passed to the class, used to train the 
+                                BART model.
+            eval_data: Evaluation dataset passed to the class, used to validate 
+                                the model's performance.
+            BART_tokenizer: Tokenizer for the BART model, used to tokenize input 
+                                text into numerical IDs.
+            BART_model: BART model instance used for sequence classification, 
+                                initialized with pre-trained weights.
+            accuracy: An accuracy metric from the evaluate library for calculating 
+                                accuracy during evaluation.
+            training_args: Defines a set of hyperparameters and settings for the 
+                                training process.
+            trainer: Initializes the Hugging Face Trainer class, which manages the 
+                                training loop, evaluation, and logging.
         """
         self.all_predictions = []
         self.all_labels = []
@@ -77,24 +136,28 @@ class Modelling:
 
     def train_model(self):
         """
-        Triggers the training process for the BART model using the datasets and arguments defined during initialization.
+        Triggers the training process for the BART model using the datasets and 
+            arguments defined during initialization.
         """
         self.trainer.train()
 
     def compute_metrics(self, eval_pred):
         """
-        Custom function to compute evaluation metrics based on the model's predictions and ground truth labels.
+        Custom function to compute evaluation metrics based on the model's 
+            predictions and ground truth labels.
 
         Parameters:
-                eval_pred: A tuple containing the model's predictions and the corresponding labels during evaluation.
+                eval_pred: A tuple containing the model's predictions and the 
+                            corresponding labels during evaluation.
 
         Return:
-                Dictionary with the computed metrics, including accuracy, F1 score, and recall.
+                Dictionary with the computed metrics, including accuracy, F1 
+                            score, and recall.
         """
         try:
             predictions, labels = eval_pred
             try:
-                # Ensure predictions and labels are NumPy arrays to safely access their shape
+                # Ensure predictions and labels are NumPy arrays 
                 predictions = np.array(predictions)
                 labels = np.array(labels)
 
@@ -113,7 +176,8 @@ class Modelling:
                 )  # Add batch dimension if missing
 
             if len(predictions.shape) > 2:
-                # Apply a reduction if predictions have more than two dimensions (e.g., for sequence classification)
+                # Apply a reduction if predictions have more than two dimensions 
+                # (e.g., for sequence classification)
                 predictions = predictions[
                     :, 0, :
                 ]  # Take the first token's logits for each sequence
@@ -151,7 +215,8 @@ class Modelling:
 
     def calc_accuracy(self):
         """
-        Performs inference on the evaluation dataset and collects the predicted labels and ground truth labels for accuracy and other metric calculations.
+        Performs inference on the evaluation dataset and collects the predicted 
+        labels and ground truth labels for accuracy and other metric calculations.
         Moves input data to the appropriate device (GPU or CPU) for processing.
         """
         # Get the device the model is on (usually 'cuda' if available, otherwise 'cpu')
@@ -197,7 +262,8 @@ class Modelling:
 
     def plot_accuracy(self):
         """
-        Plots a confusion matrix based on the predictions and ground truth labels from the evaluation data. It also prints out the accuracy, F1 score, and
+        Plots a confusion matrix based on the predictions and ground truth labels 
+        from the evaluation data. It also prints out the accuracy, F1 score, and
         recall.
         """
         # Convert lists to numpy arrays
