@@ -110,7 +110,7 @@ class Modelling:
         self.accuracy = evaluate.load("accuracy")  # Load the accuracy metric
 
         self.training_args = TrainingArguments(
-            output_dir="my_awesome_model",
+            output_dir="newer_model",
             learning_rate=5e-5,  # Adjusted learning rate
             per_device_train_batch_size=8,  # Increased batch size
             per_device_eval_batch_size=8,  # Increased eval batch size
