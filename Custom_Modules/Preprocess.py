@@ -190,12 +190,12 @@ class preprocess:
         df_issues = df_balancing[df_balancing['label'] == 1]
         df_rulings = df_balancing[df_balancing['label'] == 2]
 
-        # Downsample labels 0 and 2 to 8000 samples each
-        df_facts_downsampled = resample(df_facts, replace=False, n_samples=8000, random_state=42)
-        df_rulings_downsampled = resample(df_rulings, replace=False, n_samples=8000, random_state=42)
+        # Downsample labels 0 and 2 to n samples each
+        df_facts_downsampled = resample(df_facts, replace=False, n_samples=3486, random_state=42)
+        df_rulings_downsampled = resample(df_rulings, replace=False, n_samples=3486, random_state=42)
 
-        # Upsample label 1 to 8000 samples if needed
-        df_issues_upsampled = resample(df_issues, replace=True, n_samples=8000, random_state=42)
+        # Upsample label 1 to n samples if needed
+        df_issues_upsampled = resample(df_issues, replace=True, n_samples=3486, random_state=42)
 
         # Combine the balanced datasets
         self.df_balanced = pd.concat([df_facts_downsampled, df_issues_upsampled, df_rulings_downsampled])
