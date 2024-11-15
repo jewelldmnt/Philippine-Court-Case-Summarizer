@@ -34,6 +34,7 @@
 import NavBar from "../Navigation/NavBar";
 import Delete from "../Modals/Delete";
 import Cancel from "../Modals/Cancel";
+import ConfirmDelete from "../Modals/ConfirmDelete";
 import { PiArrowLineDownBold } from "react-icons/pi";
 import { FaTrash } from "react-icons/fa6";
 import { ImCloudDownload } from "react-icons/im";
@@ -58,9 +59,10 @@ const Summarizer = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
-  const [progress, setProgress] = useState(0); // Track the progress percentage
+  const [progress, setProgress] = useState(0);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [loadingModal, setLoadingModal] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const [input, setInput] = useState({
     text: "no case is selected yet",
@@ -183,18 +185,15 @@ const Summarizer = () => {
   const handleFileDelete = async () => {
     if (!activeFile) return;
 
-    await axios
-      .delete(`http://127.0.0.1:5000/delete-file/${activeFile.id}`)
-      .then((res) => {
-        console.log("response: ", res);
-        setExistingFiles((prevFiles) =>
-          prevFiles.filter((file) => file.id !== activeFile.id)
-        );
-        setActiveFile(null);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    try {
+      await axios.delete(`http://127.0.0.1:5000/delete-file/${activeFile.id}`);
+      setExistingFiles((prevFiles) =>
+        prevFiles.filter((file) => file.id !== activeFile.id)
+      );
+      setActiveFile(null);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleTextDownload = () => {
@@ -273,6 +272,12 @@ const Summarizer = () => {
         loading={loadingModal}
       />
 
+      <ConfirmDelete
+        isOpen={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        onConfirm={handleFileDelete}
+      />
+
       <div className="bg-customGray text-black h-screen">
         <NavBar activePage="Summarizer" />
         <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
@@ -309,9 +314,12 @@ const Summarizer = () => {
                 <FaCirclePlus className="size-6 text-icon-40" />
                 <p className="font-bold font-sans text-[14px] ml-2">Add Case</p>
               </label>
-              <button onClick={handleFileDelete} className="flex items-center">
+              <button
+                onClick={() => setShowConfirmation(true)}
+                className="flex items-center"
+              >
                 <FaCircleMinus className="size-6 text-icon-20" />
-                <p className="font-bold font-sans text-[14px] ml-2 ">
+                <p className="font-bold font-sans text-[14px] ml-2">
                   Delete Case
                 </p>
               </button>
