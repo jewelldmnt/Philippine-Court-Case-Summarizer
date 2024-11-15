@@ -113,6 +113,7 @@ def scrape_court_case(url):
         for i in content.find_all(["h2", "h3", "sup", "tbody", "strong"]):
             i.extract()
 
+        new_content_text = ""
         for blockquote in content.find_all("blockquote"):
             prev_sibling = blockquote.find_previous_sibling()
 
