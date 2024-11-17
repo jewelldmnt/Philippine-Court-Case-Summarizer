@@ -22,21 +22,44 @@
  *    - Tailwind CSS: Used for styling the navigation bar, buttons, and hover effects.
  *
  * Control Flow and Logic:
- *    1. `activePage`: A string value that determines which navigation link is currently active.
+ *    1. `activePage`: A string value that determines which navigation link is 
+ *                    currently active.
  *    2. The component renders two main navigation links:
  *       - `Summarizer`: Navigates to the home page of the application.
  *       - `Statistics`: Navigates to the statistics page of the application.
- *    3. The active link is highlighted with a distinct color and an underline animation.
- *    4. When hovering over any link, an underline appears to indicate the active section.
+ *    3. The active link is highlighted with a distinct color and an underline 
+ *                    animation.
+ *    4. When hovering over any link, an underline appears to indicate the active 
+ *                    section.
  *
  * Key Variables:
- *    - `activePage`: A string representing the currently active page (either "Summarizer" or "Statistics").
+ *    - `activePage`: A string representing the currently active page 
+ *                    (either "Summarizer" or "Statistics").
  */
-
 
 import { NavLink } from "react-router-dom";
 
 const NavBar = ({ activePage }) => {
+  /**
+   * NavBar Component
+   *
+   * Description:
+   * A navigation bar component for the Philippine Court Case Summarizer application.
+   * It displays the application logo and navigation links for different pages
+   * ("Summarizer" and "Statistics"). The active page is visually indicated with
+   * a different text color and an underline animation on hover.
+   *
+   * Params:
+   * @param {Object} props - The props object passed to the component.
+   * @param {string} props.activePage - The name of the currently active page,
+   *                                    used to apply the active styling to the
+   *                                    corresponding navigation link.
+   *
+   * Returns:
+   * @returns {JSX.Element} - A styled navigation bar with links and an active
+   *                          page indicator.
+   */
+
   return (
     <>
       <div className="bg-customLight px-4 pt-6">
@@ -53,7 +76,10 @@ const NavBar = ({ activePage }) => {
               <span className="text-secondary">SUMMARIZER</span>
             </p>
           </div>
-          <div className="flex text-white gap-20 font-bold text-[16px] font-sans mr-20">
+          <div
+            className="flex text-white gap-20 font-bold text-[16px] 
+          font-sans mr-20"
+          >
             {/* Summarizer Link */}
             <div className="relative group">
               <NavLink to="/">
@@ -65,7 +91,10 @@ const NavBar = ({ activePage }) => {
                   Summarizer
                 </p>
               </NavLink>
-              <div className="absolute left-0 -bottom-1 w-full h-1 bg-active opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div
+                className="absolute left-0 -bottom-1 w-full h-1 bg-active 
+              opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              ></div>
             </div>
 
             {/* Statistics Link */}
@@ -79,7 +108,10 @@ const NavBar = ({ activePage }) => {
                   Statistics
                 </p>
               </NavLink>
-              <div className="absolute left-0 -bottom-1 w-full h-1 bg-active1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div
+                className="absolute left-0 -bottom-1 w-full h-1 bg-active1 
+              opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              ></div>
             </div>
           </div>
         </div>

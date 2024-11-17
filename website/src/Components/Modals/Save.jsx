@@ -35,19 +35,43 @@
 import { IoCheckmarkDone } from "react-icons/io5";
 
 const Save = ({ open, save }) => {
+  /**
+   * Save Component
+   *
+   * Description:
+   * Displays a modal to notify the user that changes have been successfully saved.
+   * The modal includes a confirmation button to acknowledge and close the notification.
+   *
+   * Params:
+   * @param {Object} props - The props object.
+   * @param {boolean} props.open - Determines whether the modal is visible or not.
+   * @param {function} props.save - Function triggered when the user clicks the "Okay" button.
+   *
+   * Returns:
+   * @returns {JSX.Element|null} - The rendered modal component if `open` is true, or null otherwise.
+   */
   if (!open) {
     return null;
   }
 
   return (
     <>
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 z-50 ">
-        <div className="font-sans text-white bg-box w-[350px] h-[270px] flex flex-col justify-center items-center text-center rounded-xl">
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-black 
+      bg-opacity-50 transition-opacity duration-300 z-50 "
+      >
+        <div
+          className="font-sans text-white bg-box w-[350px] h-[270px] flex 
+        flex-col justify-center items-center text-center rounded-xl"
+        >
           <IoCheckmarkDone className="text-summarize w-[61px] h-[61px]" />
           <h1 className="font-bold text-[20px] tablet-xs:text-[24px]">
             Successfully Changed!
           </h1>
-          <p className="mt-2 text-gray-400 text-[10px] tablet-xs:text-xs whitespace">
+          <p
+            className="mt-2 text-gray-400 text-[10px] tablet-xs:text-xs 
+          whitespace"
+          >
             Changes has been saved.
           </p>
           <div className="pt-4 flex flex-row space-x-2 font-bold">

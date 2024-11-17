@@ -37,25 +37,54 @@
 import { IoWarningOutline } from "react-icons/io5";
 
 const Delete = ({ open, del, cancel }) => {
+  /**
+   * Delete Component
+   *
+   * Description:
+   * Displays a confirmation modal for deleting a case. Provides options to confirm
+   * or cancel the delete action. The modal is visible based on the `open` state
+   * and triggers the appropriate callback functions on user interaction.
+   *
+   * Params:
+   * @param {Object} props - The props object.
+   * @param {boolean} props.open - Determines whether the modal is visible or not.
+   * @param {function} props.del - Function triggered when the user confirms the deletion.
+   * @param {function} props.cancel - Function triggered to cancel the delete action
+   *                                  and close the modal.
+   *
+   * Returns:
+   * @returns {JSX.Element|null} - The rendered modal component if `open` is true,
+   *                                 or null otherwise.
+   */
   if (!open) {
     return null;
   }
 
   return (
     <>
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 z-50 ">
-        <div className="font-sans text-black bg-box w-[350px] h-[270px] flex flex-col justify-center items-center text-center rounded-xl">
+      <div
+        className="fixed inset-0 flex items-center justify-center bg-black 
+      bg-opacity-50 transition-opacity duration-300 z-50 "
+      >
+        <div
+          className="font-sans text-black bg-box w-[350px] h-[270px] flex 
+        flex-col justify-center items-center text-center rounded-xl"
+        >
           <IoWarningOutline className="text-delete w-[61px] h-[61px]" />
           <h1 className="font-bold text-[20px] tablet-xs:text-[24px]">
             Are you sure you want to <br />
             remove this case?
           </h1>
-          <p className="mt-2 text-gray-400 text-[10px] tablet-xs:text-xs whitespace">
+          <p
+            className="mt-2 text-gray-400 text-[10px] tablet-xs:text-xs 
+          whitespace"
+          >
             This action cannot be undone.
           </p>
           <div className="pt-4 flex flex-row space-x-2 font-bold">
             <button
-              className="p-2 w-20 hover:bg-active rounded transition ease-in-out duration-300"
+              className="p-2 w-20 hover:bg-active rounded transition ease-in-out 
+              duration-300"
               onClick={cancel}
             >
               Cancel

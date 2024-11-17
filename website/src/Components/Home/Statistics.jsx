@@ -57,6 +57,24 @@ import axios from "axios";
 import "../../assets/wordcloud.css";
 
 const Statistics = () => {
+  /**
+   * Description:
+   * A functional React component that displays statistics about court case summaries.
+   * It includes a list of court cases, their unigram and bigram word frequency
+   * statistics, and word clouds for both unigrams and bigrams. The component
+   * fetches available court case files from the server and, when a file is clicked,
+   * it displays detailed statistics about the file's text (unigrams, bigrams).
+   *
+   * Parameters:
+   * None
+   *
+   * Returns:
+   * {JSX.Element} - The rendered UI for the statistics page, including:
+   *   - A list of court case files.
+   *   - Tables showing unigram and bigram frequency statistics.
+   *   - Word clouds for both unigrams and bigrams.
+   */
+
   const [existingFiles, setExistingFiles] = useState([]);
   const [activeFile, setActiveFile] = useState(null);
   const [courtCaseValue, setCourtCaseValue] = useState("");
@@ -167,6 +185,21 @@ const Statistics = () => {
   ];
 
   const calculateWordFrequencies = (text) => {
+    /**
+     * Description:
+     * Calculates the frequency of unigrams (single words) in a given text,
+     * excluding stopwords, and returns the top 10 most frequent words.
+     *
+     * Parameter:
+     * @param {string} text - The input text to calculate word frequencies.
+     *
+     * Returns:
+     * {Array} - An array of objects representing the top 10 unigrams, each containing:
+     *   - `rank` (number): The rank of the word.
+     *   - `frequency` (number): The frequency of the word.
+     *   - `unigram` (string): The word itself.
+     */
+
     const words = text
       .toLowerCase()
       .replace(/[^\w\s]/g, "")
@@ -192,6 +225,21 @@ const Statistics = () => {
   };
 
   const calculateBigramFrequencies = (text) => {
+    /**
+     * Description:
+     * Calculates the frequency of bigrams (pairs of consecutive words) in a
+     * given text, excluding stopwords, and returns the top 10 most frequent bigrams.
+     *
+     * Parameter:
+     * @param {string} text - The input text to calculate bigram frequencies.
+     *
+     * Returns:
+     * {Array} - An array of objects representing the top 10 bigrams, each containing:
+     *   - `rank` (number): The rank of the bigram.
+     *   - `frequency` (number): The frequency of the bigram.
+     *   - `bigram` (string): The bigram itself.
+     */
+
     const words = text
       .toLowerCase()
       .replace(/[^\w\s]/g, "")
@@ -222,6 +270,18 @@ const Statistics = () => {
   };
 
   const handleFileClick = (file) => {
+    /**
+     * Description:
+     * Handles the click event for a file from the list of court cases. Sets the
+     * active file, displays its text, and calculates the word and bigram frequencies.
+     *
+     * Parameter:
+     * @param {Object} file - The selected file object containing the file's details.
+     *
+     * Returns:
+     * {void} - No return value, but updates the state with word and bigram statistics.
+     */
+
     setActiveFile(file);
     setCourtCaseValue(file.file_text);
 
@@ -235,6 +295,19 @@ const Statistics = () => {
   };
 
   useEffect(() => {
+    /**
+     * Description:
+     * Fetches the list of available files from the server when the component is
+     * mounted and sets the state with the list of files.
+     *
+     * Parameter:
+     * None
+     *
+     * Returns:
+     * {void} - No return value, updates the component's state with the list of
+     *          files.
+     */
+
     axios
       .get("http://127.0.0.1:5000/get-files")
       .then((res) => {
@@ -254,15 +327,19 @@ const Statistics = () => {
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               LIST OF COURT CASES
             </p>
-            <div className="font-sans text-sm bg-customRbox rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
+            <div
+              className="font-sans text-sm bg-customRbox rounded-xl py-6 
+            h-[450px] overflow-y-auto custom-scrollbar"
+            >
               <ol className="list-decimal list-inside">
                 {existingFiles.length > 0 ? (
                   existingFiles.map((file, index) => (
                     <li
                       key={index}
-                      className={`hover:bg-wordCount w-full px-4 cursor-pointer mb-2 ${
-                        activeFile?.id === file.id ? "bg-active" : ""
-                      }`}
+                      className={`hover:bg-wordCount w-full px-4 
+                        cursor-pointer mb-2 ${
+                          activeFile?.id === file.id ? "bg-active" : ""
+                        }`}
                       onClick={() => handleFileClick(file)}
                     >
                       {file.file_name.length > 35
@@ -283,7 +360,10 @@ const Statistics = () => {
             </p>
 
             {/* Unigram Statistics Table */}
-            <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[240px] overflow-y-auto custom-scrollbar">
+            <div
+              className="bg-customRbox rounded-xl py-6 w-full h-full 
+            max-h-[240px] overflow-y-auto custom-scrollbar"
+            >
               <table className="table-fixed w-full">
                 <thead>
                   <tr>
@@ -319,7 +399,10 @@ const Statistics = () => {
             </div>
 
             {/* Bigram Statistics Table */}
-            <div className="bg-customRbox rounded-xl py-6 pb-10 h-full max-h-[240px] w-full overflow-y-auto custom-scrollbar">
+            <div
+              className="bg-customRbox rounded-xl py-6 pb-10 h-full 
+            max-h-[240px] w-full overflow-y-auto custom-scrollbar"
+            >
               <table className="table-fixed w-full">
                 <thead>
                   <tr>
@@ -360,7 +443,10 @@ const Statistics = () => {
               STATISTICS OF THE PRODUCED SUMMARY
             </p>
             {/* Unigram Word Cloud */}
-            <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
+            <div
+              className="bg-customRbox rounded-xl py-6 w-full h-full 
+            max-h-[300px] p-4 wordcloud-container"
+            >
               <p className="font-bold text-[15px] ml-4 mb-2">
                 Unigram Word Cloud
               </p>
@@ -370,7 +456,10 @@ const Statistics = () => {
             </div>
 
             {/* Bigram Word Cloud */}
-            <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[300px] p-4 wordcloud-container">
+            <div
+              className="bg-customRbox rounded-xl py-6 w-full h-full 
+            max-h-[300px] p-4 wordcloud-container"
+            >
               <p className="font-bold text-[15px] ml-4 mb-2">
                 Bigram Word Cloud
               </p>

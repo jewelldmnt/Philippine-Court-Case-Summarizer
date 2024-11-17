@@ -1,7 +1,7 @@
 /**
  * Program Title: Court Case Summarizer - AddCaseModal Component
  *
- * Programmer: Nicholas Dela Torre
+ * Programmer: Nicholas Dela Torre, Jino Llamado
  * Date Written: October 12, 2024
  * Date Revised: October 12, 2024
  *
@@ -43,6 +43,25 @@ import { FaCirclePlus } from "react-icons/fa6";
 import "../../assets/spinner.css";
 
 const AddCaseModal = ({
+  /**
+   * AddCaseModal Component
+   *
+   * Description:
+   * Renders a modal for adding a court case. The modal includes an input field for entering the case link,
+   * a button for adding the case, and a cancel button. The component also handles a loading state.
+   *
+   * Params:
+   * @param {Object} props - The props object.
+   * @param {boolean} props.open - Determines whether the modal is visible or not.
+   * @param {function} props.onClose - Function to close the modal.
+   * @param {string} props.courtCaseLink - The current value of the court case link input.
+   * @param {function} props.setCourtCaseLink - Function to update the court case link input value.
+   * @param {function} props.handleFileAdd - Function to handle the addition of the court case.
+   * @param {boolean} props.loading - Determines whether the loading state is active.
+   *
+   * Returns:
+   * @returns {JSX.Element|null} - The rendered modal component or null if `open` is false.
+   */
   open,
   onClose,
   courtCaseLink,

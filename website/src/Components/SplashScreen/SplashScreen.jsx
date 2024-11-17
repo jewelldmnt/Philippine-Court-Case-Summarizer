@@ -14,22 +14,41 @@
  * Where the Program Fits in the General System Design:
  *    The SplashScreen component appears when the application is first loaded
  *    to give users a visually engaging introduction and to allow time for any
- *    initial data to load or processes to complete before the main content is displayed.
+ *    initial data to load or processes to complete before the main content is
+ *    displayed.
  *
  * Dependencies and Resources:
  *    - React: Functional component for rendering the splash screen.
- *    - Tailwind CSS: Used for styling the splash screen, including the logo, text, and loading bar.
+ *    - Tailwind CSS: Used for styling the splash screen, including the logo, text,
+ *                    and loading bar.
  *
  * Control Flow and Logic:
- *    1. Displays the logo of the application along with the name, which is styled with primary, tertiary, and secondary colors.
- *    2. A loading bar is displayed to visually indicate that the application is in a loading state.
- *    3. (Optional) A commented-out section includes a status loader that could be used for a more complex loading animation.
+ *    1. Displays the logo of the application along with the name, which is styled
+ *          with primary, tertiary, and secondary colors.
+ *    2. A loading bar is displayed to visually indicate that the application is
+ *          in a loading state.
+ *    3. (Optional) A commented-out section includes a status loader that could
+ *          be used for a more complex loading animation.
  *
  * Key Variables:
  *    None. This component does not rely on props or state variables.
  */
 
 const SplashScreen = () => {
+  /**
+   * SplashScreen Component
+   *
+   * Description:
+   * A splash screen component for the Philippine Court Case Summarizer application.
+   * It displays the application logo and name along with a loading bar animation 
+   * to indicate that the application is loading. The component is typically shown 
+   * during the initialization or loading phase of the application.
+   *
+   * Returns:
+   * @returns {JSX.Element} - A styled splash screen element with a logo, application 
+   *                          title, and a loading bar.
+   */
+
   return (
     <>
       <div className="flex flex-col">

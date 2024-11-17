@@ -93,7 +93,8 @@ const Summarizer = () => {
     const updateText = () => {
       // After the fade-out completes, show the new text
       fadeOutTimeout = setTimeout(() => {
-        taskIndex = (taskIndex + 1) % tasks.length; // Increment index and loop back to 0 if it exceeds array length
+        // Increment index and loop back to 0 if it exceeds array length
+        taskIndex = (taskIndex + 1) % tasks.length;
         setLoadingText(tasks[taskIndex]);
       }, 1000);
     };
@@ -105,7 +106,7 @@ const Summarizer = () => {
       setIsFadingOut(false); // Reset fade state
     }, 5000); // 5 seconds
 
-    // Clean up interval and timeout when component unmounts or when the effect is re-executed
+    // Clean up interval and timeout when component unmounts
     return () => {
       clearInterval(intervalId);
       clearTimeout(fadeOutTimeout);
@@ -113,11 +114,25 @@ const Summarizer = () => {
   }, [loading]);
 
   const handleFileClick = (file) => {
+    /**
+     * Handles the click event for selecting a file. Sets the active file and updates the court case text.
+     *
+     * @param {Object} file - The selected file object containing file details.
+     *   - file: Object representing the file containing file name, file content, and file text.
+     *
+     * @returns {void}
+     */
     setActiveFile(file);
     setCourtCaseValue(file.file_text);
   };
 
   const handleSaveEdit = async () => {
+    /**
+     * Saves the edited case by sending a PATCH request to the backend to update the file.
+     * Updates the local state to reflect the changes made to the case.
+     *
+     * @returns {void}
+     */
     const newFile = {
       file_name: activeFile.file_name,
       file_text: courtCaseValue,
@@ -147,12 +162,23 @@ const Summarizer = () => {
   };
 
   const handleCancelEdit = () => {
+    /**
+     * Cancels the editing of a case. Resets the editing state and restores the original case text.
+     *
+     * @returns {void}
+     */
     setCancelEdit(false);
     setEditCase(false); // Exit edit mode
     setCourtCaseValue(activeFile.file_text); // Reset the text area to its original state
   };
 
   const handleFileAdd = async () => {
+    /**
+     * Handles the adding of a new case file by sending a POST request with the file link.
+     * If successful, updates the list of existing files and closes the modal.
+     *
+     * @returns {void}
+     */
     console.log(courtCaseLink);
     setLoadingModal(true);
     try {
@@ -183,6 +209,11 @@ const Summarizer = () => {
   };
 
   const handleFileDelete = async () => {
+    /**
+     * Handles the deletion of a selected case file. Sends a DELETE request to the backend and updates the state.
+     *
+     * @returns {void}
+     */
     if (!activeFile) return;
 
     try {
@@ -197,6 +228,12 @@ const Summarizer = () => {
   };
 
   const handleTextDownload = () => {
+    /**
+     * Initiates the download of the summarized case as a `.txt` file.
+     * Creates a downloadable blob with the summarized case text.
+     *
+     * @returns {void}
+     */
     if (activeFile) {
       const blob = new Blob([summarizedCase], {
         type: "text/plain",
@@ -218,6 +255,12 @@ const Summarizer = () => {
   };
 
   const handleSummarizedCase = async () => {
+    /**
+     * Summarizes the case by performing a series of steps: pre-processing, segmenting, and summarizing.
+     * Updates the summarized case text in the state after the process is complete.
+     *
+     * @returns {void}
+     */
     setLoading(true);
     setProgress(0); // Reset progress at the beginning of the process
 
@@ -285,7 +328,10 @@ const Summarizer = () => {
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               LIST OF COURT CASES
             </p>
-            <div className="font-sans text-sm bg-customRbox rounded-xl py-6 h-[450px] overflow-y-auto custom-scrollbar">
+            <div
+              className="font-sans text-sm bg-customRbox rounded-xl py-6 
+            h-[450px] overflow-y-auto custom-scrollbar"
+            >
               <ol className="list-decimal list-inside">
                 {existingFiles.length > 0 ? (
                   existingFiles.map((file, index) => (
@@ -341,19 +387,25 @@ const Summarizer = () => {
             </p>
             <div className="relative">
               <textarea
-                className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
+                className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] 
+                w-full overflow-y-auto custom-scrollbar"
                 value={courtCaseValue ? courtCaseValue : "No case selected"}
                 onChange={(e) => setCourtCaseValue(e.target.value)}
                 readOnly={!editCase}
                 style={{ paddingBottom: "2.5rem" }}
               />
-              <div className="gap-2 flex items-center font-sans font-bold text-xs absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl rounded-br-xl p-4 z-10">
+              <div
+                className="gap-2 flex items-center font-sans font-bold text-xs 
+              absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl 
+              rounded-br-xl p-4 z-10"
+              >
                 <p className="text-white">Word Count:</p>
                 <p className="text-customWC">
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <label
-                  className="flex items-center cursor-pointer h-8 bg-summarize justify-center rounded-xl shadow-xl"
+                  className="flex items-center cursor-pointer h-8 bg-summarize 
+                  justify-center rounded-xl shadow-xl"
                   onClick={() => {
                     handleSummarizedCase();
                   }}
@@ -402,7 +454,10 @@ const Summarizer = () => {
             </p>
             <div className="relative">
               {loading ? (
-                <div className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center">
+                <div
+                  className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] 
+                w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center"
+                >
                   <p
                     className={`loading-text fade-text ${
                       isFadingOut ? "hidden" : ""
@@ -415,14 +470,19 @@ const Summarizer = () => {
                 </div>
               ) : (
                 <textarea
-                  className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar"
+                  className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] 
+                  w-full overflow-y-auto custom-scrollbar"
                   readOnly
                   value={summarizedCase}
                   style={{ paddingBottom: "2.5rem" }}
                 />
               )}
 
-              <div className="gap-2 flex items-center font-sans font-bold text-xs absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl rounded-br-xl p-4 z-10">
+              <div
+                className="gap-2 flex items-center font-sans font-bold text-xs 
+              absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl 
+              rounded-br-xl p-4 z-10"
+              >
                 <p className="text-white">Word Count:</p>
                 <p className="text-customWC">
                   {loading
