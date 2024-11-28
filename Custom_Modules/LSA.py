@@ -193,6 +193,8 @@ class LSA:
         # Select top sentences based on ranking while maintaining original order
         ranked_sentences = [(sentences[i], labels[i]) for i in ranked_indices]
         for sentence, label in ranked_sentences:
+            if "." not in sentence:
+                continue  # Skip sentences without a period
             if label == "facts" and len(summary["facts"]) < facts_count:
                 summary["facts"].append(sentence)
             elif label == "issues" and len(summary["issues"]) < issues_count:

@@ -55,6 +55,8 @@ from rouge_score import rouge_scorer
 import os
 import pandas as pd
 from fpdf import FPDF
+from tabulate import tabulate
+
 
 def read_file(file_path, encoding):
     """
@@ -165,12 +167,11 @@ if __name__ == "__main__":
 
             except FileNotFoundError as e:
                 print(f"Warning: {e}")
-    
-    # Debugging: Print out the results list to verify its contents
-    print("Results:", results)
-    
+                
     # Create DataFrame from results if results is not empty
     if results:
+        # Debugging: Print out the results list to verify its contents
+        print(tabulate(results, headers="keys", tablefmt="grid", floatfmt=".4f"))
         df = pd.DataFrame(results)
         generate_pdf_report(df, 'Evaluation/Rouge_Scores_PDF/LSATP_ROUGE_Scores.pdf')
         print("PDF report generated: LSATP_ROUGE_Scores.pdf")
