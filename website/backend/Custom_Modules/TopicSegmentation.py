@@ -208,7 +208,7 @@ class TopicSegmentation:
                 rulings.append(key)
 
         # Write the segmented output to a file
-        with open(output_file, "w") as file:
+        with open(output_file, "w", encoding='utf-8') as file:
             file.write("FACTS:\n")
             for fact in facts:
                 file.write(f"{fact}\n")
