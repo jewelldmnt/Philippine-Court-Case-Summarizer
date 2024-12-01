@@ -80,7 +80,7 @@ class TopicSegmentation:
         self.model.eval()  # Set model to evaluation mode
 
     def sequence_classification(
-        self, tokenized_paragraphs: dict, threshold: float = 0.4
+        self, tokenized_paragraphs: dict, threshold: float = 0.0
     ) -> dict:
         """
         Description:

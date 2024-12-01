@@ -117,7 +117,7 @@ class LSA:
         term_matrix = vectorizer.fit_transform(sentences)
         return term_matrix, vectorizer
 
-    def apply_svd(self, term_matrix, n_components=2):
+    def apply_svd(self, term_matrix, n_components=1):
         """
         Description:
         Apply Singular Value Decomposition (SVD) to reduce the dimensionality of 
@@ -257,10 +257,9 @@ class LSA:
         summary_output += "RULINGS:\n"
         summary_output += " ".join(
             [
-                sentence
+                sentence.replace("so ordered.", "").strip()
                 for sentence in sentences
-                if sentence in summary["rulings"]
-            ]
+                if sentence in summary["rulings"] and sentence.lower() != "so ordered."]
         )
 
         return summary_output
