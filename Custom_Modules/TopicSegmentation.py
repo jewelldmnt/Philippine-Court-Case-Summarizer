@@ -72,12 +72,23 @@ class TopicSegmentation:
         Parameters:
             model_path (str): The path to the pre-trained or fine-tuned model.
         """
+        # Setup labels
+        self.id2label = {0: "rulings", 1: "facts", 2: "issues"}
+        self.label2id = {"rulings": 0, "facts": 1, "issues": 2}
+
         # Load the fine-tuned BART model and tokenizer
         self.model = BartForSequenceClassification.from_pretrained(
-            model_path, ignore_mismatched_sizes=True
+            model_path, 
+            id2label=self.id2label, 
+            label2id=self.label2id,
+            problem_type="single_label_classification",
+            ignore_mismatched_sizes=True
         )
         self.tokenizer = BartTokenizer.from_pretrained(model_path)
         self.model.eval()  # Set model to evaluation mode
+
+        print("Model id2label:", self.model.config.id2label)
+        print("Model label2id:", self.model.config.label2id)
 
     def sequence_classification(
         self, tokenized_paragraphs: dict, threshold: float = 0.4
@@ -123,6 +134,10 @@ class TopicSegmentation:
             max_probability = probabilities[0][
                 predicted_class_id
             ].item()  # Get the max probability
+
+            # debugging
+            print(f"Predicted Class ID: {predicted_class_id}")
+            print(f"Max Probability: {max_probability}")
 
             # Check if the probability is below the threshold
             if max_probability < threshold:
