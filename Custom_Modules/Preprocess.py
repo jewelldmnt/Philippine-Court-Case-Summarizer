@@ -517,18 +517,21 @@ class preprocess:
         except Exception as e:
             return ""
 
-    def segment_paragraph(self, text: str) -> dict:
+    def segment_paragraph(self, preprocessed_text: str, original_text: str) -> dict:
         # Split the text into paragraphs based on empty lines
-        paragraphs = text.split("\n")
+        preprocessed_paragraphs = preprocessed_text.split("\n")
+        original_paragraphs = original_text.split("\n")
 
         # Filter out empty paragraphs and trim any extra spaces
         paragraph_list = [
-            paragraph.strip() for paragraph in paragraphs if paragraph.strip()
+            paragraph.strip() for paragraph in preprocessed_paragraphs if paragraph.strip()
+        ]
+        original_paragraph_list = [
+            paragraph.strip() for paragraph in original_paragraphs if paragraph.strip()
         ]
 
         paragraph_dict = {}
-
-        for paragraph in paragraph_list:
+        for idx, paragraph in enumerate(paragraph_list):
             # Split the paragraph into sentences using a regex for sentence end markers
             sentences = re.split(r"(?<=[.!?]) +", paragraph)
 
@@ -536,7 +539,7 @@ class preprocess:
             key = " ".join(sentences[:2])
 
             # Value is the entire paragraph
-            paragraph_dict[key] = paragraph
+            paragraph_dict[key] = original_paragraph_list[idx]
 
         return paragraph_dict
 
