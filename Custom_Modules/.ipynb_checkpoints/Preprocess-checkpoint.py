@@ -133,7 +133,7 @@ class preprocess:
             # Data related variables
             self.df = pd.read_csv(file_path)
             self.heading_df = pd.read_csv(heading_file_path)
-            self.label_mapping = {"facts": 1, "issues": 2, "ruling": 0}
+            self.label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
             self.segment_heading = [
                 phrase for phrase in self.heading_df["heading"]
             ]
@@ -288,11 +288,11 @@ class preprocess:
         print(label_counts)
 
         # Separate the DataFrame by label
-        df_facts = self.df_balancing[self.df_balancing["label"] == 1]
-        df_issues = self.df_balancing[self.df_balancing["label"] == 2]
-        df_rulings = self.df_balancing[self.df_balancing["label"] == 0]
+        df_facts = self.df_balancing[self.df_balancing["label"] == 0]
+        df_issues = self.df_balancing[self.df_balancing["label"] == 1]
+        df_rulings = self.df_balancing[self.df_balancing["label"] == 2]
 
-        # Downsample labels 0 and 1 to 8000 samples each
+        # Downsample labels 0 and 2 to 8000 samples each
         df_facts_downsampled = resample(
             df_facts, replace=False, n_samples=8000, random_state=42
         )
@@ -300,7 +300,7 @@ class preprocess:
             df_rulings, replace=False, n_samples=8000, random_state=42
         )
 
-        # Upsample label 2 to 8000 samples if needed
+        # Upsample label 1 to 8000 samples if needed
         df_issues_upsampled = resample(
             df_issues, replace=True, n_samples=8000, random_state=42
         )
@@ -329,7 +329,7 @@ class preprocess:
         # Update user
         print("Data Balancing Completed")
 
-    def prepare_BART_data(self, tokenizer, preprocessed_data):
+    def prepare_BART_data(self, tokenizer):
         """
         Prepares the data for training and evaluation by tokenizing the sentences 
         and mapping them to the corresponding labels. It also formats the datasets 
@@ -337,7 +337,6 @@ class preprocess:
 
         Parameters:
             tokenizer: The configured BART Tokenizer
-            preprocessed_data: An already preprocessed data that can be directly trained, must be a dataframe.
         """
         self.BART_tokenizer = tokenizer
         self.data = {
@@ -347,11 +346,6 @@ class preprocess:
 
         # Convert the data into a dataframe
         self.df = pd.DataFrame.from_dict(self.data)
-
-        # Use the already made data instead
-        if not preprocessed_data.empty:
-            self.df = preprocessed_data
-            print(f'Dataframe shape: {self.df.shape}')
 
         train_data, eval_data = train_test_split(
             self.df, test_size=0.1, random_state=42
@@ -517,21 +511,18 @@ class preprocess:
         except Exception as e:
             return ""
 
-    def segment_paragraph(self, preprocessed_text: str, original_text: str) -> dict:
+    def segment_paragraph(self, text: str) -> dict:
         # Split the text into paragraphs based on empty lines
-        preprocessed_paragraphs = preprocessed_text.split("\n")
-        original_paragraphs = original_text.split("\n")
+        paragraphs = text.split("\n")
 
         # Filter out empty paragraphs and trim any extra spaces
         paragraph_list = [
-            paragraph.strip() for paragraph in preprocessed_paragraphs if paragraph.strip()
-        ]
-        original_paragraph_list = [
-            paragraph.strip() for paragraph in original_paragraphs if paragraph.strip()
+            paragraph.strip() for paragraph in paragraphs if paragraph.strip()
         ]
 
         paragraph_dict = {}
-        for idx, paragraph in enumerate(paragraph_list):
+
+        for paragraph in paragraph_list:
             # Split the paragraph into sentences using a regex for sentence end markers
             sentences = re.split(r"(?<=[.!?]) +", paragraph)
 
@@ -539,7 +530,7 @@ class preprocess:
             key = " ".join(sentences[:2])
 
             # Value is the entire paragraph
-            paragraph_dict[key] = original_paragraph_list[idx]
+            paragraph_dict[key] = paragraph
 
         return paragraph_dict
 
