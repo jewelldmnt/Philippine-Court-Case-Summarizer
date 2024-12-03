@@ -167,7 +167,7 @@ if __name__ == "__main__":
 
     main_folder = 'Evaluation/Court_Cases'
 
-    for idx, case_folder in enumerate(os.listdir(main_folder), start=1):  # Use enumerate for counting
+    for idx, case_folder in enumerate(os.listdir(main_folder), start=1):  
         case_path = os.path.join(main_folder, case_folder)
         if os.path.isdir(case_path):
             human_summary_path = os.path.join(case_path, 'human summary.txt')
