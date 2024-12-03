@@ -105,40 +105,61 @@ def compute_rouge_scores(human_summary, ai_summary):
 def generate_pdf_report(df, output_path):
     """
     Generates a PDF report summarizing ROUGE scores for multiple case summaries.
+    The table is horizontally centered, and the average row is highlighted and bolded.
 
     Args:
-        df (pd.DataFrame): A DataFrame containing the case titles and their ROUGE scores.
-            The DataFrame should have the columns: 'GR Title', 'Recall', 'Precision', 'F1'.
-        output_path (str): The file path where the generated PDF report will be saved.
+        df (pd.DataFrame): DataFrame containing the case titles and their ROUGE scores.
+            Expected columns: 'Count', 'GR Title', 'Recall', 'Precision', 'F1'.
+        output_path (str): The file path to save the generated PDF.
 
     Returns:
-        None: The report is saved directly to the specified output path.
+        None
     """
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=9)
-    
+
+    # Report title
     pdf.cell(0, 10, "LSATP ROUGE Scores", ln=True, align='C')
     pdf.ln(10)
-    
-    column_widths = [60, 40, 40, 40]
-    headers = ["GR Title", "Recall", "Precision", "F1"]
+
+    # Define column widths and headers
+    column_widths = [20, 60, 30, 30, 30]  # Adjust for your columns
+    headers = ["No.", "GR Title", "Recall", "Precision", "F1"]
+    total_table_width = sum(column_widths)
+
+    # Calculate horizontal centering
+    page_width = pdf.w - 2 * pdf.l_margin  # Page width excluding margins
+    x_start = (page_width - total_table_width) / 2 + pdf.l_margin
+
+    # Draw table headers
+    pdf.set_x(x_start)
     for header, width in zip(headers, column_widths):
         pdf.cell(width, 10, header, border=1, align='C')
     pdf.ln()
-    
+
+    # Draw table rows
     for _, row in df.iterrows():
-        pdf.cell(column_widths[0], 10, row['GR Title'], border=1)
-        pdf.cell(column_widths[1], 10, f"{row['Recall']:.4f}", border=1, align='C')
-        pdf.cell(column_widths[2], 10, f"{row['Precision']:.4f}", border=1, align='C')
-        pdf.cell(column_widths[3], 10, f"{row['F1']:.4f}", border=1, align='C')
+        pdf.set_x(x_start)
+        pdf.cell(column_widths[0], 10, str(row['No.']), border=1, align='C')
+        pdf.cell(column_widths[1], 10, row['GR Title'], border=1)
+        pdf.cell(column_widths[2], 10, f"{row['Recall']:.4f}", border=1, align='C')
+        pdf.cell(column_widths[3], 10, f"{row['Precision']:.4f}", border=1, align='C')
+        pdf.cell(column_widths[4], 10, f"{row['F1']:.4f}", border=1, align='C')
         pdf.ln()
-    
-    pdf.cell(column_widths[0], 10, "Average", border=1)
-    pdf.cell(column_widths[1], 10, f"{df['Recall'].mean():.4f}", border=1, align='C')
-    pdf.cell(column_widths[2], 10, f"{df['Precision'].mean():.4f}", border=1, align='C')
-    pdf.cell(column_widths[3], 10, f"{df['F1'].mean():.4f}", border=1, align='C')
-    
+
+    # Highlight the average row
+    pdf.set_fill_color(230, 230, 230)  # Light gray background for average row
+    pdf.set_font("Arial", style='B', size=9)  # Bold font
+
+    pdf.set_x(x_start)
+    pdf.cell(column_widths[0], 10, "", border=1, fill=True)  # Empty "Count" cell
+    pdf.cell(column_widths[1], 10, "Average", border=1, fill=True)
+    pdf.cell(column_widths[2], 10, f"{df['Recall'].mean():.4f}", border=1, align='C', fill=True)
+    pdf.cell(column_widths[3], 10, f"{df['Precision'].mean():.4f}", border=1, align='C', fill=True)
+    pdf.cell(column_widths[4], 10, f"{df['F1'].mean():.4f}", border=1, align='C', fill=True)
+
+    # Save the PDF
     pdf.output(output_path)
 
 if __name__ == "__main__":
@@ -146,7 +167,7 @@ if __name__ == "__main__":
 
     main_folder = 'Evaluation/Court_Cases'
 
-    for case_folder in os.listdir(main_folder):
+    for idx, case_folder in enumerate(os.listdir(main_folder), start=1):  # Use enumerate for counting
         case_path = os.path.join(main_folder, case_folder)
         if os.path.isdir(case_path):
             human_summary_path = os.path.join(case_path, 'human summary.txt')
@@ -155,10 +176,11 @@ if __name__ == "__main__":
             try:
                 human_summary = read_file(human_summary_path, 'utf-8')
                 ai_summary = read_file(ai_summary_path, 'iso-8859-1')
-                
+
                 scores = compute_rouge_scores(human_summary, ai_summary)
-                
+
                 results.append({
+                    'No.': idx,  # Add the sequential count
                     'GR Title': case_folder,
                     'Recall': scores['rouge1']['recall'],
                     'Precision': scores['rouge1']['precision'],
@@ -167,13 +189,16 @@ if __name__ == "__main__":
 
             except FileNotFoundError as e:
                 print(f"Warning: {e}")
-                
+
     # Create DataFrame from results if results is not empty
     if results:
         # Debugging: Print out the results list to verify its contents
         print(tabulate(results, headers="keys", tablefmt="grid", floatfmt=".4f"))
         df = pd.DataFrame(results)
+
+        # Generate PDF Report
         generate_pdf_report(df, 'Evaluation/Rouge_Scores_PDF/LSATP_ROUGE_Scores.pdf')
         print("PDF report generated: LSATP_ROUGE_Scores.pdf")
     else:
         print("No results to process. Please check if the files are correctly named and located.")
+
