@@ -110,7 +110,7 @@ class Modelling:
         self.accuracy = evaluate.load("accuracy")  # Load the accuracy metric
 
         self.training_args = TrainingArguments(
-            output_dir="my_awesome_model",
+            output_dir="newer_model",
             learning_rate=5e-5,  # Adjusted learning rate
             per_device_train_batch_size=8,  # Increased batch size
             per_device_eval_batch_size=8,  # Increased eval batch size
@@ -269,17 +269,30 @@ class Modelling:
         # Convert lists to numpy arrays
         self.all_predictions = np.array(self.all_predictions)
         self.all_labels = np.array(self.all_labels)
-
-        # Compute accuracy, F1 score, and recall
+        
+        # Compute overall metrics
         accuracy = accuracy_score(self.all_labels, self.all_predictions)
         f1 = f1_score(self.all_labels, self.all_predictions, average="weighted")
-        recall = recall_score(
-            self.all_labels, self.all_predictions, average="weighted"
-        )
+        recall = recall_score(self.all_labels, self.all_predictions, average="weighted")
 
-        print(f"Accuracy: {accuracy:.4f}")
-        print(f"F1 Score: {f1:.4f}")
-        print(f"Recall: {recall:.4f}")
+        # Print Overall Values
+        print(f"Overall Accuracy: {accuracy:.4f}")
+        print(f"Overall F1 Score: {f1:.4f}")
+        print(f"Overall Recall: {recall:.4f} \n")
+
+        # Class-specific metrics
+        for label, label_name in zip([0, 1, 2], ["Ruling", "Facts", "Issues"]):
+            mask = self.all_labels == label
+            class_predictions = self.all_predictions[mask]
+            class_labels = self.all_labels[mask]
+
+            class_accuracy = accuracy_score(class_labels, class_predictions)
+            class_f1 = f1_score(class_labels, class_predictions, average="weighted")
+            class_recall = recall_score(class_labels, class_predictions, average="weighted")
+
+            print(f"{label_name} Accuracy: {class_accuracy:.4f}")
+            print(f"{label_name} F1 Score: {class_f1:.4f}")
+            print(f"{label_name} Recall: {class_recall:.4f}\n")
 
         # Compute confusion matrix
         conf_matrix = confusion_matrix(self.all_labels, self.all_predictions)

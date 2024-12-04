@@ -133,7 +133,7 @@ class preprocess:
             # Data related variables
             self.df = pd.read_csv(file_path)
             self.heading_df = pd.read_csv(heading_file_path)
-            self.label_mapping = {"facts": 0, "issues": 1, "ruling": 2}
+            self.label_mapping = {"facts": 1, "issues": 2, "ruling": 0}
             self.segment_heading = [
                 phrase for phrase in self.heading_df["heading"]
             ]
@@ -151,6 +151,7 @@ class preprocess:
             self.tokenized_sentences = []
             self.segment_labels = []
             self.data = {}
+            self.df_balancing = {}
             self.unknown_tokens = []
 
             # Final preprocessing output
@@ -269,6 +270,7 @@ class preprocess:
         self.tokenized_sentences = list(self.tokenized_sentences)
         self.segment_labels = list(self.segment_labels)
         print("Tokenization Completed")
+        
 
     def balance_labels(self):
         """
@@ -277,20 +279,20 @@ class preprocess:
         in the training data.
         """
         # Create the DataFrame from tokenized sentences and labels
-        df_balancing = pd.DataFrame(
+        self.df_balancing = pd.DataFrame(
             {"sentence": self.tokenized_sentences, "label": self.segment_labels}
         )
 
         # Get the count of each class
-        label_counts = df_balancing["label"].value_counts()
+        label_counts = self.df_balancing["label"].value_counts()
         print(label_counts)
 
         # Separate the DataFrame by label
-        df_facts = df_balancing[df_balancing["label"] == 0]
-        df_issues = df_balancing[df_balancing["label"] == 1]
-        df_rulings = df_balancing[df_balancing["label"] == 2]
+        df_facts = self.df_balancing[self.df_balancing["label"] == 1]
+        df_issues = self.df_balancing[self.df_balancing["label"] == 2]
+        df_rulings = self.df_balancing[self.df_balancing["label"] == 0]
 
-        # Downsample labels 0 and 2 to 8000 samples each
+        # Downsample labels 0 and 1 to 8000 samples each
         df_facts_downsampled = resample(
             df_facts, replace=False, n_samples=8000, random_state=42
         )
@@ -298,7 +300,7 @@ class preprocess:
             df_rulings, replace=False, n_samples=8000, random_state=42
         )
 
-        # Upsample label 1 to 8000 samples if needed
+        # Upsample label 2 to 8000 samples if needed
         df_issues_upsampled = resample(
             df_issues, replace=True, n_samples=8000, random_state=42
         )
@@ -327,7 +329,7 @@ class preprocess:
         # Update user
         print("Data Balancing Completed")
 
-    def prepare_BART_data(self, tokenizer):
+    def prepare_BART_data(self, tokenizer, preprocessed_data):
         """
         Prepares the data for training and evaluation by tokenizing the sentences 
         and mapping them to the corresponding labels. It also formats the datasets 
@@ -335,6 +337,7 @@ class preprocess:
 
         Parameters:
             tokenizer: The configured BART Tokenizer
+            preprocessed_data: An already preprocessed data that can be directly trained, must be a dataframe.
         """
         self.BART_tokenizer = tokenizer
         self.data = {
@@ -344,6 +347,11 @@ class preprocess:
 
         # Convert the data into a dataframe
         self.df = pd.DataFrame.from_dict(self.data)
+
+        # Use the already made data instead
+        if not preprocessed_data.empty:
+            self.df = preprocessed_data
+            print(f'Dataframe shape: {self.df.shape}')
 
         train_data, eval_data = train_test_split(
             self.df, test_size=0.1, random_state=42
@@ -557,5 +565,8 @@ class preprocess:
         Parameters:
             filepath (str): the file path of the csv file and must end with .csv
         """
-        # Output CSV file
+        # Output imbalanced CSV file
+        self.df_balancing.to_csv('imbalanced.csv')
+        
+        # Output balanced CSV file
         self.df_balanced.to_csv(filepath)

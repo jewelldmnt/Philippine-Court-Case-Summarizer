@@ -405,7 +405,7 @@ def get_preprocessed(id):
         preprocessor = preprocess(is_training=False)
 
         cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
-        segmented_paragraph = preprocessor.segment_paragraph(cleaned_text)
+        segmented_paragraph = preprocessor.segment_paragraph(cleaned_text, court_case_text)
         
         print("segmented paragraph", segmented_paragraph)
 
@@ -435,7 +435,7 @@ def get_segmented():
         data = request.json
         segmented_paragraph = data.get("segmented_paragraph")
 
-        segmentation = TopicSegmentation(model_path="79")
+        segmentation = TopicSegmentation(model_path="77")
 
 
         predicted_labels = segmentation.sequence_classification(
