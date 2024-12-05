@@ -120,7 +120,7 @@ for metric, result in results.items():
     print(f"  p-value = {result['p-value']:.4f}")
     
     # Interpretation
-    if result["p-value"] < 0.1:
+    if result["p-value"] < 0.05:
         if result["mean difference"] > 0:
             print(f"  Positive significant difference: LSATP is better in {metric}.")
         else:
