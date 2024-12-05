@@ -164,16 +164,16 @@ class TopicSegmentation:
                 - list[1]: Probability of the predicted label
         """
         predicted_labels_dict = {}
-        previous_label = "facts"  # To keep track of the previous label
+        previous_label = "rulings"  # To keep track of the previous label
 
         for key, value in tokenized_paragraphs.items():
 
             if self.is_similar_heading(key, self.facts_headings):
                 predicted_label = "facts"
-                max_probability = 0.98
+                max_probability = 0.9813336682478882
             elif self.is_similar_heading(key, self.issues_headings):
                 predicted_label = "issues"
-                max_probability = 0.98
+                max_probability = 0.9813336682478882
             elif self.is_similar_heading(key, self.ruling_headings):
                 predicted_label = "ruling"
                 max_probability = 0.9813336682478882
@@ -263,8 +263,9 @@ class TopicSegmentation:
             their predicted labels.
 
         Parameters:
-            predicted_labels_dict (dict): A dictionary with paragraphs and their 
-            predicted labels.
+            lists as values, where:
+                - list[0]: Predicted label (e.g., 'facts', 'issues', 'rulings')
+                - list[1]: Probability of the predicted label.
             output_file (str): The output file to write the segmented results.
         """
         facts = []
@@ -272,13 +273,14 @@ class TopicSegmentation:
         rulings = []
 
         # Sort paragraphs into categories based on their labels
-        for key, label in predicted_labels_dict.items():
+        for key, value in predicted_labels_dict.items():
+            label, probability = value  # Unpack the label and probability
             if label == "facts":  # Adjust based on your label names
-                facts.append(key)
+                facts.append(f"{key} (Probability: {probability:.2f})")
             elif label == "issues":
-                issues.append(key)
+                issues.append(f"{key} (Probability: {probability:.2f})")
             elif label == "rulings":
-                rulings.append(key)
+                rulings.append(f"{key} (Probability: {probability:.2f})")
 
         # Write the segmented output to a file
         with open(output_file, "w", encoding='utf-8') as file:
