@@ -134,7 +134,7 @@ class LSA:
         Return:
         - svd_matrix: The reduced matrix obtained after applying SVD.
         """
-        n_components=min(term_matrix.shape[0], term_matrix.shape[1])
+        # n_components=min(term_matrix.shape[0], term_matrix.shape[1])
         svd = TruncatedSVD(n_components=n_components)
         svd_matrix = svd.fit_transform(term_matrix)
         return svd_matrix
