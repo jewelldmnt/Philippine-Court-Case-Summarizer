@@ -121,7 +121,7 @@ class LSA:
         term_matrix = vectorizer.fit_transform(sentences)
         return term_matrix, vectorizer
 
-    def apply_svd(self, term_matrix, n_components=3):
+    def apply_svd(self, term_matrix, n_components=4):
         """
         Description:
         Apply Singular Value Decomposition (SVD) to reduce the dimensionality of 

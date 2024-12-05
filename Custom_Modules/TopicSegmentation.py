@@ -176,7 +176,7 @@ class TopicSegmentation:
                 max_probability = 0.98
             elif self.is_similar_heading(key, self.ruling_headings):
                 predicted_label = "ruling"
-                max_probability = 0.98
+                max_probability = 0.9813336682478882
             
             else:  
                 # Tokenize the input
