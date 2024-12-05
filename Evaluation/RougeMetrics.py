@@ -165,7 +165,7 @@ def generate_pdf_report(df, output_path):
 if __name__ == "__main__":
     results = []
 
-    main_folder = 'Evaluation/Court_Cases'
+    main_folder = 'Evaluation/Court_Cases/Structured'
 
     for idx, case_folder in enumerate(os.listdir(main_folder), start=1):  
         case_path = os.path.join(main_folder, case_folder)

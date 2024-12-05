@@ -63,7 +63,7 @@ def extract_table_from_pdf(pdf_path):
         ValueError: If numeric conversion fails for any of the numeric columns.
     """
     data = []
-    columns = ["GR Title", "Recall", "Precision", "F1"]
+    columns = ["No.", "GR Title", "Recall", "Precision", "F1"]
     
     with pdfplumber.open(pdf_path) as pdf:
         for page in pdf.pages:
@@ -71,7 +71,7 @@ def extract_table_from_pdf(pdf_path):
             for table in tables:
                 for row in table:
                     # Skip header rows
-                    if row[0] == "GR Title":
+                    if row[1] == "GR Title":
                         continue
                     data.append(row)
     
@@ -87,7 +87,7 @@ def extract_table_from_pdf(pdf_path):
 
 # Extract data from the PDFs
 summit_scores = "Evaluation/Rouge_Scores_PDF/Summit_ROUGE_Scores.pdf"
-lsatp_scores = "Evaluation/Rouge_Scores_PDF/LSATP_ROUGE_Scores.pdf"
+lsatp_scores = "Evaluation/Rouge_Scores_PDF/LSATP_ROUGE_Scores_structured.pdf"
 
 df1 = extract_table_from_pdf(summit_scores)
 df2 = extract_table_from_pdf(lsatp_scores)
