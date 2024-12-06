@@ -120,7 +120,7 @@ def generate_pdf_report(df, output_path):
     pdf.set_font("Arial", size=9)
 
     # Report title
-    pdf.cell(0, 10, "LSATP ROUGE Scores", ln=True, align='C')
+    pdf.cell(0, 10, "LSATP ROUGE Scores for STRUCTURED and UNSTRUCTURED cases", ln=True, align='C')
     pdf.ln(10)
 
     # Define column widths and headers
@@ -165,7 +165,7 @@ def generate_pdf_report(df, output_path):
 if __name__ == "__main__":
     results = []
 
-    main_folder = 'Evaluation/Court_Cases/Structured'
+    main_folder = 'Evaluation/Court_Cases'
 
     for idx, case_folder in enumerate(os.listdir(main_folder), start=1):  
         case_path = os.path.join(main_folder, case_folder)
@@ -206,7 +206,7 @@ if __name__ == "__main__":
         print(tabulate([averages], headers="keys", tablefmt="grid", floatfmt=".4f"))
 
         # Generate PDF Report
-        generate_pdf_report(df, 'Evaluation/Rouge_Scores_PDF/LSATP_ROUGE_Scores_structured.pdf')
+        generate_pdf_report(df, 'Evaluation/Rouge_Scores_PDF/LSATP_ROUGE_Scores.pdf')
         print("PDF report generated: LSATP_ROUGE_Scores.pdf")
     else:
         print("No results to process. Please check if the files are correctly named and located.")
