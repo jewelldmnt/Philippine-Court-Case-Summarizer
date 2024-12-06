@@ -60,6 +60,9 @@ import re
 import torch
 from transformers import BartForSequenceClassification, BartTokenizer
 from torch.nn.functional import softmax
+from fuzzywuzzy import fuzz
+from typing import List, Dict
+
 
 
 class TopicSegmentation:
@@ -75,6 +78,46 @@ class TopicSegmentation:
         # Setup labels
         self.id2label = {0: "rulings", 1: "facts", 2: "issues"}
         self.label2id = {"rulings": 0, "facts": 1, "issues": 2}
+        self.facts_headings = [
+            'facts',
+            'antecedents',
+            'the antecedents',
+            'the factual antecedents',
+            'evidence for the prosecution',
+            'evidence for the defense',
+            'the charges',
+            'the defense\'s version',
+            'defense\'s version',
+            'the prosecution\'s version',
+            'proceedings before the court of appeals',
+            'the facts',
+            'version of the prosecution',
+            'version of the defense',
+            'the facts and the case'
+        ]
+        self.issues_headings = [
+            'the issue',
+            'the issues'
+            'the issues presented',
+            'the issue before the court',
+            'the issues before the court',
+            'issue',
+            'issues',
+            'the present',
+            'petition',
+            'presented',
+        ]
+        self.ruling_headings = [
+            'ruling of the rtc',
+            'ruling of the ca',
+            'the ruling of the ca',
+            'our ruling',
+            'the ruling of the court',
+            'the rulings of the court',
+            'the ruling of this court',
+            'proper penalty',
+            'the court\'s ruling',
+        ]
 
         # Load the fine-tuned BART model and tokenizer
         self.model = BartForSequenceClassification.from_pretrained(
@@ -90,6 +133,18 @@ class TopicSegmentation:
         print("Model id2label:", self.model.config.id2label)
         print("Model label2id:", self.model.config.label2id)
 
+
+    def is_similar_heading(self, line: str, headings: List[str], threshold: int = 75) -> bool:
+        """
+        Check if the line is similar to any of the provided headings based on a similarity threshold.
+        """
+        line_lower = line.lower()
+        for heading in headings:
+            if fuzz.ratio(line_lower, heading.lower()) >= threshold:
+                return True
+        return False
+
+
     def sequence_classification(
         self, tokenized_paragraphs: dict, threshold: float = 0.0
     ) -> dict:
@@ -104,95 +159,98 @@ class TopicSegmentation:
 
         Returns:
             predicted_labels_dict (dict): A dictionary with paragraph keys and 
-            their predicted labels.
+            their values as lists where:
+                - list[0]: Predicted label
+                - list[1]: Probability of the predicted label
         """
         predicted_labels_dict = {}
-        previous_label = "facts"  # To keep track of the previous label
+        previous_label = "rulings"  # To keep track of the previous label
 
         for key, value in tokenized_paragraphs.items():
-            # Tokenize the input
-            inputs = self.tokenizer(
-                key,
-                return_tensors="pt",
-                max_length=128,
-                truncation=True,
-                padding=True,
-            )
 
-            # Perform inference
-            with torch.no_grad():
-                outputs = self.model(**inputs)
-
-            # Get the predicted label (logits are raw predictions before softmax)
-            logits = outputs.logits
-
-            # Calculate softmax probabilities
-            probabilities = softmax(logits, dim=-1)
-
-            # Get the predicted class ID and its probability
-            predicted_class_id = torch.argmax(probabilities, dim=-1).item()
-            max_probability = probabilities[0][
-                predicted_class_id
-            ].item()  # Get the max probability
-
-            # debugging
-            print(f"Predicted Class ID: {predicted_class_id}")
-            print(f"Max Probability: {max_probability}")
-
-            # Check if the probability is below the threshold
-            if max_probability < threshold:
-                predicted_label = (
-                    previous_label  # Use the previous label if below threshold
+            if self.is_similar_heading(key, self.facts_headings):
+                predicted_label = "facts"
+                max_probability = 0.9813336682478882
+            elif self.is_similar_heading(key, self.issues_headings):
+                predicted_label = "issues"
+                max_probability = 0.9813336682478882
+            elif self.is_similar_heading(key, self.ruling_headings):
+                predicted_label = "ruling"
+                max_probability = 0.9813336682478882
+            
+            else:  
+                # Tokenize the input
+                inputs = self.tokenizer(
+                    key,
+                    return_tensors="pt",
+                    max_length=128,
+                    truncation=True,
+                    padding=True,
                 )
-            else:
-                id2label = (
-                    self.model.config.id2label
-                )  # Get the label mapping from model config
-                predicted_label = id2label[
-                    predicted_class_id
-                ]  # Map class ID to label
 
-            # Store the predicted label in the dictionary
-            predicted_labels_dict[value] = predicted_label
-            previous_label = (
-                predicted_label  # Update previous label for the next iteration
-            )
+                # Perform inference
+                with torch.no_grad():
+                    outputs = self.model(**inputs)
 
-            print(
-                f"Text: {value}\nLabel: {predicted_label}\nProbability: {max_probability}\n\n"
-            )
+                # Get the predicted label (logits are raw predictions before softmax)
+                logits = outputs.logits
+
+                # Calculate softmax probabilities
+                probabilities = softmax(logits, dim=-1)
+
+                # Get the predicted class ID and its probability
+                predicted_class_id = torch.argmax(probabilities, dim=-1).item()
+                max_probability = probabilities[0][predicted_class_id].item()  # Get the max probability
+
+                # Check if the probability is below the threshold
+                if max_probability < threshold:
+                    predicted_label = previous_label  # Use the previous label if below threshold
+                else:
+                    id2label = self.model.config.id2label  # Get the label mapping from model config
+                    predicted_label = id2label[predicted_class_id]  # Map class ID to label
+
+            # Store the predicted label and probability in the dictionary
+            predicted_labels_dict[value] = [predicted_label, max_probability]
+            previous_label = predicted_label  # Update previous label for the next iteration
+
+            print(f"Text: {value}\nLabel: {predicted_label}\nProbability: {max_probability}\n\n")
 
         return predicted_labels_dict
+
 
     def label_mapping(self, predicted_labels_dict: dict) -> dict:
         """
         Description:
-            Organizes paragraphs into categories (facts, issues, ruling) based on 
-            their predicted labels.
+            Organizes paragraphs into categories (facts, issues, rulings) based on 
+            their predicted labels and probabilities.
 
         Parameters:
             predicted_labels_dict (dict): A dictionary where keys are paragraphs 
                                         (or paragraph snippets) and values are 
-                                        their predicted labels (e.g., "facts", 
-                                        "issues", "ruling").
+                                        lists:
+                                        - list[0]: Predicted label (e.g., "facts", 
+                                                    "issues", "rulings").
+                                        - list[1]: Probability of the predicted label.
 
         Returns:
             categorized_dict (dict): A dictionary with keys 'facts', 'issues', 
-            'ruling', and values being lists of paragraphs.
+                                    'rulings', and values being lists of tuples 
+                                    (paragraph, probability).
         """
         # Initialize the result dictionary with empty lists for each category
         categorized_dict = {"facts": [], "issues": [], "rulings": []}
-        print("\n\n")
+
         # Iterate through the predicted labels dictionary and categorize the paragraphs
-        for paragraph, label in predicted_labels_dict.items():
+        for paragraph, (label, probability) in predicted_labels_dict.items():
             if label == "facts":
-                categorized_dict["facts"].append(paragraph)
+                categorized_dict["facts"].append((paragraph, probability))
             elif label == "issues":
-                categorized_dict["issues"].append(paragraph)
+                categorized_dict["issues"].append((paragraph, probability))
             elif label == "rulings":
-                categorized_dict["rulings"].append(paragraph)
+                categorized_dict["rulings"].append((paragraph, probability))
 
         return categorized_dict
+
 
     def write_output_segments(
         self,
@@ -205,8 +263,9 @@ class TopicSegmentation:
             their predicted labels.
 
         Parameters:
-            predicted_labels_dict (dict): A dictionary with paragraphs and their 
-            predicted labels.
+            lists as values, where:
+                - list[0]: Predicted label (e.g., 'facts', 'issues', 'rulings')
+                - list[1]: Probability of the predicted label.
             output_file (str): The output file to write the segmented results.
         """
         facts = []
@@ -214,13 +273,14 @@ class TopicSegmentation:
         rulings = []
 
         # Sort paragraphs into categories based on their labels
-        for key, label in predicted_labels_dict.items():
+        for key, value in predicted_labels_dict.items():
+            label, probability = value  # Unpack the label and probability
             if label == "facts":  # Adjust based on your label names
-                facts.append(key)
+                facts.append(f"{key} (Probability: {probability:.2f})")
             elif label == "issues":
-                issues.append(key)
+                issues.append(f"{key} (Probability: {probability:.2f})")
             elif label == "rulings":
-                rulings.append(key)
+                rulings.append(f"{key} (Probability: {probability:.2f})")
 
         # Write the segmented output to a file
         with open(output_file, "w", encoding='utf-8') as file:

@@ -120,7 +120,7 @@ def generate_pdf_report(df, output_path):
     pdf.set_font("Arial", size=9)
 
     # Report title
-    pdf.cell(0, 10, "LSATP ROUGE Scores", ln=True, align='C')
+    pdf.cell(0, 10, "LSATP ROUGE Scores for STRUCTURED and UNSTRUCTURED cases", ln=True, align='C')
     pdf.ln(10)
 
     # Define column widths and headers
@@ -195,6 +195,15 @@ if __name__ == "__main__":
         # Debugging: Print out the results list to verify its contents
         print(tabulate(results, headers="keys", tablefmt="grid", floatfmt=".4f"))
         df = pd.DataFrame(results)
+        # Print averages
+        averages = {
+            "No.": "Average",
+            "GR Title": "-",
+            "Recall": df["Recall"].mean(),
+            "Precision": df["Precision"].mean(),
+            "F1": df["F1"].mean(),
+        }
+        print(tabulate([averages], headers="keys", tablefmt="grid", floatfmt=".4f"))
 
         # Generate PDF Report
         generate_pdf_report(df, 'Evaluation/Rouge_Scores_PDF/LSATP_ROUGE_Scores.pdf')

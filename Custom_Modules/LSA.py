@@ -54,6 +54,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 
 
+
 class LSA:
     def __init__(
         self, text_dict: dict, facts_pct=0.5, issues_pct=0.05, ruling_pct=0.45
@@ -64,8 +65,9 @@ class LSA:
             generating the summary.
 
         Parameters:
-        - text_dict: A dictionary where the key is the label ('facts', 'issues', 
-                    'rulings') and the value is a list of corresponding sentences.
+        - text_dict: A dictionary where the keys are 'facts', 'issues', 
+                            and 'rulings' and values are lists of tuples:
+                            (sentence, probability).
         - facts_pct: The percentage of sentences to include in the 'facts' section 
                     of the summary.
         - issues_pct: The percentage of sentences to include in the 'issues' 
@@ -93,13 +95,15 @@ class LSA:
         """
         sentences = []
         labels = []
+        probabilities = []
 
         for label, sentence_list in self.text_dict.items():
-            for sentence in sentence_list:
+            for sentence, probability in sentence_list:
                 sentences.append(sentence)
                 labels.append(label)
+                probabilities.append(probability)
 
-        return sentences, labels
+        return sentences, labels, probabilities
 
     def create_term_matrix(self, sentences):
         """
@@ -117,7 +121,7 @@ class LSA:
         term_matrix = vectorizer.fit_transform(sentences)
         return term_matrix, vectorizer
 
-    def apply_svd(self, term_matrix, n_components=3):
+    def apply_svd(self, term_matrix, n_components=4):
         """
         Description:
         Apply Singular Value Decomposition (SVD) to reduce the dimensionality of 
@@ -130,11 +134,12 @@ class LSA:
         Return:
         - svd_matrix: The reduced matrix obtained after applying SVD.
         """
+        # n_components=min(term_matrix.shape[0], term_matrix.shape[1])
         svd = TruncatedSVD(n_components=n_components)
         svd_matrix = svd.fit_transform(term_matrix)
         return svd_matrix
 
-    def rank_sentences(self, svd_matrix):
+    def rank_sentences(self, svd_matrix, probabilities, labels):
         """
         Description:
         Rank the sentences based on their relevance scores from the SVD matrix.
@@ -146,10 +151,11 @@ class LSA:
         - ranked_indices: A list of indices representing sentences ranked by 
                     relevance in descending order.
         """
-        sentence_scores = np.sum(svd_matrix, axis=1)
-        ranked_indices = np.argsort(sentence_scores)[
-            ::-1
-        ]  # Sort sentences by score in descending order
+        sentence_scores = np.array([
+            np.sum(svd_matrix[i]) * probabilities[i] if labels[i] == "issues" else np.sum(svd_matrix[i])
+            for i in range(len(labels))
+        ])
+        ranked_indices = np.argsort(sentence_scores)[::-1]  # Sort sentences by score in descending order
         return ranked_indices
 
     def select_top_sentences(self, ranked_indices, sentences, labels):
@@ -217,7 +223,7 @@ class LSA:
                     for FACTS, ISSUES, and RULING.
         """
         # Preprocess text
-        sentences, labels = self.preprocess_text()
+        sentences, labels, probabilities = self.preprocess_text()
 
         # Create term-sentence matrix
         term_matrix, vectorizer = self.create_term_matrix(sentences)
@@ -226,7 +232,7 @@ class LSA:
         svd_matrix = self.apply_svd(term_matrix)
 
         # Rank sentences based on relevance scores
-        ranked_indices = self.rank_sentences(svd_matrix)
+        ranked_indices = self.rank_sentences(svd_matrix, probabilities, labels)
 
         # Select top sentences for summary
         summary = self.select_top_sentences(ranked_indices, sentences, labels)
@@ -270,20 +276,25 @@ if __name__ == "__main__":
     # Example output from label_mapping function
     text_dict = {
         "facts": [
-            "The case involves a dispute over a contract.",
-            "Both parties agreed to the terms initially.",
-            "However, one party later claimed a breach.",
-            "Evidence presented during the trial was insufficient.",
+            ("The case concerns a property dispute between two families.", 0.8),
+            ("The land in question was acquired through inheritance.", 0.7),
+            ("One family claims rightful ownership due to ancestral rights.", 0.85),
+            ("The other family presented a deed of sale as evidence.", 0.6),
+            ("The dispute has been ongoing for over a decade.", 0.9),
         ],
         "issues": [
-            "The main issue is whether the contract is valid.",
-            "The breach was contested in court.",
+            ("The primary issue is the validity of the deed of sale.", 0.95),
+            ("The question of whether ancestral rights override documentation was raised.", 0.9),
+            ("The secondary issue is whether the deed of sale was fraudulently executed.", 0.8),
         ],
         "rulings": [
-            "The court ruled that the contract was void.",
-            "The final judgment favored the defendant.",
+            ("The court held that the deed of sale was valid.", 0.85),
+            ("The family claiming ancestral rights was ordered to vacate the property.", 0.8),
+            ("The ruling emphasized the importance of documented ownership.", 0.75),
+            ("Costs of the proceedings were awarded to the defendants.", 0.7),
         ],
     }
+
 
     lsa = LSA(text_dict)
     summary = lsa.create_summary()
