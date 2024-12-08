@@ -46,8 +46,12 @@
 # =============================================================================
 
 
+import os
+import pandas as pd
 import segeval
 from itertools import groupby
+from fpdf import FPDF
+from tabulate import tabulate
 
 
 def load_segmentation_with_labels(file_path, encoding="utf-8"):
@@ -68,13 +72,7 @@ def load_segmentation_with_labels(file_path, encoding="utf-8"):
     with open(file_path, "r", encoding=encoding, errors="replace") as file:
         for line in file:
             line = line.strip()  # Remove leading/trailing whitespace
-
-            if line in boundary_labels:
-                # If the line is a boundary label, append a 1 (boundary)
-                segmentation.append(1)
-            else:
-                # Otherwise, append a 0 (no boundary)
-                segmentation.append(0)
+            segmentation.append(1 if line in boundary_labels else 0)
 
     return segmentation
 
@@ -97,17 +95,77 @@ def evaluate_segmentation(reference, hypothesis):
 
     return wd_score, pk_score
 
+def generate_pdf_report(dataframe, output_path):
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", size=10)
 
-# Load human and AI segmentation with labels, specifying encoding if needed
-human_segmentation = load_segmentation_with_labels(
-    "Segmentation/Human/human_segmentation.txt", encoding="utf-8"
-)
-ai_segmentation = load_segmentation_with_labels(
-    "Segmentation/AI/ai_segmentation.txt", encoding="ISO-8859-1"
-)
+    # Add table headers
+    col_widths = [15, 50, 40, 40]  # Adjust widths for columns
+    headers = ["No.", "GR Title", "Window Diff", "Pk Score"]
 
-# Evaluate the AI segmentation against the human segmentation
-wd, pk = evaluate_segmentation(human_segmentation, ai_segmentation)
+    for col_width, header in zip(col_widths, headers):
+        pdf.cell(col_width, 10, header, border=1, align='C')
+    pdf.ln()
 
-# Print the results
-print(f"WindowDiff: {wd}, Pk Score: {pk}")
+    # Add table rows
+    for _, row in dataframe.iterrows():
+        pdf.cell(col_widths[0], 10, str(row['No.']), border=1)
+        pdf.cell(col_widths[1], 10, row['GR Title'], border=1)
+        pdf.cell(col_widths[2], 10, f"{row['Window Diff']:.4f}", border=1, align='R')
+        pdf.cell(col_widths[3], 10, f"{row['Pk Score']:.4f}", border=1, align='R')
+        pdf.ln()
+
+    pdf.output(output_path)
+
+# Main Program
+if __name__ == "__main__":
+    results = []
+    main_folder = 'Evaluation/Court_Cases/Structured'
+
+    for idx, case_folder in enumerate(os.listdir(main_folder), start=1):
+        case_path = os.path.join(main_folder, case_folder)
+        if os.path.isdir(case_path):
+            human_file_path = os.path.join(case_path, 'human_segmentation.txt')
+            ai_file_path = os.path.join(case_path, 'ai_segmentation.txt')
+
+            try:
+                human_segmentation = load_segmentation_with_labels(human_file_path, encoding="utf-8")
+                ai_segmentation = load_segmentation_with_labels(ai_file_path, encoding="iso-8859-1")
+
+                wd, pk = evaluate_segmentation(human_segmentation, ai_segmentation)
+
+                results.append({
+                    'No.': idx,
+                    'GR Title': case_folder,
+                    'Window Diff': wd,
+                    'Pk Score': pk
+                })
+
+            except FileNotFoundError as e:
+                print(f"Warning: {e}")
+
+    if results:
+        # Create a DataFrame
+        df = pd.DataFrame(results)
+
+        # Calculate and append averages
+        averages = {
+            'No.': 'Average',
+            'GR Title': '-',
+            'Window Diff': df['Window Diff'].mean(),
+            'Pk Score': df['Pk Score'].mean()
+        }
+        df = df.append(averages, ignore_index=True)
+
+        # Display results in tabular form
+        print(tabulate(df, headers="keys", tablefmt="grid", floatfmt=".4f"))
+
+        # Generate PDF Report
+        pdf_output_path = 'Evaluation/Rouge_Scores_PDF/Segmentation_Scores.pdf'
+        generate_pdf_report(df, pdf_output_path)
+        print(f"PDF report generated: {pdf_output_path}")
+
+    else:
+        print("No results to process. Please check if the files are correctly named and located.")
