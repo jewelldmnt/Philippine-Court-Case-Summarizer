@@ -57,7 +57,7 @@ from sklearn.decomposition import TruncatedSVD
 
 class LSA:
     def __init__(
-        self, text_dict: dict, facts_pct=0.5, issues_pct=0.05, ruling_pct=0.45
+        self, text_dict: dict, facts_pct=0.30, issues_pct=0.05, ruling_pct=0.20
     ):
         """
         Description:
