@@ -57,7 +57,7 @@ from sklearn.decomposition import TruncatedSVD
 
 class LSA:
     def __init__(
-        self, text_dict: dict, facts_pct=0.30, issues_pct=0.05, ruling_pct=0.20
+        self, text_dict: dict, facts_pct=0.5, issues_pct=0.05, ruling_pct=0.45
     ):
         """
         Description:
@@ -134,7 +134,8 @@ class LSA:
         Return:
         - svd_matrix: The reduced matrix obtained after applying SVD.
         """
-        # n_components=min(term_matrix.shape[0], term_matrix.shape[1])
+        # n_components = int(np.mean([term_matrix.shape[0], term_matrix.shape[1]]))
+        n_components = min(term_matrix.shape[0], term_matrix.shape[1])
         svd = TruncatedSVD(n_components=n_components)
         svd_matrix = svd.fit_transform(term_matrix)
         return svd_matrix
@@ -158,7 +159,7 @@ class LSA:
         ranked_indices = np.argsort(sentence_scores)[::-1]  # Sort sentences by score in descending order
         return ranked_indices
 
-    def select_top_sentences(self, ranked_indices, sentences, labels):
+    def select_top_sentences(self, ranked_indices, sentences, labels, svd_matrix, threshold=0.1):
         """
         Description:
         Select the top sentences for each label (facts, issues, ruling) based on 
@@ -173,6 +174,9 @@ class LSA:
         - summary: A dictionary containing selected top sentences categorized by 
                     'facts', 'issues', and 'rulings'.
         """
+        # # Calculate the dynamic threshold as the average sum of SVD matrix rows
+        threshold = np.mean([np.sum(row) for row in svd_matrix])
+        
         total_summary_sentences = int(
             len(sentences)
             * (self.facts_pct + self.issues_pct + self.ruling_pct)
@@ -187,20 +191,19 @@ class LSA:
         if issues_count == 0:
             issues_count = sum(1 for label in labels if label == "issues")
 
-        # Ensure the total doesn't exceed total_summary_sentences
-        remaining_count = total_summary_sentences - (
-            facts_count + issues_count + ruling_count
-        )
-        if remaining_count > 0:
-            ruling_count += remaining_count  # Assign remaining to ruling as a default strategy
-
         summary = {"facts": [], "issues": [], "rulings": []}
 
         # Select top sentences based on ranking while maintaining original order
-        ranked_sentences = [(sentences[i], labels[i]) for i in ranked_indices]
-        for sentence, label in ranked_sentences:
+        for idx in ranked_indices:
+            sentence = sentences[idx]
+            label = labels[idx]
             if "." not in sentence:
                 continue  # Skip sentences without a period
+            # Check if the sentence passes the threshold
+            print(np.sum(svd_matrix[idx]))
+            if np.sum(svd_matrix[idx]) < threshold and not label == "issues":
+                continue  # Skip sentences with low scores
+
             if label == "facts" and len(summary["facts"]) < facts_count:
                 summary["facts"].append(sentence)
             elif label == "issues" and len(summary["issues"]) < issues_count:
@@ -235,7 +238,7 @@ class LSA:
         ranked_indices = self.rank_sentences(svd_matrix, probabilities, labels)
 
         # Select top sentences for summary
-        summary = self.select_top_sentences(ranked_indices, sentences, labels)
+        summary = self.select_top_sentences(ranked_indices, sentences, labels, svd_matrix=svd_matrix)
 
         # Construct the output in proper order for each section
         summary_output = "FACTS:\n"
