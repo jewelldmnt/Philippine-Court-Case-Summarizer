@@ -200,7 +200,6 @@ class LSA:
             if "." not in sentence:
                 continue  # Skip sentences without a period
             # Check if the sentence passes the threshold
-            print(np.sum(svd_matrix[idx]))
             if np.sum(svd_matrix[idx]) < threshold and not label == "issues":
                 continue  # Skip sentences with low scores
 
