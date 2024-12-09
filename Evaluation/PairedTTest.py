@@ -100,7 +100,7 @@ def generate_pdf_table(df1, df2, results, output_pdf):
 
     # Add title
     pdf.set_font("Arial", style="B", size=12)
-    pdf.cell(200, 10, txt="Paired T-Test Analysis of ROUGE Scores", ln=True, align="C")
+    pdf.cell(200, 10, txt="Paired T-Test Analysis of ROUGE Scores for UNSTRUCTURED", ln=True, align="C")
 
     # Add table header
     pdf.set_font("Arial", size=10)
@@ -169,8 +169,8 @@ def generate_pdf_table(df1, df2, results, output_pdf):
 
 
 # Paths to the PDF files
-summit_scores = "Evaluation/Rouge_Scores_PDF/Summit_ROUGE_Scores.pdf"
-lsatp_scores = "Evaluation/Rouge_Scores_PDF/LSATP_ROUGE_Scores.pdf"
+summit_scores = "Evaluation/Rouge_Scores_PDF/Overall/Summit_ROUGE_Scores_unstructured.pdf"
+lsatp_scores = "Evaluation/Rouge_Scores_PDF/Overall/LSATP_ROUGE_Scores_unstructured.pdf"
 
 # Extract data from the PDFs
 df1 = extract_table_from_pdf(summit_scores)
@@ -197,7 +197,7 @@ for metric in metrics:
     }
 
 # Generate PDF table
-output_pdf = "Evaluation/Rouge_Scores_PDF/Paired_T_Test_Results.pdf"
+output_pdf = "Evaluation/Rouge_Scores_PDF/TTest/Paired_T_Test_Results_unstructured.pdf"
 generate_pdf_table(df1, df2, results, output_pdf)
 print(f"Results saved to {output_pdf}")
 
