@@ -1,6 +1,6 @@
 # =============================================================================
 # Program Title: ROUGE Score Computation for Summarization Evaluation
-# Programmer: Jewell Anne Diamante
+# Programmer: Jewell Anne Diamante, Miguel Tolentino
 # Date Written: October 9, 2024
 # Date Revised: November 18, 2024
 #
@@ -56,6 +56,8 @@ import os
 import pandas as pd
 from fpdf import FPDF
 from tabulate import tabulate
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def read_file(file_path, encoding):
@@ -162,6 +164,49 @@ def generate_pdf_report(df, output_path):
     # Save the PDF
     pdf.output(output_path)
 
+def generate_bar_graph(df, file_path):
+    """
+    Generate the bar graph of the overall metrics of LSATP
+    """
+    # Index(['No.', 'GR Title', 'Recall', 'Precision', 'F1'], dtype='object')
+    print(df.columns)
+    try:
+        # Data
+        lsatp = [df['Precision'].mean(), df['Recall'].mean(), df['F1'].mean()]
+        summit = [.7078, .6852, .6856]
+    except Exception as e:
+        print('Dataframe does not have the needed columns or have a columns name mismatch.')
+        print(e)
+
+    try:
+        # Labels
+        labels = ['Precision', 'Recall', 'F1']
+
+        # Width and position of bar
+        x = np.arange(len(labels))  # x-axis positions
+        width = 0.35  # Width of each bar
+        fig, ax = plt.subplots(figsize=(8, 6))
+
+        # Plot side-by-side bars
+        lsatp_bar = ax.bar(x - width/2, lsatp, width, label='LSATP', color='#AE445A')
+        summit_bar = ax.bar(x + width/2, summit, width, label='SUMMIT', color='#432E54')
+
+        # Labels and title
+        ax.set_ylabel('Scores')
+        ax.set_title('Overall LSATP Metrics')
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels)
+        ax.legend()
+
+        # Save bar image
+        plt.tight_layout()
+        plt.savefig(f'{file_path}')
+
+        print(f'Saved image at {file_path}.')
+    except FileNotFoundError as e:
+        print('Check if images is saved in the right repository.')
+        print(e)
+
 if __name__ == "__main__":
     results = []
 
@@ -207,6 +252,7 @@ if __name__ == "__main__":
 
         # Generate PDF Report
         generate_pdf_report(df, 'Evaluation/Rouge_Scores_PDF/LSATP_ROUGE_Scores.pdf')
+        generate_bar_graph(df, 'Evaluation/Bar_Graph/LSATP_ROUGE_Scores_Graph.png')
         print("PDF report generated: LSATP_ROUGE_Scores.pdf")
     else:
         print("No results to process. Please check if the files are correctly named and located.")

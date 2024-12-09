@@ -2,6 +2,10 @@ import os
 from fpdf import FPDF
 from rouge_score import rouge_scorer
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
 
 
 def extract_sections(file_path):
@@ -133,6 +137,96 @@ def generate_pdf_report(df, output_path):
     # Output the PDF to file
     pdf.output(output_path)
 
+def generate_bar_graphs(df, file_path):
+    """
+    Generates a bar graph comparing the LSA and SUMMIT
+    """
+    try:
+        # Data
+        lsatp_facts = {
+            'precision':df['FACTS Precision'].mean(),
+            'recall':df['FACTS Recall'].mean(),
+            'f1':df['FACTS F1'].mean()
+        }
+
+        lsatp_issues = {
+            'precision':df['ISSUES Precision'].mean(),
+            'recall':df['ISSUES Recall'].mean(),
+            'f1':df['ISSUES F1'].mean()
+        }
+
+        lsatp_ruling = {
+            'precision':df['RULINGS Precision'].mean(),
+            'recall':df['RULINGS Recall'].mean(),
+            'f1':df['RULINGS F1'].mean()
+        }
+
+        # Plot labels
+        labels = ['Precision', 'Recall', 'F1']
+
+        lsatp = {
+            'Facts':[lsatp_facts['precision'], lsatp_facts['recall'], lsatp_facts['f1']],
+            'Issues':[lsatp_issues['precision'], lsatp_issues['recall'], lsatp_issues['f1']],
+            'Ruling':[lsatp_ruling['precision'], lsatp_ruling['recall'], lsatp_ruling['f1']]
+        }
+
+        summit = {
+            'Facts':[0.59650, 0.53340, 0.56319],
+            'Issues':[0.89768, 0.99809, 0.94522],
+            'Ruling':[0.60106, 0.54997, 0.57438]
+        }
+    except Exception as e:
+        print('Dataframe does not have the needed columns or have a columns name mismatch.')
+        print(e)
+
+    try:
+        # Width and position of bar
+        x = np.arange(len(labels))
+        width = 0.35
+
+        # Create a comparison plot
+        for court_label in ['Facts','Issues','Ruling']:
+            fig, ax = plt.subplots(figsize=(8, 6))
+            # Bars
+            lsatp_bar = ax.bar(x - width/2, lsatp[court_label], width, label='LSATP', color='#AE445A')
+            summit_bar = ax.bar(x + width/2, summit[court_label], width, label='SUMMIT', color='#432E54')
+
+            # Labels and title
+            ax.set_ylabel('Scores')
+            ax.set_title(f'Comparison of "{court_label}" Court Case Label of LSATP and SUMMIT')
+            ax.set_xticks(x)
+            ax.set_xticklabels(labels)
+            ax.legend()
+
+            # Save bar image
+            plt.tight_layout()
+            plt.savefig(f'{file_path}{court_label}_comparison.png')
+
+        # Create LSATP court case plot
+        fig, ax = plt.subplots(figsize=(8, 6))
+        width = .25
+        # Bars
+        lsatp_facts_bar = ax.bar(x, lsatp['Facts'], width, label='Facts', color='#AE445A')
+        lsatp_Issues_bar = ax.bar(x-width, lsatp['Issues'], width, label='Issues', color='#4B4376')
+        lsatp_Ruling_bar = ax.bar(x+width, lsatp['Ruling'], width, label='Rulings', color='#432E54')
+
+        # Labels and title
+        ax.set_ylabel('Scores')
+        ax.set_title('Court Case Label of LSATP')
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels)
+        ax.legend()
+
+        # Save bar image
+        plt.tight_layout()
+        plt.savefig(f'{file_path}Court_case_labels_LSATP.png')
+
+        print(f'Saved image at {file_path}.')
+
+    except FileNotFoundError as e:
+        print('Check if images is saved in the right repository.')
+        print(e)
+
 
 if __name__ == "__main__":
     results = []
@@ -165,7 +259,9 @@ if __name__ == "__main__":
 
         # Generate the PDF report
         pdf_path = 'Evaluation/Rouge_Scores_PDF/LSATP_Rouge_Sections.pdf'
+        image_path = 'Evaluation/Bar_Graph/'
         generate_pdf_report(df, pdf_path)
+        generate_bar_graphs(df, image_path)
         print(f"PDF report generated at: {pdf_path}")
     else:
         print("No results to process. Please check if the files are correctly named and located.")
