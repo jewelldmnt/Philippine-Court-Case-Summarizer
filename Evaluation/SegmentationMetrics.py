@@ -92,33 +92,58 @@ def evaluate_segmentation(reference, hypothesis):
     # Calculate WindowDiff and Pk scores
     wd_score = segeval.window_diff(reference_boundaries, hypothesis_boundaries)
     pk_score = segeval.pk(reference_boundaries, hypothesis_boundaries)
-
+    
     return wd_score, pk_score
 
 def generate_pdf_report(dataframe, output_path):
     pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     pdf.set_font("Arial", size=10)
-
+    
+    # Report title
+    title = "LSATP PK and Window Difference Scores for Segmentation"
+    pdf.set_font("Arial", size=12, style='B')
+    pdf.cell(0, 10, title, ln=True, align='C')
+    pdf.ln(10)
+    
     # Add table headers
-    col_widths = [15, 50, 40, 40]  # Adjust widths for columns
+    col_widths = [20, 80, 40, 40]  # Adjust widths for columns
     headers = ["No.", "GR Title", "Window Diff", "Pk Score"]
+    total_table_width = sum(col_widths)
 
-    for col_width, header in zip(col_widths, headers):
+    # Calculate horizontal centering for the table
+    page_width = pdf.w - 2 * pdf.l_margin  # Page width excluding margins
+    x_start = (page_width - total_table_width) / 2 + pdf.l_margin
+
+    # Print headers
+    pdf.set_x(x_start)
+    pdf.set_font("Arial", size=10, style='B')
+    for header, col_width in zip(headers, col_widths):
         pdf.cell(col_width, 10, header, border=1, align='C')
     pdf.ln()
 
     # Add table rows
+    pdf.set_font("Arial", size=10)
     for _, row in dataframe.iterrows():
-        pdf.cell(col_widths[0], 10, str(row['No.']), border=1)
-        pdf.cell(col_widths[1], 10, row['GR Title'], border=1)
-        pdf.cell(col_widths[2], 10, f"{row['Window Diff']:.4f}", border=1, align='R')
-        pdf.cell(col_widths[3], 10, f"{row['Pk Score']:.4f}", border=1, align='R')
+        pdf.set_x(x_start)
+        # Check if it's the "Average" row
+        if row['No.'] == "Average":
+            pdf.set_font("Arial", size=10, style='B')  # Bold font for the average row
+            pdf.set_fill_color(230, 230, 230)  # Light gray background
+            fill = True
+        else:
+            pdf.set_font("Arial", size=10)  # Regular font
+            fill = False
+        
+        pdf.cell(col_widths[0], 10, str(row['No.']), border=1, align='C', fill=fill)
+        pdf.cell(col_widths[1], 10, row['GR Title'], border=1, align='C', fill=fill)
+        pdf.cell(col_widths[2], 10, f"{row['Window Diff']:.4f}", border=1, align='C', fill=fill)
+        pdf.cell(col_widths[3], 10, f"{row['Pk Score']:.4f}", border=1, align='C', fill=fill)
         pdf.ln()
 
+    # Save the PDF
     pdf.output(output_path)
-
+    
 # Main Program
 if __name__ == "__main__":
     results = []
@@ -127,8 +152,8 @@ if __name__ == "__main__":
     for idx, case_folder in enumerate(os.listdir(main_folder), start=1):
         case_path = os.path.join(main_folder, case_folder)
         if os.path.isdir(case_path):
-            human_file_path = os.path.join(case_path, 'human_segmentation.txt')
-            ai_file_path = os.path.join(case_path, 'ai_segmentation.txt')
+            human_file_path = os.path.join(case_path, 'human segments.txt')
+            ai_file_path = os.path.join(case_path, 'LSATP_segments.txt')
 
             try:
                 human_segmentation = load_segmentation_with_labels(human_file_path, encoding="utf-8")
