@@ -58,6 +58,7 @@ from fpdf import FPDF
 from tabulate import tabulate
 import numpy as np
 import matplotlib.pyplot as plt
+import pdfplumber
 
 
 def read_file(file_path, encoding):
@@ -164,23 +165,63 @@ def generate_pdf_report(df, output_path):
     # Save the PDF
     pdf.output(output_path)
 
+def extract_table_from_pdf(pdf_path, columns):
+    """
+    Extracts tables from a PDF file and converts them into a pandas DataFrame.
+
+    Args:
+        pdf_path (str): The path to the PDF file containing the tables.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the extracted data with columns:
+                      ["GR Title", "Recall", "Precision", "F1"].
+    """
+    data = []
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            tables = page.extract_tables()
+            for table in tables:
+                for row in table:
+                    # Skip header rows
+                    if row[1] == "GR Title":
+                        continue
+                    data.append(row)
+
+    df = pd.DataFrame(data, columns=columns)
+
+    # Convert numeric columns to float
+    numeric_columns = ["Recall", "Precision", "F1"]
+    for col in numeric_columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    return df
+
 def generate_bar_graph(df, file_path):
     """
     Generate the bar graph of the overall metrics of LSATP
     """
     # Index(['No.', 'GR Title', 'Recall', 'Precision', 'F1'], dtype='object')
     print(df.columns)
+    columns = ["No.", "GR Title", "Recall", "Precision", "F1"] # For overall metrics
+    # Paths to the PDF files
+    summit_scores = "Evaluation/Rouge_Scores_PDF/Overall/Summit_ROUGE_Scores.pdf"
+    lsatp_scores = "Evaluation/Rouge_Scores_PDF/Overall/LSATP_ROUGE_Scores.pdf"
+    # Extract data from the PDFs
+    df1 = extract_table_from_pdf(summit_scores, columns)
+    df2 = extract_table_from_pdf(lsatp_scores, columns)
     try:
         # Data
-        lsatp = [df['Precision'].mean(), df['Recall'].mean(), df['F1'].mean()]
-        summit = [.7078, .6852, .6856]
+        summit = [df1['Recall'].iloc[-1], df1['Precision'].iloc[-1], df1['F1'].iloc[-1]]
+        lsatp = [df2['Recall'].iloc[-1], df2['Precision'].iloc[-1], df2['F1'].iloc[-1]]
+        
     except Exception as e:
         print('Dataframe does not have the needed columns or have a columns name mismatch.')
         print(e)
 
     try:
         # Labels
-        labels = ['Precision', 'Recall', 'F1']
+        labels = ['Recall', 'Precision', 'F1']
 
         # Width and position of bar
         x = np.arange(len(labels))  # x-axis positions
@@ -193,7 +234,7 @@ def generate_bar_graph(df, file_path):
 
         # Labels and title
         ax.set_ylabel('Scores')
-        ax.set_title('Overall LSATP Metrics')
+        ax.set_title('Overall LSATP and Summit Metrics')
         ax.set_xticks(x)
         ax.set_xticklabels(labels)
         ax.legend()
@@ -251,7 +292,7 @@ if __name__ == "__main__":
         print(tabulate([averages], headers="keys", tablefmt="grid", floatfmt=".4f"))
 
         # Generate PDF Report
-        generate_pdf_report(df, 'Evaluation/Rouge_Scores_PDF/LSATP_ROUGE_Scores.pdf')
+        generate_pdf_report(df, 'Evaluation/Rouge_Scores_PDF/Overall/LSATP_ROUGE_Scores.pdf')
         generate_bar_graph(df, 'Evaluation/Bar_Graph/LSATP_ROUGE_Scores_Graph.png')
         print("PDF report generated: LSATP_ROUGE_Scores.pdf")
     else:
