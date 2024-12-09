@@ -76,19 +76,19 @@ def generate_pdf_report(df, output_path):
         pdf.cell(60, 10, row['GR Title'], border=1, align="C")
 
         # FACTS columns (Recall, Precision, F1)
-        pdf.cell(20, 10, f"{row['FACTS Recall']:.2f}", border=1, align="C")
-        pdf.cell(20, 10, f"{row['FACTS Precision']:.2f}", border=1, align="C")
-        pdf.cell(20, 10, f"{row['FACTS F1']:.2f}", border=1, align="C")
+        pdf.cell(20, 10, f"{row['FACTS Recall']:.5f}", border=1, align="C")
+        pdf.cell(20, 10, f"{row['FACTS Precision']:.5f}", border=1, align="C")
+        pdf.cell(20, 10, f"{row['FACTS F1']:.5f}", border=1, align="C")
 
         # ISSUES columns (Recall, Precision, F1)
-        pdf.cell(20, 10, f"{row['ISSUES Recall']:.2f}", border=1, align="C")
-        pdf.cell(20, 10, f"{row['ISSUES Precision']:.2f}", border=1, align="C")
-        pdf.cell(20, 10, f"{row['ISSUES F1']:.2f}", border=1, align="C")
+        pdf.cell(20, 10, f"{row['ISSUES Recall']:.5f}", border=1, align="C")
+        pdf.cell(20, 10, f"{row['ISSUES Precision']:.5f}", border=1, align="C")
+        pdf.cell(20, 10, f"{row['ISSUES F1']:.5f}", border=1, align="C")
 
         # RULINGS columns (Recall, Precision, F1)
-        pdf.cell(20, 10, f"{row['RULINGS Recall']:.2f}", border=1, align="C")
-        pdf.cell(20, 10, f"{row['RULINGS Precision']:.2f}", border=1, align="C")
-        pdf.cell(20, 10, f"{row['RULINGS F1']:.2f}", border=1, align="C")
+        pdf.cell(20, 10, f"{row['RULINGS Recall']:.5f}", border=1, align="C")
+        pdf.cell(20, 10, f"{row['RULINGS Precision']:.5f}", border=1, align="C")
+        pdf.cell(20, 10, f"{row['RULINGS F1']:.5f}", border=1, align="C")
 
         pdf.ln()
 
@@ -115,19 +115,19 @@ def generate_pdf_report(df, output_path):
     pdf.cell(60, 10, avg_row['GR Title'], border=1, align="C", fill=True)
 
     # FACTS columns
-    pdf.cell(20, 10, f"{avg_row['FACTS Recall']:.2f}", border=1, align="C", fill=True)
-    pdf.cell(20, 10, f"{avg_row['FACTS Precision']:.2f}", border=1, align="C", fill=True)
-    pdf.cell(20, 10, f"{avg_row['FACTS F1']:.2f}", border=1, align="C", fill=True)
+    pdf.cell(20, 10, f"{avg_row['FACTS Recall']:.5f}", border=1, align="C", fill=True)
+    pdf.cell(20, 10, f"{avg_row['FACTS Precision']:.5f}", border=1, align="C", fill=True)
+    pdf.cell(20, 10, f"{avg_row['FACTS F1']:.5f}", border=1, align="C", fill=True)
 
     # ISSUES columns
-    pdf.cell(20, 10, f"{avg_row['ISSUES Recall']:.2f}", border=1, align="C", fill=True)
-    pdf.cell(20, 10, f"{avg_row['ISSUES Precision']:.2f}", border=1, align="C", fill=True)
-    pdf.cell(20, 10, f"{avg_row['ISSUES F1']:.2f}", border=1, align="C", fill=True)
+    pdf.cell(20, 10, f"{avg_row['ISSUES Recall']:.5f}", border=1, align="C", fill=True)
+    pdf.cell(20, 10, f"{avg_row['ISSUES Precision']:.5f}", border=1, align="C", fill=True)
+    pdf.cell(20, 10, f"{avg_row['ISSUES F1']:.5f}", border=1, align="C", fill=True)
 
     # RULINGS columns
-    pdf.cell(20, 10, f"{avg_row['RULINGS Recall']:.2f}", border=1, align="C", fill=True)
-    pdf.cell(20, 10, f"{avg_row['RULINGS Precision']:.2f}", border=1, align="C", fill=True)
-    pdf.cell(20, 10, f"{avg_row['RULINGS F1']:.2f}", border=1, align="C", fill=True)
+    pdf.cell(20, 10, f"{avg_row['RULINGS Recall']:.5f}", border=1, align="C", fill=True)
+    pdf.cell(20, 10, f"{avg_row['RULINGS Precision']:.5f}", border=1, align="C", fill=True)
+    pdf.cell(20, 10, f"{avg_row['RULINGS F1']:.5f}", border=1, align="C", fill=True)
 
 
     # Output the PDF to file
