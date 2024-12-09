@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import pdfplumber
 
 
 
@@ -137,94 +138,113 @@ def generate_pdf_report(df, output_path):
     # Output the PDF to file
     pdf.output(output_path)
 
+def extract_table_from_pdf(pdf_path):
+    """
+    Extracts tabular data from the specified PDF file and returns it as a DataFrame.
+
+    Parameters:
+    pdf_path (str): Path to the PDF file.
+
+    Returns:
+    pd.DataFrame: DataFrame containing the extracted data.
+    """
+    data = []
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            # Extract tables from the page
+            tables = page.extract_tables()
+            for table in tables:
+                # Convert the table into rows
+                for row in table:
+                    # Append each row to the data
+                    data.append(row)
+    
+    # Create a DataFrame from the extracted data
+    if data:
+        df = pd.DataFrame(data)
+        return df
+    else:
+        print("No table data found in the PDF.")
+        return pd.DataFrame()
+
+
 def generate_bar_graphs(df, file_path):
     """
     Generates a bar graph comparing the LSA and SUMMIT
     """
+    # Plot labels
+    labels = ['Recall', 'Precision', 'F1']
     try:
-        # Data
-        lsatp_facts = {
-            'precision':df['FACTS Precision'].mean(),
-            'recall':df['FACTS Recall'].mean(),
-            'f1':df['FACTS F1'].mean()
-        }
+        summit_df = extract_table_from_pdf('Evaluation\Rouge_Scores_PDF\Section\SUMMIT_Rouge_Sections.pdf')
+        lsatp_df = extract_table_from_pdf('Evaluation\Rouge_Scores_PDF\Section\LSATP_Rouge_Sections.pdf')
 
-        lsatp_issues = {
-            'precision':df['ISSUES Precision'].mean(),
-            'recall':df['ISSUES Recall'].mean(),
-            'f1':df['ISSUES F1'].mean()
-        }
-
-        lsatp_ruling = {
-            'precision':df['RULINGS Precision'].mean(),
-            'recall':df['RULINGS Recall'].mean(),
-            'f1':df['RULINGS F1'].mean()
-        }
-
-        # Plot labels
-        labels = ['Precision', 'Recall', 'F1']
-
+        # Data extraction for LSATP
         lsatp = {
-            'Facts':[lsatp_facts['precision'], lsatp_facts['recall'], lsatp_facts['f1']],
-            'Issues':[lsatp_issues['precision'], lsatp_issues['recall'], lsatp_issues['f1']],
-            'Ruling':[lsatp_ruling['precision'], lsatp_ruling['recall'], lsatp_ruling['f1']]
+            'Facts': [lsatp_df[2].iloc[-1], lsatp_df[3].iloc[-1], lsatp_df[4].iloc[-1]],
+            'Issues': [lsatp_df[5].iloc[-1], lsatp_df[6].iloc[-1], lsatp_df[7].iloc[-1]],
+            'Ruling': [lsatp_df[8].iloc[-1], lsatp_df[9].iloc[-1], lsatp_df[10].iloc[-1]],
         }
+        print(lsatp)
 
+        # Data extraction for SUMMIT
         summit = {
-            'Facts':[0.59650, 0.53340, 0.56319],
-            'Issues':[0.89768, 0.99809, 0.94522],
-            'Ruling':[0.60106, 0.54997, 0.57438]
+            'Facts': [summit_df[2].iloc[-1], summit_df[3].iloc[-1], summit_df[4].iloc[-1]],
+            'Issues': [summit_df[5].iloc[-1], summit_df[6].iloc[-1], summit_df[7].iloc[-1]],
+            'Ruling': [summit_df[8].iloc[-1], summit_df[9].iloc[-1], summit_df[10].iloc[-1]],
         }
-    except Exception as e:
-        print('Dataframe does not have the needed columns or have a columns name mismatch.')
-        print(e)
-
-    try:
+        print(summit)
+        
         # Width and position of bar
         x = np.arange(len(labels))
         width = 0.35
 
-        # Create a comparison plot
-        for court_label in ['Facts','Issues','Ruling']:
-            fig, ax = plt.subplots(figsize=(8, 6))
-            # Bars
-            lsatp_bar = ax.bar(x - width/2, lsatp[court_label], width, label='LSATP', color='#AE445A')
-            summit_bar = ax.bar(x + width/2, summit[court_label], width, label='SUMMIT', color='#432E54')
+        # Convert string values to floats
+        for key in lsatp.keys():
+            lsatp[key] = list(map(float, lsatp[key]))
+            summit[key] = list(map(float, summit[key]))
 
-            # Labels and title
+        # Create a comparison plot
+        for court_label in ['Facts', 'Issues', 'Ruling']:
+            fig, ax = plt.subplots(figsize=(8, 6))
+            lsatp_bar = ax.bar(x - width / 2, lsatp[court_label], width, label='LSATP', color='#AE445A')
+            summit_bar = ax.bar(x + width / 2, summit[court_label], width, label='SUMMIT', color='#432E54')
+
             ax.set_ylabel('Scores')
             ax.set_title(f'Comparison of "{court_label}" Court Case Label of LSATP and SUMMIT')
             ax.set_xticks(x)
             ax.set_xticklabels(labels)
             ax.legend()
 
-            # Save bar image
             plt.tight_layout()
             plt.savefig(f'{file_path}{court_label}_comparison.png')
-
+            
         # Create LSATP court case plot
         fig, ax = plt.subplots(figsize=(8, 6))
-        width = .25
-        # Bars
-        lsatp_facts_bar = ax.bar(x, lsatp['Facts'], width, label='Facts', color='#AE445A')
-        lsatp_Issues_bar = ax.bar(x-width, lsatp['Issues'], width, label='Issues', color='#4B4376')
-        lsatp_Ruling_bar = ax.bar(x+width, lsatp['Ruling'], width, label='Rulings', color='#432E54')
+        width = 0.25
+        ax.bar(x - width, lsatp['Facts'], width, label='Facts', color='#AE445A')
+        ax.bar(x, lsatp['Issues'], width, label='Issues', color='#4B4376')
+        ax.bar(x + width, lsatp['Ruling'], width, label='Rulings', color='#432E54')
 
-        # Labels and title
         ax.set_ylabel('Scores')
         ax.set_title('Court Case Label of LSATP')
         ax.set_xticks(x)
         ax.set_xticklabels(labels)
         ax.legend()
 
-        # Save bar image
         plt.tight_layout()
-        plt.savefig(f'{file_path}Court_case_labels_LSATP.png')
-
-        print(f'Saved image at {file_path}.')
+        plt.savefig(os.path.join(file_path, 'Court_case_labels_LSATP.png'))
+        print(f'Saved images to {file_path}.')
 
     except FileNotFoundError as e:
-        print('Check if images is saved in the right repository.')
+        print("File not found. Check if the specified file paths are correct.")
+        print(e)
+
+    except KeyError as e:
+        print("Dataframe does not have the required columns. Please check the data structure.")
+        print(e)
+
+    except Exception as e:
+        print("An unexpected error occurred.")
         print(e)
 
 
@@ -258,7 +278,7 @@ if __name__ == "__main__":
         df = pd.DataFrame(results)
 
         # Generate the PDF report
-        pdf_path = 'Evaluation/Rouge_Scores_PDF/LSATP_Rouge_Sections.pdf'
+        pdf_path = 'Evaluation/Rouge_Scores_PDF/Section/LSATP_Rouge_Sections.pdf'
         image_path = 'Evaluation/Bar_Graph/'
         generate_pdf_report(df, pdf_path)
         generate_bar_graphs(df, image_path)
