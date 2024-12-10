@@ -123,7 +123,7 @@ def generate_pdf_report(df, output_path):
     pdf.set_font("Arial", size=9)
 
     # Report title
-    pdf.cell(0, 10, "LSATP ROUGE Scores for STRUCTURED and UNSTRUCTURED cases", ln=True, align='C')
+    pdf.cell(0, 10, "LSATP ROUGE Scores for both STRUCTURED and UNSTRUCTURED", ln=True, align='C')
     pdf.ln(10)
 
     # Define column widths and headers
@@ -251,7 +251,7 @@ def generate_bar_graph(df, file_path):
 if __name__ == "__main__":
     results = []
 
-    main_folder = 'Evaluation/Court_Cases'
+    main_folder = 'Evaluation/Court_Cases/'
 
     for idx, case_folder in enumerate(os.listdir(main_folder), start=1):  
         case_path = os.path.join(main_folder, case_folder)
