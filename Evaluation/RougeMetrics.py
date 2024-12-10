@@ -123,7 +123,7 @@ def generate_pdf_report(df, output_path):
     pdf.set_font("Arial", size=9)
 
     # Report title
-    pdf.cell(0, 10, "LSATP ROUGE Scores for STRUCTURED and UNSTRUCTURED cases", ln=True, align='C')
+    pdf.cell(0, 10, "LSATP ROUGE Scores for both STRUCTURED and UNSTRUCTURED", ln=True, align='C')
     pdf.ln(10)
 
     # Define column widths and headers

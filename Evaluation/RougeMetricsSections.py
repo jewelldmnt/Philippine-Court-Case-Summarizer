@@ -47,7 +47,7 @@ def generate_pdf_report(df, output_path):
 
     # Title
     pdf.set_font("Arial", size=14, style="B")
-    pdf.cell(0, 10, "LSATP ROUGE Score per Sections", ln=True, align="C")
+    pdf.cell(0, 10, "LSATP ROUGE Score per Sections for both STRUCTURED and UNSTRUCTURED", ln=True, align="C")
     pdf.ln(10)
 
     # Header for the main columns
