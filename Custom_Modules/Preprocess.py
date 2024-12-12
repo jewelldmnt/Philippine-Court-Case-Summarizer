@@ -163,7 +163,7 @@ class preprocess:
 
             # Preprocess and prepare raw data
             self.df.dropna(inplace=True)
-
+            
     def paragraph_segmentation(self):
         """
         Extract the paragraph into single lines, while also pre-cleaning the data
@@ -180,6 +180,11 @@ class preprocess:
             ruling_lines = self.extract_paragraph(
                 self.remove_unnecesary_char(row["ruling"])
             )
+            
+            # Merge numbered lines in each section
+            facts_lines = self.merge_numbered_lines(facts_lines)
+            issues_lines = self.merge_numbered_lines(issues_lines)
+            ruling_lines = self.merge_numbered_lines(ruling_lines)
 
             # Add the lines and corresponding labels to the lists
             for line in facts_lines:
@@ -434,6 +439,41 @@ class preprocess:
         return str(
             text
         ).splitlines()  # Ensure text is a string before splitting into lines
+
+    def merge_numbered_lines(self, text):
+        """
+        Merges all consecutive numbered lines into one sentence while retaining the original structure and formatting.
+        
+        Args:
+            text (str): The input text to process.
+            
+        Returns:
+            str: The processed text with consecutive numbered lines merged into a single sentence.
+        """
+        lines = text.splitlines()
+        result = []
+        buffer = ""
+        is_numbered_section = False
+
+        for line in lines:
+            stripped_line = line.strip()
+            if re.match(r"^\d+\.\s", stripped_line):  # Check if the line starts with a number
+                if not is_numbered_section:
+                    is_numbered_section = True
+                    buffer = stripped_line  # Start a new buffer with the current line
+                else:
+                    buffer += f" {stripped_line}"  # Concatenate to the buffer
+            else:
+                if is_numbered_section:  # If ending a numbered section, append the buffer
+                    result.append(buffer)
+                    buffer = ""
+                    is_numbered_section = False
+                result.append(line)  # Append the current non-numbered line
+
+        if buffer:  # Append any remaining buffer
+            result.append(buffer)
+
+        return "\n".join(result)
 
     def remove_unnecesary_char(self, text: str) -> str:
         """
