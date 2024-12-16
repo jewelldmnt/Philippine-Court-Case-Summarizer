@@ -2,8 +2,15 @@ import React, { useState } from "react";
 import { FaUpload } from "react-icons/fa";
 import "../../assets/spinner.css";
 
-const AddCaseModal = ({ open, onClose, handleFileAdd, loading }) => {
+const AddCaseModal = ({
+  open,
+  onClose,
+  handleFileAdd,
+  handleLinkAdd,
+  loading,
+}) => {
   const [fileName, setFileName] = useState(""); // State to store the selected file name
+  const [link, setLink] = useState(""); // State to store the entered link
   const [isDragOver, setIsDragOver] = useState(false); // Drag-and-drop state
 
   if (!open) return null;
@@ -35,6 +42,13 @@ const AddCaseModal = ({ open, onClose, handleFileAdd, loading }) => {
     }
   };
 
+  const handleLinkSubmit = () => {
+    if (link.trim()) {
+      handleLinkAdd(link); // Pass the entered link
+      setLink(""); // Reset the link input field
+    }
+  };
+
   const resetFileName = () => {
     setFileName(""); // Reset the file name
   };
@@ -46,7 +60,7 @@ const AddCaseModal = ({ open, onClose, handleFileAdd, loading }) => {
     >
       <div className="bg-white rounded-lg shadow-lg w-96 p-6">
         <h2 className="text-xl font-semibold mb-6 text-center">
-          Add Case File
+          Add Case File or Link
         </h2>
 
         {/* File Upload Input */}
@@ -85,11 +99,34 @@ const AddCaseModal = ({ open, onClose, handleFileAdd, loading }) => {
           </p>
         )}
 
+        {/* Link Input */}
+        <div className="mt-4">
+          <input
+            type="text"
+            className="w-full border border-gray-300 rounded p-2 text-sm"
+            placeholder="Enter a link to a case document"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            disabled={loading}
+            aria-label="Enter Case Link"
+          />
+          <button
+            className={`mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition ${
+              loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={handleLinkSubmit}
+            disabled={loading}
+            aria-label="Add Link"
+          >
+            Add Link
+          </button>
+        </div>
+
         {/* Loading State */}
         {loading && (
           <div className="flex items-center mt-4">
             <div className="spinner border-t-4 border-blue-500 rounded-full w-6 h-6 animate-spin"></div>
-            <p className="ml-2 text-gray-600">Uploading file...</p>
+            <p className="ml-2 text-gray-600">Processing...</p>
           </div>
         )}
 
@@ -101,6 +138,7 @@ const AddCaseModal = ({ open, onClose, handleFileAdd, loading }) => {
             }`}
             onClick={() => {
               resetFileName(); // Reset the file name on cancel
+              setLink(""); // Reset the link input field
               onClose();
             }}
             disabled={loading}
