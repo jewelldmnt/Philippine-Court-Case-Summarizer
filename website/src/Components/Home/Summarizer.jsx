@@ -190,10 +190,12 @@ const Summarizer = () => {
         await axios.post("http://127.0.0.1:5000/send-file", {
           content: fileContent,
           title: fileTitle,
+          link: courtCaseLink, // Include link in request payload
         });
 
         if (resetFileName) resetFileName();
-        setIsModalOpen(false); // Close the modal
+        setCourtCaseLink(""); // Reset link input after submission
+        setIsModalOpen(false); // Close modal
 
         const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
         setExistingFiles(updatedFiles.data);
@@ -205,6 +207,60 @@ const Summarizer = () => {
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleFileLink = async (event, courtCaseLink, resetFileName) => {
+    /**
+     * Handles the file upload along with a provided link from a text box in the modal.
+     *
+     * @param {Object} event - The event triggered by the file input change.
+     * @param {string} courtCaseLink - The user-provided link from the text box.
+     * @param {Function} resetFileName - Function to reset the file input field after submission.
+     *
+     * @returns {void}
+     */
+    const file = event.target.files[0];
+
+    if (!file || file.type !== "text/plain") {
+      alert("Please upload a valid .txt file");
+      return;
+    }
+
+    if (!courtCaseLink || courtCaseLink.trim() === "") {
+      alert("Please provide a valid link");
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+      const fileContent = e.target.result;
+      const fileTitle = file.name;
+
+      setLoadingModal(true); // Indicate loading state
+
+      try {
+        // Send the file and link to the backend
+        await axios.post("http://127.0.0.1:5000/send-file-with-link", {
+          content: fileContent,
+          title: fileTitle,
+          link: courtCaseLink.trim(), // Include the trimmed user-provided link
+        });
+
+        if (resetFileName) resetFileName(); // Clear the file input
+        setIsModalOpen(false); // Close the modal
+
+        // Refresh the list of files after upload
+        const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
+        setExistingFiles(updatedFiles.data);
+      } catch (err) {
+        console.error("Error uploading file with link:", err);
+      } finally {
+        setLoadingModal(false); // End loading state
+      }
+    };
+
+    reader.readAsText(file); // Read the file as text
   };
 
   const handleFileDelete = async () => {

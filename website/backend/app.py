@@ -240,6 +240,7 @@ def send_file():
         if request.method == "POST":
             data = request.json
             court_case_link = data.get("content")
+            print(court_case_link)
             court_case_title = data.get("title")[:-4]
             from Custom_Modules.Preprocess import preprocess
             preprocessor = preprocess(is_training=False)
