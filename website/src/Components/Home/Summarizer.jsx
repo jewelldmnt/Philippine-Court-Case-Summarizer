@@ -172,40 +172,39 @@ const Summarizer = () => {
     setCourtCaseValue(activeFile.file_text); // Reset the text area to its original state
   };
 
-  const handleFileAdd = async () => {
-    /**
-     * Handles the adding of a new case file by sending a POST request with the file link.
-     * If successful, updates the list of existing files and closes the modal.
-     *
-     * @returns {void}
-     */
-    console.log(courtCaseLink);
-    setLoadingModal(true);
-    try {
-      const response = await axios.post("http://127.0.0.1:5000/send-file", {
-        link: courtCaseLink,
-      });
-
-      console.log("response: ", response.data);
-
-      if (Array.isArray(response.data)) {
-        setExistingFiles((prev) => [...prev, ...response.data]);
-      } else if (response.data && typeof response.data === "object") {
-        setExistingFiles((prev) => [...prev, response.data]);
-      } else {
-        console.error("Unexpected response format:", response.data);
-      }
-
-      const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
-      setExistingFiles(updatedFiles.data);
-    } catch (error) {
-      console.error("Error adding file:", error);
-    } finally {
-      setLoadingModal(false);
-      setIsModalOpen(false);
+  const handleFileAdd = async (event, resetFileName) => {
+    const file = event.target.files[0];
+    if (!file || file.type !== "text/plain") {
+      alert("Please upload a valid .txt file");
+      return;
     }
 
-    setCourtCaseLink("");
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const fileContent = e.target.result;
+      const fileTitle = file.name;
+
+      setLoadingModal(true);
+
+      try {
+        await axios.post("http://127.0.0.1:5000/send-file", {
+          content: fileContent,
+          title: fileTitle,
+        });
+
+        if (resetFileName) resetFileName();
+        setIsModalOpen(false); // Close the modal
+
+        const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
+        setExistingFiles(updatedFiles.data);
+        setIsModalOpen(false);
+      } catch (err) {
+        console.error("Error uploading file:", err);
+      } finally {
+        setLoadingModal(false);
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleFileDelete = async () => {

@@ -234,44 +234,47 @@ def send_file():
 
         if request.method == "POST":
             data = request.json
-            court_case_link = data.get("link")
+            court_case_link = data.get("content")
+            court_case_title = data.get("title")[:-4]
+
+            # print(court_case_link)
 
             if not court_case_link:
                 return jsonify({"error": "No court case link provided"}), 400
 
-            court_case = scrape_court_case(court_case_link)
+            # court_case = scrape_court_case(court_case_link)
 
-            if (
-                not court_case
-                or "title" not in court_case
-                or "case_text" not in court_case
-            ):
-                return jsonify({"error": "Invalid court case data"}), 400
+            # if (
+            #     not court_case
+            #     or "title" not in court_case
+            #     or "case_text" not in court_case
+            # ):
+            #     return jsonify({"error": "Invalid court case data"}), 400
 
-            case_title = court_case["title"]
+            # case_title = court_case["title"]
 
-            # Sanitize the case title to create a valid file name
-            case_title = re.sub(
-                r'[\\/*?:"<>|]', "-", case_title
-            )  # Replace invalid characters with '-'
-            case_title = re.sub(
-                r"[\.,]", "", case_title
-            )  # Optionally remove commas and periods
+            # # Sanitize the case title to create a valid file name
+            # case_title = re.sub(
+            #     r'[\\/*?:"<>|]', "-", case_title
+            # )  # Replace invalid characters with '-'
+            # case_title = re.sub(
+            #     r"[\.,]", "", case_title
+            # )  # Optionally remove commas and periods
 
-            # Limit the filename length (for example, to 150 characters)
-            max_length = 150
-            txt_case_title = (
-                case_title[:max_length]
-                if len(case_title) > max_length
-                else case_title
-            )
+            # # Limit the filename length (for example, to 150 characters)
+            # max_length = 150
+            # txt_case_title = (
+            #     case_title[:max_length]
+            #     if len(case_title) > max_length
+            #     else case_title
+            # )
 
-            txt_file_name = f"{txt_case_title}.txt"
+            txt_file_name = "test.txt"
 
             try:
                 # Writing the court case text to a .txt file
                 with open(txt_file_name, "w", encoding="utf-8") as f:
-                    f.write(court_case["case_text"])
+                    f.write(court_case_link)
 
                 # Reading the file content for storage
                 with open(txt_file_name, "rb") as f:
@@ -283,8 +286,8 @@ def send_file():
             # Uploading the file to the database
             try:
                 upload = File(
-                    file_name=case_title,
-                    file_text=court_case["case_text"],
+                    file_name=court_case_title,
+                    file_text=court_case_link,
                     file_content=file_content,
                 )
 
@@ -439,7 +442,7 @@ def get_segmented():
 
 
         predicted_labels = segmentation.sequence_classification(
-            segmented_paragraph, threshold=0.5
+            segmented_paragraph, threshold=0.8
         )
         segmentation_output = segmentation.label_mapping(predicted_labels)
 

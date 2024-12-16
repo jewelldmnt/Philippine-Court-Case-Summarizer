@@ -1,109 +1,110 @@
-/**
- * Program Title: Court Case Summarizer - AddCaseModal Component
- *
- * Programmer: Nicholas Dela Torre, Jino Llamado
- * Date Written: October 12, 2024
- * Date Revised: October 12, 2024
- *
- * Purpose:
- *    This component provides a modal dialog for adding a new court case to the
- *    system. It allows users to input a link to a court case, display a loading
- *    spinner while the case is being added, and handles the process of adding the
- *    case via the backend.
- *
- * Where the Program Fits in the General System Design:
- *    The AddCaseModal component serves as a user interface element for interacting
- *    with the backend, facilitating the addition of new court cases. It integrates
- *    with the court case summarizer system to upload new cases and manage them within
- *    the system.
- *
- * Dependencies and Resources:
- *    - React: Functional component for rendering and handling user input.
- *    - react-icons: Used for the "Add" button icon (FaCirclePlus).
- *    - Tailwind CSS: For styling modal and form elements.
- *    - Custom spinner: CSS for handling the loading spinner animation.
- *
- * Control Flow and Logic:
- *    1. `open`: Controls the visibility of the modal. If `open` is false, the modal
- *       will not render.
- *    2. `handleFileAdd`: Handles the submission of the court case link to the backend.
- *    3. Conditional Rendering: Displays the loading spinner and disables form elements
- *       while the case is being added.
- *    4. `onClose`: Closes the modal when the cancel button is clicked.
- *
- * Key Variables:
- *    - `courtCaseLink`: Holds the value of the court case link entered by the user.
- *    - `setCourtCaseLink`: Function to update the `courtCaseLink` state.
- *    - `loading`: Boolean value indicating whether the case is being processed.
- *    - `handleFileAdd`: Function triggered to add the court case.
- */
-
-import React from "react";
-import { FaCirclePlus } from "react-icons/fa6";
+import React, { useState } from "react";
+import { FaUpload } from "react-icons/fa";
 import "../../assets/spinner.css";
 
-const AddCaseModal = ({
-  /**
-   * AddCaseModal Component
-   *
-   * Description:
-   * Renders a modal for adding a court case. The modal includes an input field for entering the case link,
-   * a button for adding the case, and a cancel button. The component also handles a loading state.
-   *
-   * Params:
-   * @param {Object} props - The props object.
-   * @param {boolean} props.open - Determines whether the modal is visible or not.
-   * @param {function} props.onClose - Function to close the modal.
-   * @param {string} props.courtCaseLink - The current value of the court case link input.
-   * @param {function} props.setCourtCaseLink - Function to update the court case link input value.
-   * @param {function} props.handleFileAdd - Function to handle the addition of the court case.
-   * @param {boolean} props.loading - Determines whether the loading state is active.
-   *
-   * Returns:
-   * @returns {JSX.Element|null} - The rendered modal component or null if `open` is false.
-   */
-  open,
-  onClose,
-  courtCaseLink,
-  setCourtCaseLink,
-  handleFileAdd,
-  loading,
-}) => {
+const AddCaseModal = ({ open, onClose, handleFileAdd, loading }) => {
+  const [fileName, setFileName] = useState(""); // State to store the selected file name
+  const [isDragOver, setIsDragOver] = useState(false); // Drag-and-drop state
+
   if (!open) return null;
 
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setFileName(file.name); // Update the file name on selection
+      handleFileAdd(event, resetFileName); // Pass the reset callback
+    }
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    setIsDragOver(false);
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      setFileName(file.name); // Update the file name on drop
+      handleFileAdd({ target: { files: [file] } }, resetFileName); // Pass the reset callback
+    }
+  };
+
+  const resetFileName = () => {
+    setFileName(""); // Reset the file name
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-customRbox text-black p-6 rounded-lg w-[400px]">
-        <h2 className="text-lg font-bold mb-4">Add Court Case</h2>
-        <label className="block mb-2 font-semibold">Enter link:</label>
-        <input
-          type="text"
-          className="border w-full p-2 rounded mb-4 text-black placeholder-gray-400"
-          value={courtCaseLink}
-          onChange={(e) => setCourtCaseLink(e.target.value)}
-          disabled={loading} // Disable input while loading
-        />
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      aria-label="Add Case Modal"
+    >
+      <div className="bg-white rounded-lg shadow-lg w-96 p-6">
+        <h2 className="text-xl font-semibold mb-6 text-center">
+          Add Case File
+        </h2>
 
-        {/* Loading state */}
-        {loading ? (
-          <div className="flex justify-center mb-4">
-            <div className="spinner"></div>
-            <p className="ml-2">Adding file...</p>
-          </div>
-        ) : null}
-
-        <div className="flex justify-between">
-          <button
-            className="bg-primary -500 text-white px-4 py-2 rounded"
-            onClick={handleFileAdd}
-            disabled={loading} // Disable button while loading
+        {/* File Upload Input */}
+        <div
+          className={`border-2 ${
+            isDragOver ? "border-blue-500 bg-blue-50" : "border-gray-300"
+          } border-dashed rounded-lg p-4 text-center transition`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <input
+            type="file"
+            id="case-file"
+            accept=".txt,.pdf,.docx"
+            onChange={handleFileChange}
+            className="hidden" // Hide the default input
+            disabled={loading}
+            aria-label="Upload Case File"
+          />
+          <label
+            htmlFor="case-file"
+            className="cursor-pointer flex flex-col items-center text-gray-600"
           >
-            {loading ? "Adding..." : "Add Case"}
-          </button>
+            <FaUpload className="text-3xl mb-2" />
+            <span className="text-sm">
+              {fileName || "Click to upload or drag and drop a file here"}
+            </span>
+          </label>
+        </div>
+
+        {/* File Name Display */}
+        {fileName && !loading && (
+          <p className="mt-2 text-sm text-gray-500">
+            Selected File: {fileName}
+          </p>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center mt-4">
+            <div className="spinner border-t-4 border-blue-500 rounded-full w-6 h-6 animate-spin"></div>
+            <p className="ml-2 text-gray-600">Uploading file...</p>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex justify-end items-center mt-6">
           <button
-            className="bg-red-500 text-white px-4 py-2 rounded"
-            onClick={onClose}
-            disabled={loading} // Disable cancel button while loading
+            className={`bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition ${
+              loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={() => {
+              resetFileName(); // Reset the file name on cancel
+              onClose();
+            }}
+            disabled={loading}
+            aria-label="Cancel"
           >
             Cancel
           </button>
