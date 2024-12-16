@@ -266,25 +266,14 @@ const Summarizer = () => {
     // Function to slowly increment progress over time
 
     try {
-      const preprocess_res = await axios.post(
-        `http://127.0.0.1:5000/get-preprocessed/${activeFile.id}`,
+      const summarize_res = await axios.post(
+        `http://127.0.0.1:5000/get-summarized/${activeFile.id}`,
         {},
         { headers: { "Content-Type": "application/json" } }
       );
+      console.log("preprocess");
 
-      const segmented_res = await axios.post(
-        `http://127.0.0.1:5000/get-segmented`,
-        { segmented_paragraph: preprocess_res.data.segmented_paragraph },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      const summarized_res = await axios.post(
-        `http://127.0.0.1:5000/get-summarized/${activeFile.id}`,
-        { segmentation_output: segmented_res.data.segmentation_output },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      setSummarizedCase(summarized_res.data.summary);
+      setSummarizedCase(summarize_res.data.summary);
     } catch (err) {
       console.error(err);
     } finally {
@@ -402,7 +391,7 @@ const Summarizer = () => {
                 <p className="text-customWC">
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
-                <label
+                <button
                   className="flex items-center cursor-pointer h-8 bg-summarize 
                   justify-center rounded-xl shadow-xl"
                   onClick={() => {
@@ -411,7 +400,7 @@ const Summarizer = () => {
                 >
                   <p className="font-bold font-sans text-xs m-3">Summarize</p>
                   <input type="button" className="hidden" />
-                </label>
+                </button>
               </div>
             </div>
             {editCase ? (

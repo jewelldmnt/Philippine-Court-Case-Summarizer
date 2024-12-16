@@ -149,8 +149,13 @@ def scrape_court_case(url):
             ]
 
         title_text = title.text.strip().replace("\n", " ")
+        from Custom_Modules.Preprocess import preprocess
+        preprocessor = preprocess(is_training=false)
+        sliced_content = preprocessor.merge_numbered_lines(sliced_content)
 
         return {"title": title_text, "case_text": sliced_content}
+    
+    
 
     except requests.exceptions.RequestException as req_err:
         print(f"Network error: {str(req_err)}")
@@ -236,7 +241,9 @@ def send_file():
             data = request.json
             court_case_link = data.get("content")
             court_case_title = data.get("title")[:-4]
-
+            from Custom_Modules.Preprocess import preprocess
+            preprocessor = preprocess(is_training=False)
+            court_case_link = preprocessor.merge_numbered_lines(court_case_link)
             # print(court_case_link)
 
             if not court_case_link:
@@ -376,7 +383,7 @@ def update_file(id):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/get-preprocessed/<int:id>", methods=["POST"])
+@app.route("/get-summarized/<int:id>", methods=["POST"])
 def get_preprocessed(id):
     """
     Description:
@@ -392,6 +399,8 @@ def get_preprocessed(id):
     """
     try:
         from Custom_Modules.Preprocess import preprocess
+        from Custom_Modules.TopicSegmentation import TopicSegmentation
+        from Custom_Modules.LSA import LSA
 
         file = db.session.get(File, id)
         if file is None:
@@ -410,34 +419,6 @@ def get_preprocessed(id):
         cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
         segmented_paragraph = preprocessor.segment_paragraph(cleaned_text, court_case_text)
         
-        print("segmented paragraph", segmented_paragraph)
-
-        return jsonify({"segmented_paragraph": segmented_paragraph}), 200
-
-    except Exception as e:
-        print("Error during preprocess:", e)
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/get-segmented", methods=["POST"])
-def get_segmented():
-    """
-    Description:
-    Segments the preprocessed court case text into labeled sections (e.g., facts, issues, rulings)
-    using a custom paragraph segmentation model.
-
-    Parameters: None (expects JSON body with "cleaned_text" field)
-
-    Returns:
-    - JSON: The segmented case text with predicted labels.
-    - JSON: An error message if segmentation fails.
-    """
-    try:
-        from Custom_Modules.TopicSegmentation import TopicSegmentation
-
-        data = request.json
-        segmented_paragraph = data.get("segmented_paragraph")
-
         segmentation = TopicSegmentation(model_path="77")
 
 
@@ -445,52 +426,24 @@ def get_segmented():
             segmented_paragraph, threshold=0.8
         )
         segmentation_output = segmentation.label_mapping(predicted_labels)
-
-        if not segmentation_output:
-            return jsonify({"error": "No case text provided"}), 400
-
-        return jsonify({"segmentation_output": segmentation_output}), 200
-
-    except Exception as e:
-        print("Error during segmentation:", e)
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/get-summarized/<int:id>", methods=["POST"])
-def get_summarized(id):
-    """
-    Description:
-    Generates a summary for a segmented court case text using Latent Semantic Analysis (LSA).
-
-    Parameters:
-    - id (int): The ID of the court case file.
-
-    Returns:
-    - JSON: The generated summary with the case title.
-    - JSON: An error message if summarization fails or if the case file is not found.
-    """
-    try:
-        from Custom_Modules.LSA import LSA
-
-        data = request.json
-        segmentation_output = data.get("segmentation_output")
-
-        if not segmentation_output:
-            return jsonify({"error": "No case text provided"}), 400
-
         lsa = LSA(segmentation_output)
         summarize_case = lsa.create_summary()
+        
+
 
         file = db.session.get(File, id)
 
         summary = "TITLE:" + "\n" + file.file_name + "\n\n" + summarize_case
-        print(summary)
-
+        
         return jsonify({"summary": summary}), 200
+        # print("segmented paragraph", segmented_paragraph)
+
+        
 
     except Exception as e:
-        print("Error during summarization:", e)
+        print("Error during preprocess:", e)
         return jsonify({"error": str(e)}), 500
+
 
 
 with app.app_context():
