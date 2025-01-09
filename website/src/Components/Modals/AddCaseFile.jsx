@@ -8,6 +8,7 @@ const AddCaseModal = ({
   handleFileAdd,
   handleLinkAdd,
   loading,
+  handleFileLink,
 }) => {
   const [fileName, setFileName] = useState(""); // State to store the selected file name
   const [link, setLink] = useState(""); // State to store the entered link
@@ -21,6 +22,11 @@ const AddCaseModal = ({
       setFileName(file.name); // Update the file name on selection
       handleFileAdd(event, resetFileName); // Pass the reset callback
     }
+  };
+
+  const handleFileChangeLink = (event) => {
+    console.log("file change link:", link);
+    handleFileLink(event, link, resetFileName); // Pass the reset callback
   };
 
   const handleDragOver = (event) => {
@@ -105,7 +111,6 @@ const AddCaseModal = ({
             type="text"
             className="w-full border border-gray-300 rounded p-2 text-sm"
             placeholder="Enter a link to a case document"
-            value={link}
             onChange={(e) => setLink(e.target.value)}
             disabled={loading}
             aria-label="Enter Case Link"
@@ -114,7 +119,7 @@ const AddCaseModal = ({
             className={`mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            onClick={handleLinkSubmit}
+            onClick={handleFileChangeLink}
             disabled={loading}
             aria-label="Add Link"
           >

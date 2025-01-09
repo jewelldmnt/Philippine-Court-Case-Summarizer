@@ -52,7 +52,7 @@
 # =============================================================================
 
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import pdfplumber
@@ -150,7 +150,7 @@ def scrape_court_case(url):
 
         title_text = title.text.strip().replace("\n", " ")
         from Custom_Modules.Preprocess import preprocess
-        preprocessor = preprocess(is_training=false)
+        preprocessor = preprocess(is_training=False)
         sliced_content = preprocessor.merge_numbered_lines(sliced_content)
 
         return {"title": title_text, "case_text": sliced_content}
@@ -163,6 +163,17 @@ def scrape_court_case(url):
     except Exception as e:
         print(f"Error in scrape_court_case: {str(e)}")
         return None
+    
+def create_wordcloud():
+    from wordcloud import WordCloud
+    text = """
+    A word cloud is a collection of words depicted in different sizes.
+    The bigger and bolder the word appears, the more frequently it occurs in a dataset.
+    This example demonstrates creating a word cloud using Python.
+    """
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
+    output_path = "wordcloud_output.png"
+    wordcloud.to_file(output_path)
 
 
 app = Flask(__name__)
@@ -321,6 +332,115 @@ def send_file():
             jsonify({"error": "An unexpected error occurred: " + str(e)}),
             500,
         )
+        
+@app.route("/send-file-link", methods=["POST"])
+def send_file_link():
+    """
+    Description:
+    Processes a court case from a provided link, saves its text content to a file,
+    stores the file in the database, and deletes the temporary file.
+
+    Parameters: None (expects JSON body with "link" field)
+
+    Returns:
+    - JSON: A JSON message indicating success and the file name.
+    - JSON: Error messages if any part of the process fails (400 or 500 status).
+    """
+    import re
+
+    try:
+
+        if request.method == "POST":
+            data = request.json
+            court_case_link = data.get("link")
+            print(court_case_link)
+            from Custom_Modules.Preprocess import preprocess
+            preprocessor = preprocess(is_training=False)
+            court_case_link = preprocessor.merge_numbered_lines(court_case_link)
+            # print(court_case_link)
+
+            if not court_case_link:
+                return jsonify({"error": "No court case link provided"}), 400
+
+            court_case = scrape_court_case(court_case_link)
+            
+
+            if (
+                not court_case
+                or "case_text" not in court_case
+            ):
+                return jsonify({"error": "Invalid court case data"}), 400
+
+            case_title = court_case["title"]
+            
+            # Sanitize the case title to create a valid file name
+            case_title = re.sub(
+                r'[\\/*?:"<>|]', "-", case_title
+            )  # Replace invalid characters with '-'
+            case_title = re.sub(
+                r"[\.,]", "", case_title
+            )  # Optionally remove commas and periods
+            
+
+            # Limit the filename length (for example, to 150 characters)
+            max_length = 150
+            txt_case_title = (
+                case_title[:max_length]
+                if len(case_title) > max_length
+                else case_title
+            )
+            
+
+            txt_file_name = txt_case_title
+            
+
+            try:
+                # Writing the court case text to a .txt file
+                with open(txt_file_name, "w", encoding="utf-8") as f:
+                    f.write(court_case_link)
+                   
+                    
+
+                # Reading the file content for storage
+                with open(txt_file_name, "rb") as f:
+                    file_content = f.read()
+
+
+            except IOError as e:
+                return jsonify({"error": "File handling error: " + str(e)}), 500
+
+            # Uploading the file to the database
+            try:
+                upload = File(
+                    file_name=txt_file_name,
+                    file_text=court_case["case_text"],
+                    file_content=file_content,
+                )
+                print("uploaded")
+
+                db.session.add(upload)
+                
+                db.session.commit()
+
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({"error": "Database error: " + str(e)}), 500
+
+            # Optionally delete the file after saving to the database
+            try:
+                os.remove(txt_file_name)
+            except OSError as e:
+                return jsonify({"error": "File deletion error: " + str(e)}), 500
+
+            return jsonify({"msg": "successful", "file": txt_file_name})
+
+    except Exception as e:
+        print(e)
+        db.session.rollback()
+        return (
+            jsonify({"error": "An unexpected error occurred: " + str(e)}),
+            500,
+        )
 
 
 @app.route("/delete-file/<int:id>", methods=["DELETE"])
@@ -445,6 +565,19 @@ def get_preprocessed(id):
         print("Error during preprocess:", e)
         return jsonify({"error": str(e)}), 500
 
+@app.route('/wordcloud', methods=['GET'])
+def serve_wordcloud():
+    # Ensure the word cloud is generated
+    create_wordcloud()
+
+    # Path to the word cloud image
+    image_path = "wordcloud_output.png"
+
+    # Send the image to the client
+    if os.path.exists(image_path):
+        return send_file(image_path,download_name='logo.png', mimetype='image/png')  # Correct usage
+    else:
+        return {"error": "Image not found"}, 404
 
 
 with app.app_context():

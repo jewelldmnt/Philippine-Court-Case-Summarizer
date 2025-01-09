@@ -51,7 +51,7 @@
  */
 
 import NavBar from "../Navigation/NavBar";
-import WordCloud from "./WordCloud";
+import WordCloudPage from "./WordCloudPage";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "../../assets/wordcloud.css";
@@ -215,10 +215,7 @@ const Statistics = () => {
       (a, b) => b[1] - a[1]
     );
 
-    const top10Words = sortedWords.slice(0, 10);
-
-    return top10Words.map(([word, frequency], index) => ({
-      rank: index + 1,
+    return sortedWords.map(([word, frequency], index) => ({
       frequency,
       unigram: word,
     }));
@@ -260,10 +257,7 @@ const Statistics = () => {
       (a, b) => b[1] - a[1]
     );
 
-    const top10Bigrams = sortedBigrams.slice(0, 10);
-
-    return top10Bigrams.map(([bigram, frequency], index) => ({
-      rank: index + 1,
+    return sortedBigrams.map(([bigram, frequency], index) => ({
       frequency,
       bigram,
     }));
@@ -356,7 +350,7 @@ const Statistics = () => {
 
           <div className="grid grid-rows-[auto,1fr,1fr] gap-y-4">
             <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
-              STATISTICS OF THE PRODUCED SUMMARY
+              STATISTICS OF THE ORIGINAL COURT CASE
             </p>
 
             {/* Unigram Statistics Table */}
@@ -367,7 +361,6 @@ const Statistics = () => {
               <table className="table-fixed w-full">
                 <thead>
                   <tr>
-                    <th className="font-bold font-sans">Rank</th>
                     <th className="font-bold font-sans">Frequency</th>
                     <th className="font-bold font-sans">Unigram</th>
                   </tr>
@@ -376,9 +369,6 @@ const Statistics = () => {
                   {wordStatsList.length > 0 ? (
                     wordStatsList.map((stat) => (
                       <tr key={stat.rank}>
-                        <td className="text-sm text-center font-sans">
-                          {stat.rank}
-                        </td>
                         <td className="text-sm text-center font-sans">
                           {stat.frequency}
                         </td>
@@ -406,7 +396,6 @@ const Statistics = () => {
               <table className="table-fixed w-full">
                 <thead>
                   <tr>
-                    <th className="font-bold font-sans">Rank</th>
                     <th className="font-bold font-sans">Frequency</th>
                     <th className="font-bold font-sans">Bigram</th>
                   </tr>
@@ -415,9 +404,6 @@ const Statistics = () => {
                   {bigramStatsList.length > 0 ? (
                     bigramStatsList.map((stat) => (
                       <tr key={stat.rank}>
-                        <td className="text-sm text-center font-sans">
-                          {stat.rank}
-                        </td>
                         <td className="text-sm text-center font-sans">
                           {stat.frequency}
                         </td>
@@ -440,7 +426,7 @@ const Statistics = () => {
 
           <div className="flex flex-col space-y-6">
             <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
-              STATISTICS OF THE PRODUCED SUMMARY
+              STATISTICS OF THE ORIGINAL COURT CASE
             </p>
             {/* Unigram Word Cloud */}
             <div
@@ -451,7 +437,7 @@ const Statistics = () => {
                 Unigram Word Cloud
               </p>
               <div className="relative w-full h-full flex justify-center">
-                <WordCloud stats={wordStatsList} />
+                <WordCloudPage stats={wordStatsList} />
               </div>
             </div>
 
@@ -464,7 +450,7 @@ const Statistics = () => {
                 Bigram Word Cloud
               </p>
               <div className="relative w-full h-full flex justify-center">
-                <WordCloud stats={bigramStatsList} />
+                <WordCloudPage stats={bigramStatsList} />
               </div>
             </div>
           </div>

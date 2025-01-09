@@ -219,48 +219,31 @@ const Summarizer = () => {
      *
      * @returns {void}
      */
-    const file = event.target.files[0];
-
-    if (!file || file.type !== "text/plain") {
-      alert("Please upload a valid .txt file");
-      return;
-    }
 
     if (!courtCaseLink || courtCaseLink.trim() === "") {
       alert("Please provide a valid link");
       return;
     }
 
-    const reader = new FileReader();
+    setLoadingModal(true); // Indicate loading state
 
-    reader.onload = async (e) => {
-      const fileContent = e.target.result;
-      const fileTitle = file.name;
+    try {
+      // Send the file and link to the backend
+      await axios.post("http://127.0.0.1:5000/send-file-link", {
+        link: courtCaseLink.trim(), // Include the trimmed user-provided link
+      });
 
-      setLoadingModal(true); // Indicate loading state
+      if (resetFileName) resetFileName(); // Clear the file input
+      setIsModalOpen(false); // Close the modal
 
-      try {
-        // Send the file and link to the backend
-        await axios.post("http://127.0.0.1:5000/send-file-with-link", {
-          content: fileContent,
-          title: fileTitle,
-          link: courtCaseLink.trim(), // Include the trimmed user-provided link
-        });
-
-        if (resetFileName) resetFileName(); // Clear the file input
-        setIsModalOpen(false); // Close the modal
-
-        // Refresh the list of files after upload
-        const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
-        setExistingFiles(updatedFiles.data);
-      } catch (err) {
-        console.error("Error uploading file with link:", err);
-      } finally {
-        setLoadingModal(false); // End loading state
-      }
-    };
-
-    reader.readAsText(file); // Read the file as text
+      // Refresh the list of files after upload
+      const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
+      setExistingFiles(updatedFiles.data);
+    } catch (err) {
+      console.error("Error uploading file with link:", err);
+    } finally {
+      setLoadingModal(false); // End loading state
+    }
   };
 
   const handleFileDelete = async () => {
@@ -356,6 +339,7 @@ const Summarizer = () => {
         courtCaseLink={courtCaseLink}
         setCourtCaseLink={setCourtCaseLink}
         handleFileAdd={handleFileAdd}
+        handleFileLink={handleFileLink}
         loading={loadingModal}
       />
 
