@@ -278,6 +278,7 @@ const Statistics = () => {
 
     setActiveFile(file);
     setCourtCaseValue(file.file_text);
+    console.log("Selected File ID: ", file.id);
 
     const wordStats = calculateWordFrequencies(file.file_text);
     console.log("Word Stats: ", wordStats);
@@ -426,31 +427,21 @@ const Statistics = () => {
 
           <div className="flex flex-col space-y-6">
             <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
-              STATISTICS OF THE ORIGINAL COURT CASE
+              WORD CLOUD OF THE ORIGINAL COURT CASE
             </p>
             {/* Unigram Word Cloud */}
             <div
-              className="bg-customRbox rounded-xl py-6 w-full h-full 
+              className="bg-customRbox rounded-xl w-full h-full 
             max-h-[300px] p-4 wordcloud-container"
             >
-              <p className="font-bold text-[15px] ml-4 mb-2">
-                Unigram Word Cloud
-              </p>
-              <div className="relative w-full h-full flex justify-center">
-                <WordCloudPage stats={wordStatsList} />
-              </div>
-            </div>
-
-            {/* Bigram Word Cloud */}
-            <div
-              className="bg-customRbox rounded-xl py-6 w-full h-full 
-            max-h-[300px] p-4 wordcloud-container"
-            >
-              <p className="font-bold text-[15px] ml-4 mb-2">
-                Bigram Word Cloud
-              </p>
-              <div className="relative w-full h-full flex justify-center">
-                <WordCloudPage stats={bigramStatsList} />
+              <div className="relative w-full h-full flex justify-center items-center">
+                {activeFile?.id ? (
+                  <WordCloudPage file_id={activeFile.id} />
+                ) : (
+                  <p className="text-sm text-center font-sans">
+                    No word cloud available.
+                  </p>
+                )}
               </div>
             </div>
           </div>

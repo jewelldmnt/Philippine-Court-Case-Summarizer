@@ -1,8 +1,8 @@
 # =============================================================================
 # Program Title: Legal Document Analysis Application
-# Programmers: Nicholas Dela Torre
+# Programmers: Nicholas Dela Torre, Jewell Anne Diamante
 # Date Written: October 12, 2024
-# Date Revised: October 16, 2024
+# Date Revised: January 9, 2025
 #
 # Purpose:
 #     This application serves as the main entry point for a comprehensive
@@ -309,10 +309,9 @@ def send_file():
                     file_text=court_case_link,
                     file_content=file_content,
                 )
-
                 db.session.add(upload)
                 db.session.commit()
-
+            
             except Exception as e:
                 db.session.rollback()
                 return jsonify({"error": "Database error: " + str(e)}), 500
@@ -320,6 +319,14 @@ def send_file():
             # Optionally delete the file after saving to the database
             try:
                 os.remove(txt_file_name)
+                # Get the file ID after committing
+                file_id = upload.id  
+                
+                # Generate WordCloud
+                from Custom_Modules.WordCloud import WordCloudGenerator
+                generator = WordCloudGenerator()
+                generator.create_wordcloud(court_case_link, f"../public/images/{file_id}_wordcloud.jpg")
+                
             except OSError as e:
                 return jsonify({"error": "File deletion error: " + str(e)}), 500
 
@@ -421,7 +428,7 @@ def send_file_link():
                 db.session.add(upload)
                 
                 db.session.commit()
-
+                
             except Exception as e:
                 db.session.rollback()
                 return jsonify({"error": "Database error: " + str(e)}), 500
@@ -429,6 +436,15 @@ def send_file_link():
             # Optionally delete the file after saving to the database
             try:
                 os.remove(txt_file_name)
+                
+                # Get the file ID after committing
+                file_id = upload.id  
+                
+                # Generate WordCloud
+                from Custom_Modules.WordCloud import WordCloudGenerator
+                generator = WordCloudGenerator()
+                generator.create_wordcloud(court_case_link, f"../public/images/{file_id}_wordcloud.jpg")
+                
             except OSError as e:
                 return jsonify({"error": "File deletion error: " + str(e)}), 500
 
@@ -522,12 +538,16 @@ def get_summarized(id):
         from Custom_Modules.Preprocess import preprocess
         from Custom_Modules.TopicSegmentation import TopicSegmentation
         from Custom_Modules.LSA import LSA
+        from Custom_Modules.WordCloud import WordCloudGenerator
 
         file = db.session.get(File, id)
         if file is None:
             return jsonify({"error": "Court case not found"}), 404
 
         court_case_text = file.file_text
+
+        generator = WordCloudGenerator()
+        generator.create_wordcloud(court_case_text, f"../public/images/{id}_wordcloud.jpg")
 
         if not court_case_text:
             return jsonify({"error": "No case text provided"}), 400
