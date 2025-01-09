@@ -427,17 +427,14 @@ const Statistics = () => {
 
           <div className="flex flex-col space-y-6">
             <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
-              STATISTICS OF THE ORIGINAL COURT CASE
+              WORD CLOUD OF THE ORIGINAL COURT CASE
             </p>
             {/* Unigram Word Cloud */}
             <div
-              className="bg-customRbox rounded-xl py-6 w-full h-full 
+              className="bg-customRbox rounded-xl w-full h-full 
             max-h-[300px] p-4 wordcloud-container"
             >
-              <p className="font-bold text-[15px] ml-4 mb-2 text-center">
-                Word cloud of the original court case
-              </p>
-              <div className="relative w-full h-full flex justify-center items-center pb-4">
+              <div className="relative w-full h-full flex justify-center items-center">
                 {activeFile?.id ? (
                   <WordCloudPage file_id={activeFile.id} />
                 ) : (
