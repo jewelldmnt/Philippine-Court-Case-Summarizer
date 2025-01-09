@@ -505,7 +505,7 @@ def update_file(id):
 
 
 @app.route("/get-summarized/<int:id>", methods=["POST"])
-def get_preprocessed(id):
+def get_summarized(id):
     """
     Description:
     Retrieves and preprocesses the text of a specified court case file using custom preprocessing,

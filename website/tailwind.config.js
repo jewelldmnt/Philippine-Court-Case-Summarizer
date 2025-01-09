@@ -18,7 +18,7 @@ export default {
         tertiary: "#192E40",
         background: "#EEEEEE",
         wordCount: "#205D93",
-        active: "#F01212",
+        active: "#79B5E1",
         active1: "#192E40",
         delete: "#D90429",
         summarize: "#EBF4FB",
