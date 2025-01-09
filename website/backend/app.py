@@ -531,7 +531,7 @@ def get_summarized(id):
         court_case_text = file.file_text
 
         generator = WordCloudGenerator()
-        generator.create_wordcloud(court_case_text, "../public/images/wordcloud.jpg")
+        generator.create_wordcloud(court_case_text, f"../public/images/{id}_wordcloud.jpg")
 
         if not court_case_text:
             return jsonify({"error": "No case text provided"}), 400

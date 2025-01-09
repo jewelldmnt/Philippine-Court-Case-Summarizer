@@ -33,48 +33,32 @@
  *    - `getFontSize`: Helper function that returns a size for each word based on
  *      the min-max frequency range.
  */
-
-const WordCloud = ({ stats }) => {
+import { useEffect, useState } from "react";
+const WordCloud = ({ file_id }) => {
   /**
    * WordCloud component that renders a pre-generated word cloud image
    * based on the type of word (unigram or bigram).
    *
-   * @param {Object} stats - Array of word frequency statistics.
-   *   - stats: An array of objects where each object contains:
-   *     - `rank`: The rank of the word (unique identifier).
-   *     - `unigram`: The unigram (single word) in the word cloud.
-   *     - `bigram`: The bigram (two words) in the word cloud.
-   *     - `frequency`: The frequency of the unigram or bigram.
+   * @param {string} file_id - The ID of the selected file.
    *
-   * @returns {JSX.Element} A div element that contains the word cloud image,
-   *              or a message if the image cannot be loaded.
+   * @returns {JSX.Element}
    */
-  const getImagePath = (word) => {
-    if (word.unigram) {
-      return "public/images/uni_wordcloud.jpg"; // Image for unigram
-    } else if (word.bigram) {
-      return "public/images/bi_wordcloud.jpg"; // Image for bigram
+
+  useEffect(() => {
+    if (file_id) {
+      console.log("File ID for WordCloud: ", file_id);
+      // Fetch or process data related to the word cloud using file_id
+      // Example: Fetch word cloud image or generate word cloud
     }
-    return null;
-  };
-
-  if (!stats || stats.length === 0) {
-    return <p>No word cloud data available.</p>;
-  }
-
-  const imagePath = getImagePath(stats[0]); // Selects the image based on the first word's type (unigram or bigram)
+  }, [file_id]);
 
   return (
     <div className="flex items-center justify-center w-full h-full bg-white pb-4">
-      {imagePath ? (
-        <img
-          src={imagePath} // Use dynamic image path
-          alt="Word Cloud"
-          className="max-w-full max-h-full object-contain"
-        />
-      ) : (
-        <p>No valid word cloud image found.</p>
-      )}
+      <img
+        src={`public/images/${file_id}_wordcloud.jpg`} // Use dynamic image path
+        alt="Word Cloud"
+        className="max-w-full max-h-full object-contain"
+      />
     </div>
   );
 };

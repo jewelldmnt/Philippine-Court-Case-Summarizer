@@ -278,6 +278,7 @@ const Statistics = () => {
 
     setActiveFile(file);
     setCourtCaseValue(file.file_text);
+    console.log("Selected File ID: ", file.id);
 
     const wordStats = calculateWordFrequencies(file.file_text);
     console.log("Word Stats: ", wordStats);
@@ -433,24 +434,17 @@ const Statistics = () => {
               className="bg-customRbox rounded-xl py-6 w-full h-full 
             max-h-[300px] p-4 wordcloud-container"
             >
-              <p className="font-bold text-[15px] ml-4 mb-2">
+              <p className="font-bold text-[15px] ml-4 mb-2 text-center">
                 Unigram Word Cloud
               </p>
-              <div className="relative w-full h-full flex justify-center">
-                <WordCloudPage stats={wordStatsList} />
-              </div>
-            </div>
-
-            {/* Bigram Word Cloud */}
-            <div
-              className="bg-customRbox rounded-xl py-6 w-full h-full 
-            max-h-[300px] p-4 wordcloud-container"
-            >
-              <p className="font-bold text-[15px] ml-4 mb-2">
-                Bigram Word Cloud
-              </p>
-              <div className="relative w-full h-full flex justify-center">
-                <WordCloudPage stats={bigramStatsList} />
+              <div className="relative w-full h-full flex justify-center items-center pb-4">
+                {activeFile?.id ? (
+                  <WordCloudPage file_id={activeFile.id} />
+                ) : (
+                  <p className="text-sm text-center font-sans">
+                    No word cloud available.
+                  </p>
+                )}
               </div>
             </div>
           </div>

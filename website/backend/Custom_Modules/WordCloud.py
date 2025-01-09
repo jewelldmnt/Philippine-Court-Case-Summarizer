@@ -1,4 +1,4 @@
-from wordcloud import WordCloud
+from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -11,7 +11,6 @@ class WordCloudGenerator:
 
     def create_wordcloud(self, text, output_file="wordcloud.jpg"):
         """
-        Generates a word cloud in an oblong shape and saves it as an image file.
 
         :param text: The input text for the word cloud.
         :param output_file: The output file name (default is 'wordcloud.jpg').
@@ -19,6 +18,7 @@ class WordCloudGenerator:
 
         # Generate the word cloud
         wordcloud = WordCloud(
+            stopwords=STOPWORDS,
             width=self.width,
             height=self.height,
             background_color=self.background_color,
@@ -32,7 +32,6 @@ class WordCloudGenerator:
         plt.figure(figsize=(10, 5))
         plt.imshow(wordcloud, interpolation='bilinear')
         plt.axis('off')
-        plt.show()
 
         print(f"Word cloud saved as {output_file}")
         
