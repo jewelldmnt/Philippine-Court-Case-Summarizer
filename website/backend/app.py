@@ -1,8 +1,8 @@
 # =============================================================================
 # Program Title: Legal Document Analysis Application
-# Programmers: Nicholas Dela Torre
+# Programmers: Nicholas Dela Torre, Jewell Anne Diamante
 # Date Written: October 12, 2024
-# Date Revised: October 16, 2024
+# Date Revised: January 9, 2025
 #
 # Purpose:
 #     This application serves as the main entry point for a comprehensive
@@ -522,12 +522,16 @@ def get_summarized(id):
         from Custom_Modules.Preprocess import preprocess
         from Custom_Modules.TopicSegmentation import TopicSegmentation
         from Custom_Modules.LSA import LSA
+        from Custom_Modules.WordCloud import WordCloudGenerator
 
         file = db.session.get(File, id)
         if file is None:
             return jsonify({"error": "Court case not found"}), 404
 
         court_case_text = file.file_text
+
+        generator = WordCloudGenerator()
+        generator.create_wordcloud(court_case_text, "../public/images/wordcloud.jpg")
 
         if not court_case_text:
             return jsonify({"error": "No case text provided"}), 400
