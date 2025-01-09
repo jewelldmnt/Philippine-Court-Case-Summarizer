@@ -190,10 +190,12 @@ const Summarizer = () => {
         await axios.post("http://127.0.0.1:5000/send-file", {
           content: fileContent,
           title: fileTitle,
+          link: courtCaseLink, // Include link in request payload
         });
 
         if (resetFileName) resetFileName();
-        setIsModalOpen(false); // Close the modal
+        setCourtCaseLink(""); // Reset link input after submission
+        setIsModalOpen(false); // Close modal
 
         const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
         setExistingFiles(updatedFiles.data);
@@ -205,6 +207,43 @@ const Summarizer = () => {
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleFileLink = async (event, courtCaseLink, resetFileName) => {
+    /**
+     * Handles the file upload along with a provided link from a text box in the modal.
+     *
+     * @param {Object} event - The event triggered by the file input change.
+     * @param {string} courtCaseLink - The user-provided link from the text box.
+     * @param {Function} resetFileName - Function to reset the file input field after submission.
+     *
+     * @returns {void}
+     */
+
+    if (!courtCaseLink || courtCaseLink.trim() === "") {
+      alert("Please provide a valid link");
+      return;
+    }
+
+    setLoadingModal(true); // Indicate loading state
+
+    try {
+      // Send the file and link to the backend
+      await axios.post("http://127.0.0.1:5000/send-file-link", {
+        link: courtCaseLink.trim(), // Include the trimmed user-provided link
+      });
+
+      if (resetFileName) resetFileName(); // Clear the file input
+      setIsModalOpen(false); // Close the modal
+
+      // Refresh the list of files after upload
+      const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
+      setExistingFiles(updatedFiles.data);
+    } catch (err) {
+      console.error("Error uploading file with link:", err);
+    } finally {
+      setLoadingModal(false); // End loading state
+    }
   };
 
   const handleFileDelete = async () => {
@@ -266,25 +305,14 @@ const Summarizer = () => {
     // Function to slowly increment progress over time
 
     try {
-      const preprocess_res = await axios.post(
-        `http://127.0.0.1:5000/get-preprocessed/${activeFile.id}`,
+      const summarize_res = await axios.post(
+        `http://127.0.0.1:5000/get-summarized/${activeFile.id}`,
         {},
         { headers: { "Content-Type": "application/json" } }
       );
+      console.log("preprocess");
 
-      const segmented_res = await axios.post(
-        `http://127.0.0.1:5000/get-segmented`,
-        { segmented_paragraph: preprocess_res.data.segmented_paragraph },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      const summarized_res = await axios.post(
-        `http://127.0.0.1:5000/get-summarized/${activeFile.id}`,
-        { segmentation_output: segmented_res.data.segmentation_output },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      setSummarizedCase(summarized_res.data.summary);
+      setSummarizedCase(summarize_res.data.summary);
     } catch (err) {
       console.error(err);
     } finally {
@@ -311,6 +339,7 @@ const Summarizer = () => {
         courtCaseLink={courtCaseLink}
         setCourtCaseLink={setCourtCaseLink}
         handleFileAdd={handleFileAdd}
+        handleFileLink={handleFileLink}
         loading={loadingModal}
       />
 
@@ -402,7 +431,7 @@ const Summarizer = () => {
                 <p className="text-customWC">
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
-                <label
+                <button
                   className="flex items-center cursor-pointer h-8 bg-summarize 
                   justify-center rounded-xl shadow-xl"
                   onClick={() => {
@@ -411,7 +440,7 @@ const Summarizer = () => {
                 >
                   <p className="font-bold font-sans text-xs m-3">Summarize</p>
                   <input type="button" className="hidden" />
-                </label>
+                </button>
               </div>
             </div>
             {editCase ? (

@@ -52,7 +52,7 @@
 # =============================================================================
 
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import pdfplumber
@@ -149,8 +149,13 @@ def scrape_court_case(url):
             ]
 
         title_text = title.text.strip().replace("\n", " ")
+        from Custom_Modules.Preprocess import preprocess
+        preprocessor = preprocess(is_training=False)
+        sliced_content = preprocessor.merge_numbered_lines(sliced_content)
 
         return {"title": title_text, "case_text": sliced_content}
+    
+    
 
     except requests.exceptions.RequestException as req_err:
         print(f"Network error: {str(req_err)}")
@@ -158,6 +163,17 @@ def scrape_court_case(url):
     except Exception as e:
         print(f"Error in scrape_court_case: {str(e)}")
         return None
+    
+def create_wordcloud():
+    from wordcloud import WordCloud
+    text = """
+    A word cloud is a collection of words depicted in different sizes.
+    The bigger and bolder the word appears, the more frequently it occurs in a dataset.
+    This example demonstrates creating a word cloud using Python.
+    """
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
+    output_path = "wordcloud_output.png"
+    wordcloud.to_file(output_path)
 
 
 app = Flask(__name__)
@@ -235,8 +251,11 @@ def send_file():
         if request.method == "POST":
             data = request.json
             court_case_link = data.get("content")
+            print(court_case_link)
             court_case_title = data.get("title")[:-4]
-
+            from Custom_Modules.Preprocess import preprocess
+            preprocessor = preprocess(is_training=False)
+            court_case_link = preprocessor.merge_numbered_lines(court_case_link)
             # print(court_case_link)
 
             if not court_case_link:
@@ -292,6 +311,115 @@ def send_file():
                 )
 
                 db.session.add(upload)
+                db.session.commit()
+
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({"error": "Database error: " + str(e)}), 500
+
+            # Optionally delete the file after saving to the database
+            try:
+                os.remove(txt_file_name)
+            except OSError as e:
+                return jsonify({"error": "File deletion error: " + str(e)}), 500
+
+            return jsonify({"msg": "successful", "file": txt_file_name})
+
+    except Exception as e:
+        print(e)
+        db.session.rollback()
+        return (
+            jsonify({"error": "An unexpected error occurred: " + str(e)}),
+            500,
+        )
+        
+@app.route("/send-file-link", methods=["POST"])
+def send_file_link():
+    """
+    Description:
+    Processes a court case from a provided link, saves its text content to a file,
+    stores the file in the database, and deletes the temporary file.
+
+    Parameters: None (expects JSON body with "link" field)
+
+    Returns:
+    - JSON: A JSON message indicating success and the file name.
+    - JSON: Error messages if any part of the process fails (400 or 500 status).
+    """
+    import re
+
+    try:
+
+        if request.method == "POST":
+            data = request.json
+            court_case_link = data.get("link")
+            print(court_case_link)
+            from Custom_Modules.Preprocess import preprocess
+            preprocessor = preprocess(is_training=False)
+            court_case_link = preprocessor.merge_numbered_lines(court_case_link)
+            # print(court_case_link)
+
+            if not court_case_link:
+                return jsonify({"error": "No court case link provided"}), 400
+
+            court_case = scrape_court_case(court_case_link)
+            
+
+            if (
+                not court_case
+                or "case_text" not in court_case
+            ):
+                return jsonify({"error": "Invalid court case data"}), 400
+
+            case_title = court_case["title"]
+            
+            # Sanitize the case title to create a valid file name
+            case_title = re.sub(
+                r'[\\/*?:"<>|]', "-", case_title
+            )  # Replace invalid characters with '-'
+            case_title = re.sub(
+                r"[\.,]", "", case_title
+            )  # Optionally remove commas and periods
+            
+
+            # Limit the filename length (for example, to 150 characters)
+            max_length = 150
+            txt_case_title = (
+                case_title[:max_length]
+                if len(case_title) > max_length
+                else case_title
+            )
+            
+
+            txt_file_name = txt_case_title
+            
+
+            try:
+                # Writing the court case text to a .txt file
+                with open(txt_file_name, "w", encoding="utf-8") as f:
+                    f.write(court_case_link)
+                   
+                    
+
+                # Reading the file content for storage
+                with open(txt_file_name, "rb") as f:
+                    file_content = f.read()
+
+
+            except IOError as e:
+                return jsonify({"error": "File handling error: " + str(e)}), 500
+
+            # Uploading the file to the database
+            try:
+                upload = File(
+                    file_name=txt_file_name,
+                    file_text=court_case["case_text"],
+                    file_content=file_content,
+                )
+                print("uploaded")
+
+                db.session.add(upload)
+                
                 db.session.commit()
 
             except Exception as e:
@@ -376,8 +504,8 @@ def update_file(id):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/get-preprocessed/<int:id>", methods=["POST"])
-def get_preprocessed(id):
+@app.route("/get-summarized/<int:id>", methods=["POST"])
+def get_summarized(id):
     """
     Description:
     Retrieves and preprocesses the text of a specified court case file using custom preprocessing,
@@ -392,6 +520,8 @@ def get_preprocessed(id):
     """
     try:
         from Custom_Modules.Preprocess import preprocess
+        from Custom_Modules.TopicSegmentation import TopicSegmentation
+        from Custom_Modules.LSA import LSA
 
         file = db.session.get(File, id)
         if file is None:
@@ -410,34 +540,6 @@ def get_preprocessed(id):
         cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
         segmented_paragraph = preprocessor.segment_paragraph(cleaned_text, court_case_text)
         
-        print("segmented paragraph", segmented_paragraph)
-
-        return jsonify({"segmented_paragraph": segmented_paragraph}), 200
-
-    except Exception as e:
-        print("Error during preprocess:", e)
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/get-segmented", methods=["POST"])
-def get_segmented():
-    """
-    Description:
-    Segments the preprocessed court case text into labeled sections (e.g., facts, issues, rulings)
-    using a custom paragraph segmentation model.
-
-    Parameters: None (expects JSON body with "cleaned_text" field)
-
-    Returns:
-    - JSON: The segmented case text with predicted labels.
-    - JSON: An error message if segmentation fails.
-    """
-    try:
-        from Custom_Modules.TopicSegmentation import TopicSegmentation
-
-        data = request.json
-        segmented_paragraph = data.get("segmented_paragraph")
-
         segmentation = TopicSegmentation(model_path="77")
 
 
@@ -445,52 +547,37 @@ def get_segmented():
             segmented_paragraph, threshold=0.8
         )
         segmentation_output = segmentation.label_mapping(predicted_labels)
-
-        if not segmentation_output:
-            return jsonify({"error": "No case text provided"}), 400
-
-        return jsonify({"segmentation_output": segmentation_output}), 200
-
-    except Exception as e:
-        print("Error during segmentation:", e)
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/get-summarized/<int:id>", methods=["POST"])
-def get_summarized(id):
-    """
-    Description:
-    Generates a summary for a segmented court case text using Latent Semantic Analysis (LSA).
-
-    Parameters:
-    - id (int): The ID of the court case file.
-
-    Returns:
-    - JSON: The generated summary with the case title.
-    - JSON: An error message if summarization fails or if the case file is not found.
-    """
-    try:
-        from Custom_Modules.LSA import LSA
-
-        data = request.json
-        segmentation_output = data.get("segmentation_output")
-
-        if not segmentation_output:
-            return jsonify({"error": "No case text provided"}), 400
-
         lsa = LSA(segmentation_output)
         summarize_case = lsa.create_summary()
+        
+
 
         file = db.session.get(File, id)
 
         summary = "TITLE:" + "\n" + file.file_name + "\n\n" + summarize_case
-        print(summary)
-
+        
         return jsonify({"summary": summary}), 200
+        # print("segmented paragraph", segmented_paragraph)
+
+        
 
     except Exception as e:
-        print("Error during summarization:", e)
+        print("Error during preprocess:", e)
         return jsonify({"error": str(e)}), 500
+
+@app.route('/wordcloud', methods=['GET'])
+def serve_wordcloud():
+    # Ensure the word cloud is generated
+    create_wordcloud()
+
+    # Path to the word cloud image
+    image_path = "wordcloud_output.png"
+
+    # Send the image to the client
+    if os.path.exists(image_path):
+        return send_file(image_path,download_name='logo.png', mimetype='image/png')  # Correct usage
+    else:
+        return {"error": "Image not found"}, 404
 
 
 with app.app_context():
