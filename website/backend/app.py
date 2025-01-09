@@ -309,10 +309,9 @@ def send_file():
                     file_text=court_case_link,
                     file_content=file_content,
                 )
-
                 db.session.add(upload)
                 db.session.commit()
-
+            
             except Exception as e:
                 db.session.rollback()
                 return jsonify({"error": "Database error: " + str(e)}), 500
@@ -320,6 +319,14 @@ def send_file():
             # Optionally delete the file after saving to the database
             try:
                 os.remove(txt_file_name)
+                # Get the file ID after committing
+                file_id = upload.id  
+                
+                # Generate WordCloud
+                from Custom_Modules.WordCloud import WordCloudGenerator
+                generator = WordCloudGenerator()
+                generator.create_wordcloud(court_case_link, f"../public/images/{file_id}_wordcloud.jpg")
+                
             except OSError as e:
                 return jsonify({"error": "File deletion error: " + str(e)}), 500
 
@@ -421,7 +428,7 @@ def send_file_link():
                 db.session.add(upload)
                 
                 db.session.commit()
-
+                
             except Exception as e:
                 db.session.rollback()
                 return jsonify({"error": "Database error: " + str(e)}), 500
@@ -429,6 +436,15 @@ def send_file_link():
             # Optionally delete the file after saving to the database
             try:
                 os.remove(txt_file_name)
+                
+                # Get the file ID after committing
+                file_id = upload.id  
+                
+                # Generate WordCloud
+                from Custom_Modules.WordCloud import WordCloudGenerator
+                generator = WordCloudGenerator()
+                generator.create_wordcloud(court_case_link, f"../public/images/{file_id}_wordcloud.jpg")
+                
             except OSError as e:
                 return jsonify({"error": "File deletion error: " + str(e)}), 500
 
