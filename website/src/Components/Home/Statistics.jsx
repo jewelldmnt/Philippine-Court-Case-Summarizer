@@ -435,7 +435,7 @@ const Statistics = () => {
             max-h-[300px] p-4 wordcloud-container"
             >
               <p className="font-bold text-[15px] ml-4 mb-2 text-center">
-                Unigram Word Cloud
+                Word cloud of the original court case
               </p>
               <div className="relative w-full h-full flex justify-center items-center pb-4">
                 {activeFile?.id ? (
