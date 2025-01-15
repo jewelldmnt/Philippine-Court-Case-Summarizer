@@ -45,17 +45,12 @@ const WordCloud = ({ file_id }) => {
    */
 
   useEffect(() => {
-    if (file_id) {
-      console.log("File ID for WordCloud: ", file_id);
-      // Fetch or process data related to the word cloud using file_id
-      // Example: Fetch word cloud image or generate word cloud
-    }
   }, [file_id]);
 
   return (
     <div className="flex items-center justify-center w-full h-full bg-white">
       <img
-        src={`public/images/${file_id}_wordcloud.jpg`} // Use dynamic image path
+        src={`/images/${file_id}_wordcloud.jpg`} // Use dynamic image path
         alt="Word Cloud"
         className="max-w-full max-h-full object-contain"
       />
