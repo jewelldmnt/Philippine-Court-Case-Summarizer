@@ -377,7 +377,8 @@ const Summarizer = () => {
             </p>
             <div
               className="font-sans text-sm bg-customRbox rounded-xl py-6 
-            h-[450px] overflow-y-auto custom-scrollbar"
+            sm:h-[200px] lg:h-[450px] overflow-y-auto custom-scrollbar"
+              style={{ height: "calc(100vh - 200px)" }}
             >
               <ol className="list-decimal list-inside">
                 {existingFiles.length > 0 ? (
@@ -430,7 +431,7 @@ const Summarizer = () => {
             </div>
           </div>
 
-          <div>
+          <div className="w-full">
             <p className="font-bold font-sans text-[15px] ml-4 mb-4 flex items-center">
               ORIGINAL COURT CASE
               {editCase ? (
@@ -443,7 +444,7 @@ const Summarizer = () => {
                 </>
               )}
             </p>
-            <div className="relative">
+            <div className="relative" style={{ height: "calc(100vh - 200px)" }}>
               <textarea
                 className={`bg-customRbox rounded-xl px-4 py-6 h-[450px]
   w-full overflow-y-auto custom-scrollbar flex items-center justify-center ${
@@ -454,6 +455,7 @@ const Summarizer = () => {
                 readOnly={!editCase}
                 style={{
                   paddingBottom: "2.5rem",
+                  height: "calc(100vh - 200px)",
                 }}
               />
               <div
@@ -528,11 +530,12 @@ const Summarizer = () => {
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               SUMMARIZED COURT CASE
             </p>
-            <div className="relative">
+            <div className="relative" style={{ height: "calc(100vh - 200px)" }}>
               {isSummaryLoading ? (
                 <div
                   className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] 
                 w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center"
+                  style={{ height: "calc(100vh - 200px)" }}
                 >
                   <p
                     className={`loading-text fade-text ${
@@ -552,7 +555,10 @@ const Summarizer = () => {
                     }`}
                   readOnly
                   value={summarizedCase}
-                  style={{ paddingBottom: "2.5rem" }}
+                  style={{
+                    paddingBottom: "2.5rem",
+                    height: "calc(100vh - 200px)",
+                  }}
                 />
               )}
 
