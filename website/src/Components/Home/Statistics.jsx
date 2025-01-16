@@ -210,14 +210,14 @@ const Statistics = () => {
   return (
     <div className="bg-customGray text-black h-screen">
       <NavBar activePage="Statistics" />
-      <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
-        <div>
+      <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-[80vh] m-8">
+        <div className="h-[80vh] overflow-y-auto">
           <p className="font-bold font-sans text-[15px] ml-4 mb-4">
             LIST OF COURT CASES
           </p>
           <div
             className="font-sans text-sm bg-customRbox rounded-xl py-6
-            h-[450px] overflow-y-auto custom-scrollbar"
+            h-[73vh] overflow-y-auto"
           >
             <ol className="list-decimal list-inside">
               {existingFiles.length > 0 ? (
@@ -249,7 +249,7 @@ const Statistics = () => {
           </p>
 
           {/* Unigram Statistics Table */}
-          <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[240px] overflow-y-auto custom-scrollbar">
+          <div className="bg-customRbox rounded-xl py-6 w-full h-[35vh]  overflow-y-auto custom-scrollbar">
             <table className="table-fixed w-full">
               <thead>
                 <tr>
@@ -291,7 +291,7 @@ const Statistics = () => {
           </div>
 
           {/* Bigram Statistics Table */}
-          <div className="bg-customRbox rounded-xl py-6 pb-10 h-full max-h-[240px] w-full overflow-y-auto custom-scrollbar">
+          <div className="bg-customRbox rounded-xl py-6 pb-10 w-full h-[35vh] overflow-y-auto custom-scrollbar">
             <table className="table-fixed w-full">
               <thead>
                 <tr>
@@ -333,12 +333,12 @@ const Statistics = () => {
           </div>
         </div>
 
-        <div className="flex flex-col space-y-6">
+        <div className="flex flex-col space-y-6 h-[80vh] overflow-y-auto">
           <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
             WORD CLOUD OF THE ORIGINAL COURT CASE
           </p>
           {/* Word Cloud */}
-          <div className="bg-customRbox rounded-xl w-full h-full max-h-[450px] overflow-y-auto">
+          <div className="bg-customRbox rounded-xl w-full h-[72vh]  overflow-y-auto">
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <p>Loading...</p>

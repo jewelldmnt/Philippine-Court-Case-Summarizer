@@ -50,7 +50,7 @@ const NavBar = ({ activePage }) => {
 
   return (
     <>
-      <div className="bg-customLight px-4 pt-6">
+      <div className="bg-customLight px-4 pt-6 border-b-[0.1px] border-[#3F3F3F] w-full">
         <div className="mb-3 mx-2 flex justify-between">
           <div className="flex items-center gap-[8px]">
             <img
@@ -64,7 +64,7 @@ const NavBar = ({ activePage }) => {
               <span className="text-secondary">SUMMARIZER</span>
             </p>
           </div>
-          <div className="flex text-white gap-20 font-bold text-[16px] font-sans mr-20">
+          <div className="flex text-white gap-10 font-bold text-[16px] font-sans mr-21">
             {/* Summarizer Link */}
             <div className="relative group">
               <NavLink to="/">
@@ -106,7 +106,6 @@ const NavBar = ({ activePage }) => {
             </div>
           </div>
         </div>
-        <div className="border border-b-[0.1px] border-[#3F3F3F]"></div>
       </div>
 
       {/* Modal (will show when isModalOpen is true) */}
