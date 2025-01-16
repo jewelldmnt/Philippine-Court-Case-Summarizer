@@ -61,10 +61,9 @@ from bs4 import BeautifulSoup
 import requests
 import re
 import os
+from Custom_Modules.Preprocess import preprocess
+import spacy
 
-import requests
-from bs4 import BeautifulSoup
-import re
 
 
 def scrape_court_case(url):
@@ -164,16 +163,57 @@ def scrape_court_case(url):
         print(f"Error in scrape_court_case: {str(e)}")
         return None
     
-def create_wordcloud():
+def create_wordcloud(court_case_content, file_id):
     from wordcloud import WordCloud
-    text = """
-    A word cloud is a collection of words depicted in different sizes.
-    The bigger and bolder the word appears, the more frequently it occurs in a dataset.
-    This example demonstrates creating a word cloud using Python.
-    """
-    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
-    output_path = "wordcloud_output.png"
-    wordcloud.to_file(output_path)
+    from Custom_Modules.Preprocess import preprocess
+    from Custom_Modules.WordCloud import WordCloudGenerator
+    from collections import Counter
+    from stopwords import unigram_stopwords, bigram_stopwords
+    preprocessor = preprocess(is_training=False)
+    # Assuming preprocessor.remove_unnecesary_char and stopwords are defined
+    nlp = spacy.load("en_core_web_sm")
+    cleaned_text = preprocessor.remove_unnecesary_char(court_case_content)
+
+    doc = nlp(cleaned_text)
+
+    # Filter tokens with specific POS tags
+    filtered_words = " ".join([token.text for token in doc if token.pos_ in ['NOUN', 'VERB', 'ADJ']])
+
+    # Remove punctuation, convert to lowercase, split into words
+
+    words = re.sub(r'[^\w\s]', '', filtered_words.lower())  # Remove punctuation
+    words = re.sub(r'\b[a-zA-Z]+\d+\b', '', words).split()  # Remove letters followed by numbers and split
+
+
+    # Filter out stopwords
+    unigram_words = [word for word in words if word not in unigram_stopwords]
+    bigram_words = [word for word in words if word not in bigram_stopwords]
+
+    # Create a frequency map
+    unigram_frequency_map = Counter(unigram_words)
+
+    # Filter words with frequency greater than 2
+    unigram_filtered_words = {word: freq for word, freq in unigram_frequency_map.items() if freq > 2 and len(word.strip()) > 2}
+
+    # bigram process
+    bigrams = [f"{words[i]} {words[i + 1]}" for i in range(len(bigram_words) - 1)]
+
+    bigram_frequency_map = Counter(bigrams)
+
+    # Filter and sort bigrams with frequency > 1
+    sorted_bigrams = sorted(
+    [(bigram, freq) for bigram, freq in bigram_frequency_map.items() if freq > 1],
+    key=lambda x: x[1],
+    reverse=True
+    )
+
+    bigram_filtered_words = {bigram: freq for bigram, freq in sorted_bigrams}
+
+    filtered_words = unigram_filtered_words.copy()
+    filtered_words.update(bigram_filtered_words)
+
+    generator = WordCloudGenerator()
+    generator.create_wordcloud(filtered_words, f"../public/images/{file_id}_wordcloud.jpg")
 
 
 app = Flask(__name__)
@@ -184,6 +224,7 @@ db = SQLAlchemy(app)
 
 Base = declarative_base()
 
+import base64
 
 class File(db.Model):
     __tablename__ = "file"
@@ -197,7 +238,7 @@ class File(db.Model):
             "id": self.id,
             "file_name": self.file_name,
             "file_text": self.file_text,
-            "file_content": str(self.file_content),
+            "file_content": base64.b64encode(self.file_content).decode('utf-8') if self.file_content else None,
         }
 
 
@@ -228,6 +269,8 @@ def get_files():
     """
     files = File.query.all()
     result = [file.to_json() for file in files]
+    print("get files")
+
     return jsonify(result)
 
 
@@ -250,18 +293,18 @@ def send_file():
 
         if request.method == "POST":
             data = request.json
-            court_case_link = data.get("content")
-            print(court_case_link)
+            court_case_content = data.get("content")
+            print(court_case_content)
             court_case_title = data.get("title")[:-4]
             from Custom_Modules.Preprocess import preprocess
             preprocessor = preprocess(is_training=False)
-            court_case_link = preprocessor.merge_numbered_lines(court_case_link)
-            # print(court_case_link)
+            court_case_content = preprocessor.merge_numbered_lines(court_case_content)
+            # print(court_case_content)
 
-            if not court_case_link:
-                return jsonify({"error": "No court case link provided"}), 400
+            if not court_case_content:
+                return jsonify({"error": "No court case content provided"}), 400
 
-            # court_case = scrape_court_case(court_case_link)
+            # court_case = scrape_court_case(court_case_content)
 
             # if (
             #     not court_case
@@ -293,7 +336,7 @@ def send_file():
             try:
                 # Writing the court case text to a .txt file
                 with open(txt_file_name, "w", encoding="utf-8") as f:
-                    f.write(court_case_link)
+                    f.write(court_case_content)
 
                 # Reading the file content for storage
                 with open(txt_file_name, "rb") as f:
@@ -306,7 +349,7 @@ def send_file():
             try:
                 upload = File(
                     file_name=court_case_title,
-                    file_text=court_case_link,
+                    file_text=court_case_content,
                     file_content=file_content,
                 )
                 db.session.add(upload)
@@ -320,15 +363,13 @@ def send_file():
             try:
                 os.remove(txt_file_name)
                 # Get the file ID after committing
-                file_id = upload.id  
-                
-                # Generate WordCloud
-                from Custom_Modules.WordCloud import WordCloudGenerator
-                generator = WordCloudGenerator()
-                generator.create_wordcloud(court_case_link, f"../public/images/{file_id}_wordcloud.jpg")
-                
+                file_id = upload.id
+
             except OSError as e:
                 return jsonify({"error": "File deletion error: " + str(e)}), 500
+
+            # Generate WordCloud
+            create_wordcloud(court_case_content, file_id)
 
             return jsonify({"msg": "successful", "file": txt_file_name})
 
@@ -354,6 +395,7 @@ def send_file_link():
     - JSON: Error messages if any part of the process fails (400 or 500 status).
     """
     import re
+    from Custom_Modules.Preprocess import preprocess
 
     try:
 
@@ -361,16 +403,12 @@ def send_file_link():
             data = request.json
             court_case_link = data.get("link")
             print(court_case_link)
-            from Custom_Modules.Preprocess import preprocess
+            court_case = scrape_court_case(court_case_link)
             preprocessor = preprocess(is_training=False)
-            court_case_link = preprocessor.merge_numbered_lines(court_case_link)
-            # print(court_case_link)
+            court_case_text = preprocessor.merge_numbered_lines(court_case["case_text"])
 
             if not court_case_link:
                 return jsonify({"error": "No court case link provided"}), 400
-
-            court_case = scrape_court_case(court_case_link)
-            
 
             if (
                 not court_case
@@ -404,9 +442,7 @@ def send_file_link():
             try:
                 # Writing the court case text to a .txt file
                 with open(txt_file_name, "w", encoding="utf-8") as f:
-                    f.write(court_case_link)
-                   
-                    
+                    f.write(court_case_text)
 
                 # Reading the file content for storage
                 with open(txt_file_name, "rb") as f:
@@ -426,9 +462,9 @@ def send_file_link():
                 print("uploaded")
 
                 db.session.add(upload)
-                
+
                 db.session.commit()
-                
+
             except Exception as e:
                 db.session.rollback()
                 return jsonify({"error": "Database error: " + str(e)}), 500
@@ -436,17 +472,15 @@ def send_file_link():
             # Optionally delete the file after saving to the database
             try:
                 os.remove(txt_file_name)
-                
+
                 # Get the file ID after committing
-                file_id = upload.id  
-                
-                # Generate WordCloud
-                from Custom_Modules.WordCloud import WordCloudGenerator
-                generator = WordCloudGenerator()
-                generator.create_wordcloud(court_case_link, f"../public/images/{file_id}_wordcloud.jpg")
-                
+                file_id = upload.id
+
             except OSError as e:
                 return jsonify({"error": "File deletion error: " + str(e)}), 500
+
+            # Generate WordCloud
+            create_wordcloud(court_case["case_text"], file_id)
 
             return jsonify({"msg": "successful", "file": txt_file_name})
 
@@ -511,7 +545,8 @@ def update_file(id):
             file.file_content = bytes(data["file_content"], "utf-8")
 
         db.session.commit()
-        print("file:", file)
+
+        create_wordcloud(data["file_text"], id)
 
         return jsonify(file.to_json()), 200
     except Exception as e:
@@ -538,16 +573,12 @@ def get_summarized(id):
         from Custom_Modules.Preprocess import preprocess
         from Custom_Modules.TopicSegmentation import TopicSegmentation
         from Custom_Modules.LSA import LSA
-        from Custom_Modules.WordCloud import WordCloudGenerator
 
         file = db.session.get(File, id)
         if file is None:
             return jsonify({"error": "Court case not found"}), 404
 
         court_case_text = file.file_text
-
-        generator = WordCloudGenerator()
-        generator.create_wordcloud(court_case_text, f"../public/images/{id}_wordcloud.jpg")
 
         if not court_case_text:
             return jsonify({"error": "No case text provided"}), 400
@@ -569,35 +600,56 @@ def get_summarized(id):
         segmentation_output = segmentation.label_mapping(predicted_labels)
         lsa = LSA(segmentation_output)
         summarize_case = lsa.create_summary()
-        
-
 
         file = db.session.get(File, id)
 
         summary = "TITLE:" + "\n" + file.file_name + "\n\n" + summarize_case
-        
-        return jsonify({"summary": summary}), 200
-        # print("segmented paragraph", segmented_paragraph)
 
-        
+        return jsonify({"summary": summary}), 200
 
     except Exception as e:
         print("Error during preprocess:", e)
         return jsonify({"error": str(e)}), 500
 
-@app.route('/wordcloud', methods=['GET'])
-def serve_wordcloud():
-    # Ensure the word cloud is generated
-    create_wordcloud()
+@app.route("/get-preprocess/<int:id>", methods=["POST"])
+def get_preprocess(id):
+    """
+    Description:
+    Retrieves and preprocesses the text of a specified court case file using custom preprocessing,
+    such as cleaning and tokenizing paragraphs.
 
-    # Path to the word cloud image
-    image_path = "wordcloud_output.png"
+    Parameters:
+    - id (int): The ID of the court case file.
 
-    # Send the image to the client
-    if os.path.exists(image_path):
-        return send_file(image_path,download_name='logo.png', mimetype='image/png')  # Correct usage
-    else:
-        return {"error": "Image not found"}, 404
+    Returns:
+    - JSON: The cleaned and tokenized paragraphs of the case text.
+    - JSON: An error message if preprocessing fails or if the file is not found.
+    """
+    try:
+        nlp = spacy.load("en_core_web_sm")
+
+        file = db.session.get(File, id)
+        if file is None:
+            return jsonify({"error": "Court case not found"}), 404
+
+        court_case_text = file.file_text
+
+        if not court_case_text:
+            return jsonify({"error": "No case text provided"}), 400
+
+
+        preprocessor = preprocess(is_training=False)
+
+        cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
+        doc = nlp(cleaned_text)
+        filtered_words = " ".join([token.text for token in doc if token.pos_ in ['NOUN', 'VERB', 'ADJ']])
+
+        return jsonify({"preprocess": filtered_words}), 200
+        # print("segmented paragraph", segmented_paragraph)
+
+    except Exception as e:
+        print("Error during preprocess:", e)
+        return jsonify({"error": str(e)}), 500
 
 
 with app.app_context():

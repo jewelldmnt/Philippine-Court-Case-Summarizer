@@ -55,6 +55,7 @@ import WordCloudPage from "./WordCloudPage";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "../../assets/wordcloud.css";
+import { unigramStopwords, bigramStopwords } from "../Constants/stopwords";
 
 const Statistics = () => {
   /**
@@ -80,213 +81,106 @@ const Statistics = () => {
   const [courtCaseValue, setCourtCaseValue] = useState("");
   const [wordStatsList, setWordStatsList] = useState([]);
   const [bigramStatsList, setBigramStatsList] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const stopwords = [
-    "the",
-    "and",
-    "a",
-    "is",
-    "in",
-    "it",
-    "of",
-    "to",
-    "that",
-    "this",
-    "with",
-    "for",
-    "on",
-    "at",
-    "by",
-    "an",
-    "as",
-    "be",
-    "are",
-    "from",
-    "or",
-    "was",
-    "which",
-    "but",
-    "if",
-    "not",
-    "all",
-    "can",
-    "has",
-    "had",
-    "have",
-    "he",
-    "her",
-    "his",
-    "i",
-    "me",
-    "my",
-    "you",
-    "we",
-    "they",
-    "their",
-    "our",
-    "us",
-    "will",
-    "would",
-    "there",
-    "what",
-    "so",
-    "when",
-    "where",
-    "who",
-    "why",
-    "how",
-    "up",
-    "down",
-    "out",
-    "about",
-    "into",
-    "over",
-    "then",
-    "than",
-    "too",
-    "also",
-    "only",
-    "just",
-    "even",
-    "did",
-    "does",
-    "do",
-    "no",
-    "yes",
-    "more",
-    "now",
-    "very",
-    "here",
-    "some",
-    "such",
-    "could",
-    "should",
-    "must",
-    "being",
-    "were",
-    "before",
-    "after",
-    "through",
-    "between",
-    "under",
-    "again",
-    "both",
-    "any",
-    "each",
-    "because",
-    "during",
-    "once",
-    "few",
-    "many",
-    "most",
-    "other",
-    "these",
-    "those",
-  ];
+  const calculateWordFrequencies = async (text, id) => {
+    try {
+      const preprocess_res = await axios.post(
+        `http://127.0.0.1:5000/get-preprocess/${id}`,
+        {},
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-  const calculateWordFrequencies = (text) => {
-    /**
-     * Description:
-     * Calculates the frequency of unigrams (single words) in a given text,
-     * excluding stopwords, and returns the top 10 most frequent words.
-     *
-     * Parameter:
-     * @param {string} text - The input text to calculate word frequencies.
-     *
-     * Returns:
-     * {Array} - An array of objects representing the top 10 unigrams, each containing:
-     *   - `rank` (number): The rank of the word.
-     *   - `frequency` (number): The frequency of the word.
-     *   - `unigram` (string): The word itself.
-     */
+      const words = preprocess_res.data.preprocess
+        .toLowerCase()
+        .replace(/[^\w\s]/g, "") // Remove punctuation
+        .replace(/[a-zA-Z]+\d+[a-zA-Z]*|\d+[a-zA-Z]+/g, "") // Remove mixed sequences of letters and numbers
+        .split(/\s+/) // Split into words
+        .filter((word) => !unigramStopwords.includes(word)) // Remove stopwords
+        .filter((word) => word.length > 2); // Remove short words (length <= 2)
 
-    const words = text
-      .toLowerCase()
-      .replace(/[^\w\s]/g, "")
-      .split(/\s+/)
-      .filter((word) => !stopwords.includes(word)); // Remove stopwords
+      const frequencyMap = words.reduce((map, word) => {
+        map[word] = (map[word] || 0) + 1;
+        return map;
+      }, {});
 
-    const frequencyMap = words.reduce((map, word) => {
-      map[word] = (map[word] || 0) + 1;
-      return map;
-    }, {});
+      const filteredWords = Object.entries(frequencyMap).filter(
+        ([word, freq]) => freq > 2
+      );
 
-    const sortedWords = Object.entries(frequencyMap).sort(
-      (a, b) => b[1] - a[1]
-    );
+      const sortedWords = filteredWords.sort((a, b) => b[1] - a[1]);
 
-    return sortedWords.map(([word, frequency], index) => ({
-      frequency,
-      unigram: word,
-    }));
-  };
-
-  const calculateBigramFrequencies = (text) => {
-    /**
-     * Description:
-     * Calculates the frequency of bigrams (pairs of consecutive words) in a
-     * given text, excluding stopwords, and returns the top 10 most frequent bigrams.
-     *
-     * Parameter:
-     * @param {string} text - The input text to calculate bigram frequencies.
-     *
-     * Returns:
-     * {Array} - An array of objects representing the top 10 bigrams, each containing:
-     *   - `rank` (number): The rank of the bigram.
-     *   - `frequency` (number): The frequency of the bigram.
-     *   - `bigram` (string): The bigram itself.
-     */
-
-    const words = text
-      .toLowerCase()
-      .replace(/[^\w\s]/g, "")
-      .split(/\s+/)
-      .filter((word) => !stopwords.includes(word)); // Remove stopwords
-
-    const bigrams = [];
-    for (let i = 0; i < words.length - 1; i++) {
-      bigrams.push(`${words[i]} ${words[i + 1]}`);
+      return sortedWords.map(([word, frequency], index) => ({
+        rank: index + 1,
+        frequency,
+        unigram: word,
+      }));
+    } catch (error) {
+      console.error("Error fetching or processing data:", error);
+      return [];
     }
-
-    const frequencyMap = bigrams.reduce((map, bigram) => {
-      map[bigram] = (map[bigram] || 0) + 1;
-      return map;
-    }, {});
-
-    const sortedBigrams = Object.entries(frequencyMap).sort(
-      (a, b) => b[1] - a[1]
-    );
-
-    return sortedBigrams.map(([bigram, frequency], index) => ({
-      frequency,
-      bigram,
-    }));
   };
 
-  const handleFileClick = (file) => {
-    /**
-     * Description:
-     * Handles the click event for a file from the list of court cases. Sets the
-     * active file, displays its text, and calculates the word and bigram frequencies.
-     *
-     * Parameter:
-     * @param {Object} file - The selected file object containing the file's details.
-     *
-     * Returns:
-     * {void} - No return value, but updates the state with word and bigram statistics.
-     */
+  const calculateBigramFrequencies = async (text, id) => {
+    try {
+      const preprocess_res = await axios.post(
+        `http://127.0.0.1:5000/get-preprocess/${id}`,
+        {},
+        { headers: { "Content-Type": "application/json" } }
+      );
 
+      const words = preprocess_res.data.preprocess
+        .toLowerCase()
+        .replace(/[^\w\s]/g, "")
+        .replace(/[a-zA-Z]+\d+[a-zA-Z]*|\d+[a-zA-Z]+/g, "")
+        .split(/\s+/)
+        .filter((word) => !bigramStopwords.includes(word));
+
+      const bigrams = [];
+      for (let i = 0; i < words.length - 1; i++) {
+        bigrams.push(`${words[i]} ${words[i + 1]}`);
+      }
+
+      const frequencyMap = bigrams.reduce((map, bigram) => {
+        map[bigram] = (map[bigram] || 0) + 1;
+        return map;
+      }, {});
+
+      const sortedBigrams = Object.entries(frequencyMap)
+        .filter(([_, frequency]) => frequency > 1) // Include only bigrams with frequency > 1
+        .sort((a, b) => b[1] - a[1]);
+
+      return sortedBigrams.map(([bigram, frequency], index) => ({
+        frequency,
+        bigram,
+      }));
+    } catch (error) {
+      console.error("Error fetching or processing data:", error);
+      return [];
+    }
+  };
+
+  const handleFileClick = async (file) => {
+    setLoading(true);
     setActiveFile(file);
     setCourtCaseValue(file.file_text);
-    console.log("Selected File ID: ", file.id);
 
-    const wordStats = calculateWordFrequencies(file.file_text);
-    console.log("Word Stats: ", wordStats);
-    setWordStatsList(wordStats);
+    try {
+      const wordStats = await calculateWordFrequencies(file.file_text, file.id);
+      setWordStatsList(wordStats);
 
-    const bigramStats = calculateBigramFrequencies(file.file_text);
-    console.log("Bigram Stats: ", bigramStats);
-    setBigramStatsList(bigramStats);
+      const bigramStats = await calculateBigramFrequencies(
+        file.file_text,
+        file.id
+      );
+      setBigramStatsList(bigramStats);
+
+      // After everything is loaded, set loading to false
+    } catch (error) {
+      console.error("Error handling file click:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -314,140 +208,152 @@ const Statistics = () => {
   }, []);
 
   return (
-    <>
-      <div className="bg-customGray text-black h-screen">
-        <NavBar activePage="Statistics" />
-        <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
-          <div>
-            <p className="font-bold font-sans text-[15px] ml-4 mb-4">
-              LIST OF COURT CASES
-            </p>
-            <div
-              className="font-sans text-sm bg-customRbox rounded-xl py-6 
+    <div className="bg-customGray text-black h-screen">
+      <NavBar activePage="Statistics" />
+      <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
+        <div>
+          <p className="font-bold font-sans text-[15px] ml-4 mb-4">
+            LIST OF COURT CASES
+          </p>
+          <div
+            className="font-sans text-sm bg-customRbox rounded-xl py-6
             h-[450px] overflow-y-auto custom-scrollbar"
-            >
-              <ol className="list-decimal list-inside">
-                {existingFiles.length > 0 ? (
-                  existingFiles.map((file, index) => (
-                    <li
-                      key={index}
-                      className={`hover:bg-wordCount w-full px-4 
-                        cursor-pointer mb-2 ${
-                          activeFile?.id === file.id ? "bg-active" : ""
-                        }`}
-                      onClick={() => handleFileClick(file)}
-                    >
-                      {file.file_name.length > 35
-                        ? `${file.file_name.slice(0, 35)}...`
-                        : file.file_name}
-                    </li>
+          >
+            <ol className="list-decimal list-inside">
+              {existingFiles.length > 0 ? (
+                existingFiles.map((file, index) => (
+                  <li
+                    key={index}
+                    className={`hover:bg-customHoverC w-full px-4 cursor-${
+                      loading ? "not-allowed" : "pointer"
+                    } mb-2 ${
+                      activeFile?.id === file.id ? "bg-customHoverC" : ""
+                    }`}
+                    onClick={!loading ? () => handleFileClick(file) : null}
+                  >
+                    {file.file_name.length > 35
+                      ? `${file.file_name.slice(0, 35)}...`
+                      : file.file_name}
+                  </li>
+                ))
+              ) : (
+                <p className="ml-4">No files uploaded yet.</p>
+              )}
+            </ol>
+          </div>
+        </div>
+
+        <div className="grid grid-rows-[auto,1fr,1fr] gap-y-4">
+          <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
+            STATISTICS OF THE ORIGINAL COURT CASE
+          </p>
+
+          {/* Unigram Statistics Table */}
+          <div className="bg-customRbox rounded-xl py-6 w-full h-full max-h-[240px] overflow-y-auto custom-scrollbar">
+            <table className="table-fixed w-full">
+              <thead>
+                <tr>
+                  <th className="font-bold font-sans">Frequency</th>
+                  <th className="font-bold font-sans">Unigram</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="2" className="h-[140px]">
+                      <div className="flex items-center justify-center h-full">
+                        <p>Loading...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : wordStatsList.length > 0 ? (
+                  wordStatsList.map((stat) => (
+                    <tr key={stat.rank}>
+                      <td className="text-sm text-center font-sans">
+                        {stat.frequency}
+                      </td>
+                      <td className="text-sm text-center font-sans">
+                        {stat.unigram}
+                      </td>
+                    </tr>
                   ))
                 ) : (
-                  <p className="ml-4">No files uploaded yet.</p>
+                  <tr>
+                    <td colSpan="2" className="h-[140px]">
+                      <div className="flex items-center justify-center h-full">
+                        <p>No File Selected</p>
+                      </div>
+                    </td>
+                  </tr>
                 )}
-              </ol>
-            </div>
+              </tbody>
+            </table>
           </div>
 
-          <div className="grid grid-rows-[auto,1fr,1fr] gap-y-4">
-            <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
-              STATISTICS OF THE ORIGINAL COURT CASE
-            </p>
-
-            {/* Unigram Statistics Table */}
-            <div
-              className="bg-customRbox rounded-xl py-6 w-full h-full 
-            max-h-[240px] overflow-y-auto custom-scrollbar"
-            >
-              <table className="table-fixed w-full">
-                <thead>
+          {/* Bigram Statistics Table */}
+          <div className="bg-customRbox rounded-xl py-6 pb-10 h-full max-h-[240px] w-full overflow-y-auto custom-scrollbar">
+            <table className="table-fixed w-full">
+              <thead>
+                <tr>
+                  <th className="font-bold font-sans">Frequency</th>
+                  <th className="font-bold font-sans">Bigram</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
                   <tr>
-                    <th className="font-bold font-sans">Frequency</th>
-                    <th className="font-bold font-sans">Unigram</th>
+                    <td colSpan="2" className="h-[140px]">
+                      <div className="flex items-center justify-center h-full">
+                        <p>Loading...</p>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {wordStatsList.length > 0 ? (
-                    wordStatsList.map((stat) => (
-                      <tr key={stat.rank}>
-                        <td className="text-sm text-center font-sans">
-                          {stat.frequency}
-                        </td>
-                        <td className="text-sm text-center font-sans">
-                          {stat.unigram}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="3" className="text-sm text-center font-sans">
-                        No data available
+                ) : bigramStatsList.length > 0 ? (
+                  bigramStatsList.map((stat) => (
+                    <tr key={stat.rank}>
+                      <td className="text-sm text-center font-sans">
+                        {stat.frequency}
+                      </td>
+                      <td className="text-sm text-center font-sans">
+                        {stat.bigram}
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Bigram Statistics Table */}
-            <div
-              className="bg-customRbox rounded-xl py-6 pb-10 h-full 
-            max-h-[240px] w-full overflow-y-auto custom-scrollbar"
-            >
-              <table className="table-fixed w-full">
-                <thead>
-                  <tr>
-                    <th className="font-bold font-sans">Frequency</th>
-                    <th className="font-bold font-sans">Bigram</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bigramStatsList.length > 0 ? (
-                    bigramStatsList.map((stat) => (
-                      <tr key={stat.rank}>
-                        <td className="text-sm text-center font-sans">
-                          {stat.frequency}
-                        </td>
-                        <td className="text-sm text-center font-sans">
-                          {stat.bigram}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="3" className="text-sm text-center font-sans">
-                        No data available
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="flex flex-col space-y-6">
-            <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
-              WORD CLOUD OF THE ORIGINAL COURT CASE
-            </p>
-            {/* Unigram Word Cloud */}
-            <div
-              className="bg-customRbox rounded-xl w-full h-full 
-            max-h-[300px] p-4 wordcloud-container"
-            >
-              <div className="relative w-full h-full flex justify-center items-center">
-                {activeFile?.id ? (
-                  <WordCloudPage file_id={activeFile.id} />
+                  ))
                 ) : (
-                  <p className="text-sm text-center font-sans">
-                    No word cloud available.
-                  </p>
+                  <tr>
+                    <td colSpan="2" className="h-[140px]">
+                      <div className="flex items-center justify-center h-full">
+                        <p>No File Selected</p>
+                      </div>
+                    </td>
+                  </tr>
                 )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="flex flex-col space-y-6">
+          <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
+            WORD CLOUD OF THE ORIGINAL COURT CASE
+          </p>
+          {/* Word Cloud */}
+          <div className="bg-customRbox rounded-xl w-full h-full max-h-[450px] overflow-y-auto">
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <p>Loading...</p>
               </div>
-            </div>
+            ) : activeFile && activeFile.id ? (
+              <WordCloudPage file_id={activeFile.id} />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                No File selected
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
