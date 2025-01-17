@@ -1,4 +1,5 @@
 export const unigramStopwords = [
+  "them",
   "the",
   "and",
   "a",
