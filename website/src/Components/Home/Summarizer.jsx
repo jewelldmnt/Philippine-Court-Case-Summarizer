@@ -568,8 +568,12 @@ const Summarizer = () => {
                 </div>
               ) : (
                 <div
-                  className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] 
-    w-full overflow-y-auto custom-scrollbar flex flex-col justify-start items-center"
+                  className={`bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px]
+                    w-full overflow-y-auto custom-scrollbar flex ${
+                      summarizedCase === "No Summary yet"
+                        ? "justify-center items-center text-center"
+                        : "flex-col justify-start items-start"
+                    }`}
                   style={{
                     paddingBottom: "2.5rem",
                     height: "calc(100vh - 200px)", // Makes the outer container responsive to viewport height
@@ -587,7 +591,10 @@ const Summarizer = () => {
                     style={{
                       maxWidth: "100%", // Prevents content from exceeding container width
                       wordWrap: "break-word", // Ensures long words or links break properly
-                      textAlign: "justify", // Justifies text for a clean look
+                      textAlign:
+                        summarizedCase === "No Summary yet"
+                          ? "center"
+                          : "justify", // Justifies text for a clean look
                     }}
                   >
                     {summarizedCase.title ? (
@@ -610,7 +617,7 @@ const Summarizer = () => {
                         </div>
                       </div>
                     ) : (
-                      "No Summary yet"
+                      "No Summary Yet"
                     )}
                   </div>
                 </div>
