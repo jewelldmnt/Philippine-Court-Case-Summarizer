@@ -63,6 +63,7 @@ import re
 import os
 from Custom_Modules.Preprocess import preprocess
 import spacy
+import re
 
 
 
@@ -88,16 +89,21 @@ def scrape_court_case(url):
         doc = BeautifulSoup(result.text, "html.parser")
 
         content_class = "entry-content alignfull wp-block-post-content has-global-padding is-layout-constrained wp-block-post-content-is-layout-constrained"
-        title_element = doc.find_all("h3")
+        title_element = doc.find_all("h2")
 
         if not title_element:
             raise ValueError("Title not found in the document")
 
-        title = title_element[0]
-
+        title = title_element[1]
+    
         paragraphs = title.find_all("p")
         if not paragraphs:
-            raise ValueError("No paragraphs found under title")
+            title_div = title.find_next_sibling("div")
+            if title_div:
+                paragraphs = title_div.find_all("p")
+            else:
+                raise ValueError("No <p> tags found under the title or its associated <div>")
+
 
         decision_text = paragraphs[
             -1
@@ -148,6 +154,7 @@ def scrape_court_case(url):
             ]
 
         title_text = title.text.strip().replace("\n", " ")
+        title_text = re.sub(r"\[\s*|\s*\]", "", title.text.strip().replace("\n", " "))
         from Custom_Modules.Preprocess import preprocess
         preprocessor = preprocess(is_training=False)
         sliced_content = preprocessor.merge_numbered_lines(sliced_content)
