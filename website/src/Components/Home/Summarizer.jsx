@@ -425,7 +425,12 @@ const Summarizer = () => {
             </div>
             <div className="mt-4 flex justify-between px-2">
               <button
-                className="flex items-center"
+                className={`flex items-center ${
+                  !activeFile || isSummaryLoading
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                disabled={!activeFile || isSummaryLoading}
                 onClick={() => setIsModalOpen(true)}
               >
                 <FaCirclePlus className="size-6 text-icon-40" />
