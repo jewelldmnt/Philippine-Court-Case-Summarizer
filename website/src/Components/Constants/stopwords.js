@@ -384,3 +384,6 @@ export const bigramStopwords = [
   "1/2",
   "p257",
 ];
+
+// Combine unigramStopwords and bigramStopwords into a single set to remove duplicates
+export const stopwords = [...new Set([...unigramStopwords, ...bigramStopwords])];
