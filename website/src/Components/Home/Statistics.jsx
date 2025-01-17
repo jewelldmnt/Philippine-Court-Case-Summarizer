@@ -241,115 +241,117 @@ const Statistics = () => {
             STATISTICS OF THE ORIGINAL COURT CASE
           </p>
 
-          {/* Unigram Statistics Table */}
-          <div className="bg-customRbox rounded-xl py-6 w-full h-[35vh] overflow-y-auto custom-scrollbar">
-            <table className="table-fixed w-full">
-              <thead>
-                <tr>
-                  <th className="font-bold font-sans text-lg  px-4 py-1">
-                    Frequency
-                  </th>
-                  <th className="font-bold font-sans text-lg  px-4 py-1">
-                    Unigram
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
+          <div className="flex flex-col justify-between h-[73vh]">
+            {/* Unigram Statistics Table */}
+            <div className="bg-customRbox rounded-xl py-6 w-full h-[35vh] overflow-y-auto custom-scrollbar">
+              <table className="table-fixed w-full">
+                <thead>
                   <tr>
-                    <td colSpan="2" className="h-[140px]">
-                      <div className="flex items-center justify-center h-full">
-                        <p>Loading...</p>
-                      </div>
-                    </td>
+                    <th className="font-bold font-sans text-lg  px-4 py-1">
+                      Frequency
+                    </th>
+                    <th className="font-bold font-sans text-lg  px-4 py-1">
+                      Unigram
+                    </th>
                   </tr>
-                ) : wordStatsList.length > 0 ? (
-                  wordStatsList.map((stat) => (
-                    <tr key={stat.rank}>
-                      <td className="text-m text-center font-sans px-4 ">
-                        {stat.frequency}
-                      </td>
-                      <td className="text-m text-center font-sans px-4 ">
-                        {stat.unigram}
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="2" className="h-[140px]">
+                        <div className="flex items-center justify-center h-full">
+                          <p>Loading...</p>
+                        </div>
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="2" className="h-[140px]">
-                      <div className="flex items-center justify-center h-full">
-                        <p>No File Selected</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ) : wordStatsList.length > 0 ? (
+                    wordStatsList.map((stat) => (
+                      <tr key={stat.rank}>
+                        <td className="text-m text-center font-sans px-4 ">
+                          {stat.frequency}
+                        </td>
+                        <td className="text-m text-center font-sans px-4 ">
+                          {stat.unigram}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="2" className="h-[140px]">
+                        <div className="flex items-center justify-center h-full">
+                          <p>No File Selected</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-          {/* Bigram Statistics Table */}
-          <div
-            className="bg-customRbox rounded-xl py-6 pb-10 w-full h-[35vh] overflow-y-auto custom-scrollbar"
-            style={{
-              paddingBottom: "2.5rem",
-              fontSize: "1rem",
-              fontFamily: "'Roboto', sans-serif",
-              color: "#333",
-              whiteSpace: "pre-line", // Keeps \n formatting
-              lineHeight: "1.5rem", // Increases line height for multiline
-            }}
-          >
-            <table className="table-fixed w-full">
-              <thead>
-                <tr>
-                  <th className="font-bold font-sans text-lg  px-4 py-1">
-                    Frequency
-                  </th>
-                  <th className="font-bold font-sans text-lg  px-4 py-1">
-                    Bigram
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
+            {/* Bigram Statistics Table */}
+            <div
+              className="bg-customRbox rounded-xl py-6 pb-10 w-full h-[35vh] overflow-y-auto custom-scrollbar"
+              style={{
+                paddingBottom: "2.5rem",
+                fontSize: "1rem",
+                fontFamily: "'Roboto', sans-serif",
+                color: "#333",
+                whiteSpace: "pre-line", // Keeps \n formatting
+                lineHeight: "1.5rem", // Increases line height for multiline
+              }}
+            >
+              <table className="table-fixed w-full">
+                <thead>
                   <tr>
-                    <td colSpan="2" className="h-[140px]">
-                      <div className="flex items-center justify-center h-full">
-                        <p>Loading...</p>
-                      </div>
-                    </td>
+                    <th className="font-bold font-sans text-lg  px-4 py-1">
+                      Frequency
+                    </th>
+                    <th className="font-bold font-sans text-lg  px-4 py-1">
+                      Bigram
+                    </th>
                   </tr>
-                ) : bigramStatsList.length > 0 ? (
-                  bigramStatsList.map((stat) => (
-                    <tr key={stat.rank}>
-                      <td className="text-m text-center font-sans px-4">
-                        {stat.frequency}
-                      </td>
-                      <td className="text-m text-center font-sans px-4">
-                        {stat.bigram}
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="2" className="h-[140px]">
+                        <div className="flex items-center justify-center h-full">
+                          <p>Loading...</p>
+                        </div>
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="2" className="h-[140px]">
-                      <div className="flex items-center justify-center h-full">
-                        <p>No File Selected</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  ) : bigramStatsList.length > 0 ? (
+                    bigramStatsList.map((stat) => (
+                      <tr key={stat.rank}>
+                        <td className="text-m text-center font-sans px-4">
+                          {stat.frequency}
+                        </td>
+                        <td className="text-m text-center font-sans px-4">
+                          {stat.bigram}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="2" className="h-[140px]">
+                        <div className="flex items-center justify-center h-full">
+                          <p>No File Selected</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col space-y-6 h-[80vh] overflow-y-auto">
-          <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
+        <div className="flex flex-col h-[80vh] overflow-y-auto">
+          <p className="font-bold font-sans text-[15px] ml-4 mb-4 flex items-center">
             WORD CLOUD OF THE ORIGINAL COURT CASE
           </p>
           {/* Word Cloud */}
-          <div className="bg-customRbox rounded-xl w-full h-[72vh]  overflow-y-auto">
+          <div className="bg-customRbox rounded-xl w-full h-[73vh]  overflow-y-auto">
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <p>Loading...</p>
