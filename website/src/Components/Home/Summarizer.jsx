@@ -65,7 +65,8 @@ const Summarizer = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isSummaryLoading, setIsSummaryLoading] = useState(false); // for summary loading state
   const [isEditLoading, setIsEditLoading] = useState(false); // for edit case loading state
-  const [showPopup, setShowPopup] = useState(false);
+  const [showAddedPopup, setShowAddedPopup] = useState(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
 
   const [input, setInput] = useState({
     text: "no case is selected yet",
@@ -206,7 +207,7 @@ const Summarizer = () => {
         const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
         setExistingFiles(updatedFiles.data);
 
-        setShowPopup(true); // Show the popup
+        setShowAddedPopup(true); // Show the popup
         setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
       } catch (err) {
         console.error("Error uploading file:", err);
@@ -248,7 +249,7 @@ const Summarizer = () => {
       const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
       setExistingFiles(updatedFiles.data);
 
-      setShowPopup(true); // Show the popup
+      setShowAddedPopup(true); // Show the popup
       setTimeout(() => setShowPopup(false), 3000);
     } catch (err) {
       console.error("Error uploading file with link:", err);
@@ -271,6 +272,10 @@ const Summarizer = () => {
         prevFiles.filter((file) => file.id !== activeFile.id)
       );
       setActiveFile(null);
+      setCourtCaseValue(""); // Clear the displayed court case text
+
+      setShowDeletePopup(true);
+      setTimeout(() => setShowDeletePopup(false), 3000);
     } catch (err) {
       console.error(err);
     }
@@ -331,11 +336,6 @@ const Summarizer = () => {
     }
   };
 
-  const getDynamicLineHeight = (text) => {
-    const blockCount = (text.match(/\n\n/g) || []).length + 1; // Count how many \n\n (double newlines) there are, adding 1 for the first block
-    return `${blockCount / 2 + 1}rem`; // Increases line height dynamically based on blocks
-  };
-
   return (
     <>
       <Delete
@@ -367,9 +367,15 @@ const Summarizer = () => {
 
       <SavingModal open={isEditLoading} text="Saving changes, please wait..." />
 
-      {showPopup && (
+      {showAddedPopup && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white font-bold py-2 px-4 rounded shadow-lg z-50">
           Case has been added successfully!
+        </div>
+      )}
+
+      {showDeletePopup && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white font-bold py-2 px-4 rounded shadow-lg z-50">
+          File has been deleted!
         </div>
       )}
 
