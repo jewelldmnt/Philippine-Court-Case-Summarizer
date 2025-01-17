@@ -214,7 +214,7 @@ def create_wordcloud(court_case_content, file_id):
 
     generator = WordCloudGenerator()
     generator.create_wordcloud(filtered_words, f"../public/images/{file_id}_wordcloud.jpg")
-    
+
 def delete_wordcloud(id):
     """
     Description:
@@ -629,15 +629,18 @@ def get_summarized(id):
         segmentation_output = segmentation.label_mapping(predicted_labels)
         lsa = LSA(segmentation_output)
         summarize_case = lsa.create_summary()
+        summarize_case["title"] = file.file_name
+        
+        print("summary case:", summarize_case)
 
         file = db.session.get(File, id)
 
-        summary = "TITLE:" + "\n" + file.file_name + "\n\n\n" + summarize_case
+        # summary = "TITLE:" + "\n" + file.file_name + "\n\n\n" + summarize_case
 
-        return jsonify({"summary": summary}), 200
+        return jsonify(summarize_case), 200
 
     except Exception as e:
-        print("Error during preprocess:", e)
+        print("Error during summarizing:", e)
         return jsonify({"error": str(e)}), 500
 
 @app.route("/get-preprocess/<int:id>", methods=["POST"])

@@ -221,8 +221,8 @@ class LSA:
         Parameters: None
 
         Return:
-        - summary_output: A string containing the formatted summary with sections 
-                    for FACTS, ISSUES, and RULING.
+        - summary_output: A dictionary containing the top sentences for each 
+                        section (facts, issues, rulings).
         """
         # Preprocess text
         sentences, labels, probabilities = self.preprocess_text()
@@ -239,36 +239,16 @@ class LSA:
         # Select top sentences for summary
         summary = self.select_top_sentences(ranked_indices, sentences, labels, svd_matrix=svd_matrix)
 
-        # Construct the output in proper order for each section
-        summary_output = "FACTS:\n"
-        summary_output += (
-            " ".join(
-                [
-                    sentence
-                    for sentence in sentences
-                    if sentence in summary["facts"]
-                ]
-            )
-            + "\n\n"
-        )
-        summary_output += "ISSUES:\n"
-        summary_output += (
-            " ".join(
-                [
-                    sentence
-                    for sentence in sentences
-                    if sentence in summary["issues"]
-                ]
-            )
-            + "\n\n"
-        )
-        summary_output += "RULINGS:\n"
-        summary_output += " ".join(
-            [
-                sentence.replace("so ordered.", "").strip()
-                for sentence in sentences
-                if sentence in summary["rulings"] and sentence.lower() != "so ordered."]
-        )
+        # Create a summary dictionary
+        summary_output = {
+        "facts": " ".join(sentence for sentence in sentences if sentence in summary["facts"]),
+        "issues": " ".join(sentence for sentence in sentences if sentence in summary["issues"]),
+        "rulings": " ".join(
+            sentence.replace("so ordered.", "").strip()
+            for sentence in sentences
+            if sentence in summary["rulings"] and sentence.lower() != "so ordered."
+        ),
+        }
 
         return summary_output
 

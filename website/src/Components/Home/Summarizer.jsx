@@ -321,9 +321,9 @@ const Summarizer = () => {
         {},
         { headers: { "Content-Type": "application/json" } }
       );
-      console.log("preprocess");
+      console.log("summarize", summarize_res.data);
 
-      setSummarizedCase(summarize_res.data.summary);
+      setSummarizedCase(summarize_res.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -487,7 +487,7 @@ const Summarizer = () => {
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <button
-                  className={`btn flex items-center h-8 bg-summarize 
+                  className={`btn flex items-center h-8 bg-summarize
                   justify-center rounded-xl shadow-xl ${
                     !activeFile || isSummaryLoading
                       ? "opacity-50 cursor-not-allowed"
@@ -569,23 +569,49 @@ const Summarizer = () => {
               ) : (
                 <div
                   className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] 
-                w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center"
+    w-full overflow-y-auto custom-scrollbar flex flex-col justify-start items-center"
                   style={{
                     paddingBottom: "2.5rem",
-                    height: "calc(100vh - 200px)",
-                    fontSize: "1rem", // Slightly larger for better readability
+                    height: "calc(100vh - 200px)", // Makes the outer container responsive to viewport height
+                    fontSize: "1rem", // Slightly larger font for readability
                     fontFamily: "'Roboto', sans-serif", // Readable sans-serif font
                     color: "#333",
                     whiteSpace: "pre-line", // Keeps \n formatting
                     lineHeight: "1.5rem",
-                    overflowY: "auto",
+                    overflowY: "auto", // Enables scrolling on the outer div
+                    boxSizing: "border-box", // Includes padding in height calculations
                   }}
                 >
                   <div
-                    className="whitespace-pre-wrap"
-                    style={{ overflowY: "auto" }}
+                    className="whitespace-pre-wrap w-full"
+                    style={{
+                      maxWidth: "100%", // Prevents content from exceeding container width
+                      wordWrap: "break-word", // Ensures long words or links break properly
+                      textAlign: "justify", // Justifies text for a clean look
+                    }}
                   >
-                    {summarizedCase || "No Summary yet"}
+                    {summarizedCase.title ? (
+                      <div>
+                        <div className="mb-12">
+                          <p className="font-semibold">TITLE:</p>
+                          <p>{summarizedCase["title"]}</p>
+                        </div>
+                        <div className="mb-12">
+                          <p className="font-semibold">FACTS:</p>
+                          <p>{summarizedCase["facts"]}</p>
+                        </div>
+                        <div className="mb-12">
+                          <p className="font-semibold">ISSUES:</p>
+                          <p>{summarizedCase["issues"]}</p>
+                        </div>
+                        <div className="mb-12">
+                          <p className="font-semibold">RULINGS:</p>
+                          <p>{summarizedCase["rulings"]}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      "No Summary yet"
+                    )}
                   </div>
                 </div>
               )}
@@ -597,9 +623,14 @@ const Summarizer = () => {
               >
                 <p className="text-white">Word Count:</p>
                 <p className="text-customWC">
-                  {isSummaryLoading
-                    ? ""
-                    : summarizedCase.split(/\s+/).filter(Boolean).length}
+                  {!isSummaryLoading && summarizedCase?.facts
+                    ? summarizedCase["facts"].split(/\s+/).filter(Boolean)
+                        .length +
+                      summarizedCase["issues"].split(/\s+/).filter(Boolean)
+                        .length +
+                      summarizedCase["rulings"].split(/\s+/).filter(Boolean)
+                        .length
+                    : ""}
                 </p>
               </div>
             </div>
