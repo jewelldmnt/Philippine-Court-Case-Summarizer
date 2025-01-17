@@ -255,8 +255,12 @@ const Statistics = () => {
             <table className="table-fixed w-full">
               <thead>
                 <tr>
-                  <th className="font-bold font-sans">Frequency</th>
-                  <th className="font-bold font-sans">Unigram</th>
+                  <th className="font-bold font-sans font-bold font-sans text-lg  px-4 py-1">
+                    Frequency
+                  </th>
+                  <th className="font-bold font-sans font-bold font-sans text-lg  px-4 py-1">
+                    Unigram
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -271,10 +275,10 @@ const Statistics = () => {
                 ) : wordStatsList.length > 0 ? (
                   wordStatsList.map((stat) => (
                     <tr key={stat.rank}>
-                      <td className="text-sm text-center font-sans">
+                      <td className="text-m text-center font-sans px-4 ">
                         {stat.frequency}
                       </td>
-                      <td className="text-sm text-center font-sans">
+                      <td className="text-m text-center font-sans px-4 ">
                         {stat.unigram}
                       </td>
                     </tr>
@@ -293,12 +297,26 @@ const Statistics = () => {
           </div>
 
           {/* Bigram Statistics Table */}
-          <div className="bg-customRbox rounded-xl py-6 pb-10 w-full h-[35vh] overflow-y-auto custom-scrollbar">
+          <div
+            className="bg-customRbox rounded-xl py-6 pb-10 w-full h-[35vh] overflow-y-auto custom-scrollbar"
+            style={{
+              paddingBottom: "2.5rem",
+              fontSize: "1rem",
+              fontFamily: "'Roboto', sans-serif",
+              color: "#333",
+              whiteSpace: "pre-line", // Keeps \n formatting
+              lineHeight: "1.5rem", // Increases line height for multiline
+            }}
+          >
             <table className="table-fixed w-full">
               <thead>
                 <tr>
-                  <th className="font-bold font-sans">Frequency</th>
-                  <th className="font-bold font-sans">Bigram</th>
+                  <th className="font-bold font-sans font-bold font-sans text-lg  px-4 py-1">
+                    Frequency
+                  </th>
+                  <th className="font-bold font-sans font-bold font-sans text-lg  px-4 py-1">
+                    Bigram
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -313,10 +331,10 @@ const Statistics = () => {
                 ) : bigramStatsList.length > 0 ? (
                   bigramStatsList.map((stat) => (
                     <tr key={stat.rank}>
-                      <td className="text-sm text-center font-sans">
+                      <td className="text-m text-center font-sans px-4">
                         {stat.frequency}
                       </td>
-                      <td className="text-sm text-center font-sans">
+                      <td className="text-m text-center font-sans px-4">
                         {stat.bigram}
                       </td>
                     </tr>

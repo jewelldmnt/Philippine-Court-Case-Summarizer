@@ -371,4 +371,17 @@ bigram_stopwords= [
     "other",
     "these",
     "those",
+    "cong",
+    "nlng",
+    "daw",
+    "nxt",
+    "pre",
+    "kayo",
+    "ikaw",
+    "para",
+    "din",
+    "nmin",
+    "p257",
+    "1/2",
+    "p257"
     ]

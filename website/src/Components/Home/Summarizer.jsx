@@ -417,7 +417,9 @@ const Summarizer = () => {
                     </li>
                   ))
                 ) : (
-                  <p className="ml-4 text-gray-600">No files uploaded yet.</p>
+                  <div className="flex items-center justify-center h-80">
+                    <p className="text-gray-600">No files uploaded yet.</p>
+                  </div>
                 )}
               </ol>
             </div>
