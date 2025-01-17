@@ -242,13 +242,7 @@ const Statistics = () => {
           </p>
 
           {/* Unigram Statistics Table */}
-          <div
-            className="bg-customRbox rounded-xl py-6 w-full h-[35vh]"
-            style={{
-              scrollbarWidth: "none" /* Firefox */,
-              msOverflowStyle: "none" /* IE & Edge */,
-            }}
-          >
+          <div className="bg-customRbox rounded-xl py-6 w-full h-[35vh] overflow-y-auto custom-scrollbar">
             <table className="table-fixed w-full">
               <thead>
                 <tr>
@@ -295,7 +289,7 @@ const Statistics = () => {
 
           {/* Bigram Statistics Table */}
           <div
-            className="bg-customRbox rounded-xl py-6 pb-10 w-full h-[35vh]"
+            className="bg-customRbox rounded-xl py-6 pb-10 w-full h-[35vh] overflow-y-auto custom-scrollbar"
             style={{
               paddingBottom: "2.5rem",
               fontSize: "1rem",
@@ -303,8 +297,6 @@ const Statistics = () => {
               color: "#333",
               whiteSpace: "pre-line", // Keeps \n formatting
               lineHeight: "1.5rem", // Increases line height for multiline
-              scrollbarWidth: "none" /* Firefox */,
-              msOverflowStyle: "none" /* IE & Edge */,
             }}
           >
             <table className="table-fixed w-full">
