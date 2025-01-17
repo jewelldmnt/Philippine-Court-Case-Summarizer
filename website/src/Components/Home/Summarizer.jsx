@@ -47,6 +47,7 @@ import AddCaseModal from "../Modals/AddCaseFile";
 import "../../assets/spinner.css";
 import CircularProgress from "@mui/material/CircularProgress";
 import SavingModal from "../Modals/SavingModal";
+import "../../assets/summarizer.css";
 
 const Summarizer = () => {
   const [editCase, setEditCase] = useState(false);
@@ -331,6 +332,11 @@ const Summarizer = () => {
     }
   };
 
+  const getDynamicLineHeight = (text) => {
+    const blockCount = (text.match(/\n\n/g) || []).length + 1; // Count how many \n\n (double newlines) there are, adding 1 for the first block
+    return `${blockCount / 2 + 1}rem`; // Increases line height dynamically based on blocks
+  };
+
   return (
     <>
       <Delete
@@ -376,44 +382,48 @@ const Summarizer = () => {
               LIST OF COURT CASES
             </p>
             <div
-              className="font-sans text-sm bg-customRbox rounded-xl py-6 
-            sm:h-[200px] lg:h-[450px] overflow-y-auto custom-scrollbar"
+              className="font-sans text-sm bg-customRbox rounded-xl py-6 sm:h-[200px] lg:h-[450px] overflow-y-auto custom-scrollbar"
               style={{ height: "calc(100vh - 200px)" }}
             >
-              <ol className="list-decimal list-inside">
+              <ol className="list-none">
                 {existingFiles.length > 0 ? (
                   existingFiles.map((file, index) => (
                     <li
                       key={index}
-                      className={`hover:bg-customHoverC w-full px-4 cursor-${
+                      className={`hover:bg-customHoverC w-full px-4 py-2 cursor-${
                         isSummaryLoading || editCase ? "not-allowed" : "pointer"
-                      } mb-2 ${
+                      } ${
                         activeFile?.id === file.id ? "bg-customHoverC" : ""
-                      }`}
+                      } flex items-center border border-gray-300`}
                       onClick={
                         !isSummaryLoading && !editCase
                           ? () => handleFileClick(file)
                           : null
                       }
                     >
-                      {file.file_name && file.file_name.length > 35
-                        ? `${file.file_name.slice(0, 35)}...`
-                        : file.file_name || "Untitled"}
+                      <div className="flex items-center">
+                        <span title={file.file_name || "Untitled"}>
+                          {index + 1}.{" "}
+                          {file.file_name && file.file_name.length > 20
+                            ? `${file.file_name.slice(0, 20)}...`
+                            : file.file_name || "Untitled"}
+                        </span>
+                      </div>
                     </li>
                   ))
                 ) : (
-                  <p className="ml-4">No files uploaded yet.</p>
+                  <p className="ml-4 text-gray-600">No files uploaded yet.</p>
                 )}
               </ol>
             </div>
             <div className="mt-4 flex justify-between px-2">
-              <label
-                className="flex items-center cursor-pointer"
+              <button
+                className="flex items-center"
                 onClick={() => setIsModalOpen(true)}
               >
                 <FaCirclePlus className="size-6 text-icon-40" />
                 <p className="font-bold font-sans text-[14px] ml-2">Add Case</p>
-              </label>
+              </button>
               <button
                 onClick={() => setShowConfirmation(true)}
                 className={`flex items-center ${
@@ -446,18 +456,28 @@ const Summarizer = () => {
             </p>
             <div className="relative" style={{ height: "calc(100vh - 200px)" }}>
               <textarea
-                className={`bg-customRbox rounded-xl px-4 py-6 h-[450px]
-  w-full overflow-y-auto custom-scrollbar flex items-center justify-center ${
-    courtCaseValue ? "" : "text-center"
-  }`}
-                value={courtCaseValue ? courtCaseValue : "No case selected"}
+                className={`bg-customRbox rounded-xl px-4 py-6 h-[450px] w-full overflow-y-auto custom-scrollbar flex items-center justify-center ${
+                  courtCaseValue ? "" : "text-center"
+                }`}
+                value={courtCaseValue ? courtCaseValue : ""}
                 onChange={(e) => setCourtCaseValue(e.target.value)}
                 readOnly={!editCase}
                 style={{
                   paddingBottom: "2.5rem",
                   height: "calc(100vh - 200px)",
+                  fontSize: "1rem",
+                  fontFamily: "'Roboto', sans-serif",
+                  color: "#333",
+                  whiteSpace: "pre-line", // Keeps \n formatting
+                  lineHeight: "1.5rem", // Increases line height for multiline
                 }}
               />
+              {!courtCaseValue && (
+                <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  No court case is selected yet
+                </span>
+              )}
+
               <div
                 className="gap-2 flex items-center font-sans font-bold text-xs 
               absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl 
@@ -548,18 +568,27 @@ const Summarizer = () => {
                   <div className="spinner"></div>
                 </div>
               ) : (
-                <textarea
-                  className={`bg-customRbox rounded-xl px-4 py-6 h-[450px]
-                    w-full overflow-y-auto custom-scrollbar flex items-center justify-center ${
-                      courtCaseValue ? "" : "text-center"
-                    }`}
-                  readOnly
-                  value={summarizedCase}
+                <div
+                  className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] 
+                w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center"
                   style={{
                     paddingBottom: "2.5rem",
                     height: "calc(100vh - 200px)",
+                    fontSize: "1rem", // Slightly larger for better readability
+                    fontFamily: "'Roboto', sans-serif", // Readable sans-serif font
+                    color: "#333",
+                    whiteSpace: "pre-line", // Keeps \n formatting
+                    lineHeight: "1.5rem",
+                    overflowY: "auto",
                   }}
-                />
+                >
+                  <div
+                    className="whitespace-pre-wrap"
+                    style={{ overflowY: "auto" }}
+                  >
+                    {summarizedCase || "No Summary yet"}
+                  </div>
+                </div>
               )}
 
               <div

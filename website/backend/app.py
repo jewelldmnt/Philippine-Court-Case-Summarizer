@@ -603,7 +603,7 @@ def get_summarized(id):
 
         file = db.session.get(File, id)
 
-        summary = "TITLE:" + "\n" + file.file_name + "\n\n" + summarize_case
+        summary = "TITLE:" + "\n" + file.file_name + "\n\n\n" + summarize_case
 
         return jsonify({"summary": summary}), 200
 

@@ -15,11 +15,22 @@ const NavBar = ({ activePage }) => {
         <>
           <h2 className="text-lg font-bold mb-4">How to Use the Summarizer</h2>
           <ol className="list-decimal pl-5 text-sm space-y-2">
-            <li>Upload a court case file by clicking "Add Case."</li>
-            <li>Select a file from the list to view its details.</li>
-            <li>Click "Summarize" to process and view the summary.</li>
-            <li>Edit or delete a file using the respective options.</li>
-            <li>Download the summarized case as a `.txt` file.</li>
+            <li>
+              <b>Upload</b> a court case file by clicking <b>"Add Case."</b>
+            </li>
+            <li>
+              <b>Select a file</b> from the list <b>to view</b> its details.
+            </li>
+            <li>
+              Click <b>"Summarize" button</b> to process and view the summary.
+            </li>
+            <li>
+              <b>Edit or delete</b> a file using the respective options.
+            </li>
+            <li>
+              <b>Download</b> the summarized case as a `.txt` file. by pressing
+              the <b>"Download" button</b>
+            </li>
           </ol>
         </>
       );
@@ -30,17 +41,20 @@ const NavBar = ({ activePage }) => {
             How to Use the Statistics Page
           </h2>
           <ol className="list-decimal pl-5 text-sm space-y-2">
-            <li>Select a court case file from the list.</li>
             <li>
-              View the unigram and bigram frequency statistics of the selected
-              file.
+              <b>Select a court case</b> file from the list.
             </li>
             <li>
-              Explore the word cloud visualization of the court case text.
+              <b>View the unigram and bigram frequency statistics</b> of the
+              selected file.
             </li>
             <li>
-              Use the statistics to identify key terms and phrase patterns in
-              the case.
+              <b>Explore</b> the <b>word cloud visualization</b> of the court
+              case text.
+            </li>
+            <li>
+              <b>Use the statistics</b> to identify key terms and phrase
+              patterns in the case.
             </li>
           </ol>
         </>
