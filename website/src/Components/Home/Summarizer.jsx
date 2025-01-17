@@ -208,7 +208,7 @@ const Summarizer = () => {
         setExistingFiles(updatedFiles.data);
 
         setShowAddedPopup(true); // Show the popup
-        setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
+        setTimeout(() => setShowAddedPopup(false), 3000); // Hide popup after 3 seconds
       } catch (err) {
         console.error("Error uploading file:", err);
       } finally {
@@ -250,7 +250,7 @@ const Summarizer = () => {
       setExistingFiles(updatedFiles.data);
 
       setShowAddedPopup(true); // Show the popup
-      setTimeout(() => setShowPopup(false), 3000);
+      setTimeout(() => setShowAddedPopup(false), 3000);
     } catch (err) {
       console.error("Error uploading file with link:", err);
     } finally {
