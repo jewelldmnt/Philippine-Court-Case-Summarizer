@@ -105,6 +105,15 @@ const AddCaseModal = ({
           </p>
         )}
 
+        {/* Separator Line */}
+        <div className="flex items-center my-4">
+          <hr className="flex-grow border-gray-300" />
+          <div className="mx-2 bg-white px-2 text-gray-500 text-sm font-semibold">
+            OR
+          </div>
+          <hr className="flex-grow border-gray-300" />
+        </div>
+
         {/* Link Input */}
         <div className="mt-4">
           <input
