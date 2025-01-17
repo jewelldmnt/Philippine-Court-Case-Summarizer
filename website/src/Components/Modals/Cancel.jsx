@@ -62,44 +62,34 @@ const Cancel = ({ open, edit, cancel }) => {
   }
 
   return (
-    <>
-      <div
-        className="fixed inset-0 flex items-center justify-center bg-black 
-      bg-opacity-50 transition-opacity duration-300 z-50 "
-      >
-        <div
-          className="font-sans text-black bg-customRbox w-[350px] h-[270px] 
-        flex flex-col justify-center items-center text-center rounded-xl"
-        >
-          <BsQuestionCircle className="text-icon-10 w-[61px] h-[61px]" />
-          <h1 className="font-bold text-[20px] tablet-xs:text-[24px]">
-            Are you sure you want to <br />
-            discard changes?
-          </h1>
-          <p
-            className="mt-2 text-customRedText -500 text-[12px] 
-          tablet-xs:text-xs whitespace"
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      aria-label="Cancel Modal"
+    >
+      <div className="bg-white rounded-lg shadow-lg w-96 p-6">
+        <BsQuestionCircle className="text-3xl mb-4 mx-auto text-red-600" />
+        <h2 className="text-xl font-semibold mb-4 text-center text-gray-800">
+          Are you sure you want to discard changes?
+        </h2>
+        <p className="text-sm text-gray-500 text-center mb-6">
+          This action cannot be undone.
+        </p>
+        <div className="flex justify-between">
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
+            onClick={cancel}
           >
-            This action cannot be undone.
-          </p>
-          <div className="pt-4 flex flex-row space-x-2 font-bold">
-            <button
-              className="p-2 w-35 hover:bg-active rounded transition ease-in-out 
-              duration-300"
-              onClick={cancel}
-            >
-              Discard edit
-            </button>
-            <button
-              className="p-2 w-35 rounded text-white bg-icon-10"
-              onClick={edit}
-            >
-              Keep editing
-            </button>
-          </div>
+            Discard Changes
+          </button>
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
+            onClick={edit}
+          >
+            Keep Editing
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
