@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class WordCloudGenerator:
-    def __init__(self, width=800, height=400, background_color='white', colormap='copper'):
+    def __init__(self, width=800, height=800, background_color='white', colormap='copper'):
         self.width = width
         self.height = height
         self.background_color = background_color
@@ -23,7 +23,7 @@ class WordCloudGenerator:
             height=self.height,
             background_color=self.background_color,
             colormap=self.colormap,
-        ).generate(text)
+        ).generate_from_frequencies(text)
 
         # Save the word cloud as an image file
         wordcloud.to_file(output_file)

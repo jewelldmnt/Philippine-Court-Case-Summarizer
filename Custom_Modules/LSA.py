@@ -240,7 +240,7 @@ class LSA:
         summary = self.select_top_sentences(ranked_indices, sentences, labels, svd_matrix=svd_matrix)
 
         # Construct the output in proper order for each section
-        summary_output = "FACTS:\n"
+        summary_output = "FACTS:\n\n\n"
         summary_output += (
             " ".join(
                 [
@@ -251,7 +251,7 @@ class LSA:
             )
             + "\n\n"
         )
-        summary_output += "ISSUES:\n"
+        summary_output += "ISSUES:\n\n\n"
         summary_output += (
             " ".join(
                 [
@@ -262,7 +262,7 @@ class LSA:
             )
             + "\n\n"
         )
-        summary_output += "RULINGS:\n"
+        summary_output += "RULINGS:\n\n\n"
         summary_output += " ".join(
             [
                 sentence.replace("so ordered.", "").strip()

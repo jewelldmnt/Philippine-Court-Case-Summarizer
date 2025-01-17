@@ -1,68 +1,70 @@
-/**
- * Program Title: Court Case Summarizer - Navigation Bar
- *
- * Programmer: Nicholas Dela Torre, Jino Llamado
- * Date Written: October 12, 2024
- * Date Revised: October 12, 2024
- *
- * Purpose:
- *    This component renders the navigation bar of the Court Case Summarizer
- *    application. It includes links to different sections of the site, such as
- *    the "Summarizer" and "Statistics" pages, and dynamically highlights the
- *    active page based on the `activePage` prop.
- *
- * Where the Program Fits in the General System Design:
- *    The NavBar component is a part of the core layout and user interface,
- *    providing easy access to the key features of the application, allowing
- *    users to navigate between different sections.
- *
- * Dependencies and Resources:
- *    - React: Functional component for rendering the navigation bar.
- *    - react-router-dom: Used for navigating between pages (NavLink).
- *    - Tailwind CSS: Used for styling the navigation bar, buttons, and hover effects.
- *
- * Control Flow and Logic:
- *    1. `activePage`: A string value that determines which navigation link is 
- *                    currently active.
- *    2. The component renders two main navigation links:
- *       - `Summarizer`: Navigates to the home page of the application.
- *       - `Statistics`: Navigates to the statistics page of the application.
- *    3. The active link is highlighted with a distinct color and an underline 
- *                    animation.
- *    4. When hovering over any link, an underline appears to indicate the active 
- *                    section.
- *
- * Key Variables:
- *    - `activePage`: A string representing the currently active page 
- *                    (either "Summarizer" or "Statistics").
- */
-
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import { FaQuestionCircle } from "react-icons/fa";
 
 const NavBar = ({ activePage }) => {
-  /**
-   * NavBar Component
-   *
-   * Description:
-   * A navigation bar component for the Philippine Court Case Summarizer application.
-   * It displays the application logo and navigation links for different pages
-   * ("Summarizer" and "Statistics"). The active page is visually indicated with
-   * a different text color and an underline animation on hover.
-   *
-   * Params:
-   * @param {Object} props - The props object passed to the component.
-   * @param {string} props.activePage - The name of the currently active page,
-   *                                    used to apply the active styling to the
-   *                                    corresponding navigation link.
-   *
-   * Returns:
-   * @returns {JSX.Element} - A styled navigation bar with links and an active
-   *                          page indicator.
-   */
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
+
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen); // Toggle modal visibility
+  };
+
+  const getModalContent = () => {
+    if (activePage === "Summarizer") {
+      return (
+        <>
+          <h2 className="text-lg font-bold mb-4">How to Use the Summarizer</h2>
+          <ol className="list-decimal pl-5 text-sm space-y-2">
+            <li>
+              <b>Upload</b> a court case file by clicking <b>"Add Case."</b>
+            </li>
+            <li>
+              <b>Select a file</b> from the list <b>to view</b> its details.
+            </li>
+            <li>
+              Click <b>"Summarize" button</b> to process and view the summary.
+            </li>
+            <li>
+              <b>Edit or delete</b> a file using the respective options.
+            </li>
+            <li>
+              <b>Download</b> the summarized case as a `.txt` file. by pressing
+              the <b>"Download" button</b>
+            </li>
+          </ol>
+        </>
+      );
+    } else if (activePage === "Statistics") {
+      return (
+        <>
+          <h2 className="text-lg font-bold mb-4">
+            How to Use the Statistics Page
+          </h2>
+          <ol className="list-decimal pl-5 text-sm space-y-2">
+            <li>
+              <b>Select a court case</b> file from the list.
+            </li>
+            <li>
+              <b>View the unigram and bigram frequency statistics</b> of the
+              selected file.
+            </li>
+            <li>
+              <b>Explore</b> the <b>word cloud visualization</b> of the court
+              case text.
+            </li>
+            <li>
+              <b>Use the statistics</b> to identify key terms and phrase
+              patterns in the case.
+            </li>
+          </ol>
+        </>
+      );
+    }
+  };
 
   return (
     <>
-      <div className="bg-customLight px-4 pt-6">
+      <div className="bg-customLight px-4 pt-6 border-b-[0.1px] border-[#3F3F3F] w-full">
         <div className="mb-3 mx-2 flex justify-between">
           <div className="flex items-center gap-[8px]">
             <img
@@ -76,10 +78,7 @@ const NavBar = ({ activePage }) => {
               <span className="text-secondary">SUMMARIZER</span>
             </p>
           </div>
-          <div
-            className="flex text-white gap-20 font-bold text-[16px] 
-          font-sans mr-20"
-          >
+          <div className="flex text-white gap-10 font-bold text-[16px] font-sans mr-21">
             {/* Summarizer Link */}
             <div className="relative group">
               <NavLink to="/">
@@ -91,10 +90,7 @@ const NavBar = ({ activePage }) => {
                   Summarizer
                 </p>
               </NavLink>
-              <div
-                className="absolute left-0 -bottom-1 w-full h-1 bg-active 
-              opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              ></div>
+              <div className="absolute left-0 -bottom-1 w-full h-1 bg-active opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
 
             {/* Statistics Link */}
@@ -108,15 +104,38 @@ const NavBar = ({ activePage }) => {
                   Statistics
                 </p>
               </NavLink>
-              <div
-                className="absolute left-0 -bottom-1 w-full h-1 bg-active1 
-              opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              ></div>
+              <div className="absolute left-0 -bottom-1 w-full h-1 bg-active1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+
+            {/* Help Icon (Trigger for Modal) */}
+            <div
+              className="relative group cursor-pointer"
+              onClick={toggleModal}
+              title="Help"
+            >
+              <p className="text-black font-bold">
+                <FaQuestionCircle size={24} />
+              </p>
+              <div className="absolute left-0 -bottom-1 w-full h-1 bg-active opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
           </div>
         </div>
-        <div className="border border-b-[0.1px] border-[#3F3F3F]"></div>
       </div>
+
+      {/* Modal (will show when isModalOpen is true) */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
+            {getModalContent()}
+            <button
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600"
+              onClick={toggleModal}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

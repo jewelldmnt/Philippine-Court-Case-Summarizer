@@ -46,6 +46,7 @@ import { HiMiniLockOpen, HiMiniLockClosed } from "react-icons/hi2";
 import AddCaseModal from "../Modals/AddCaseFile";
 import "../../assets/spinner.css";
 import CircularProgress from "@mui/material/CircularProgress";
+import SavingModal from "../Modals/SavingModal";
 
 const Summarizer = () => {
   const [editCase, setEditCase] = useState(false);
@@ -57,12 +58,15 @@ const Summarizer = () => {
   const [summarizedCase, setSummarizedCase] = useState("No Summary yet");
   const [courtCaseLink, setCourtCaseLink] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
   const [progress, setProgress] = useState(0);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [loadingModal, setLoadingModal] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false); // for summary loading state
+  const [isEditLoading, setIsEditLoading] = useState(false); // for edit case loading state
+  const [showAddedPopup, setShowAddedPopup] = useState(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
 
   const [input, setInput] = useState({
     text: "no case is selected yet",
@@ -111,7 +115,7 @@ const Summarizer = () => {
       clearInterval(intervalId);
       clearTimeout(fadeOutTimeout);
     };
-  }, [loading]);
+  }, [isSummaryLoading]);
 
   const handleFileClick = (file) => {
     /**
@@ -133,6 +137,7 @@ const Summarizer = () => {
      *
      * @returns {void}
      */
+    setIsEditLoading(true);
     const newFile = {
       file_name: activeFile.file_name,
       file_text: courtCaseValue,
@@ -158,6 +163,8 @@ const Summarizer = () => {
       setCancelEdit(false); // Reset cancel state
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsEditLoading(false);
     }
   };
 
@@ -199,7 +206,9 @@ const Summarizer = () => {
 
         const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
         setExistingFiles(updatedFiles.data);
-        setIsModalOpen(false);
+
+        setShowAddedPopup(true); // Show the popup
+        setTimeout(() => setShowAddedPopup(false), 3000); // Hide popup after 3 seconds
       } catch (err) {
         console.error("Error uploading file:", err);
       } finally {
@@ -239,6 +248,9 @@ const Summarizer = () => {
       // Refresh the list of files after upload
       const updatedFiles = await axios.get("http://127.0.0.1:5000/get-files");
       setExistingFiles(updatedFiles.data);
+
+      setShowAddedPopup(true); // Show the popup
+      setTimeout(() => setShowAddedPopup(false), 3000);
     } catch (err) {
       console.error("Error uploading file with link:", err);
     } finally {
@@ -260,6 +272,10 @@ const Summarizer = () => {
         prevFiles.filter((file) => file.id !== activeFile.id)
       );
       setActiveFile(null);
+      setCourtCaseValue(""); // Clear the displayed court case text
+
+      setShowDeletePopup(true);
+      setTimeout(() => setShowDeletePopup(false), 3000);
     } catch (err) {
       console.error(err);
     }
@@ -299,7 +315,7 @@ const Summarizer = () => {
      *
      * @returns {void}
      */
-    setLoading(true);
+    setIsSummaryLoading(true);
     setProgress(0); // Reset progress at the beginning of the process
 
     // Function to slowly increment progress over time
@@ -310,13 +326,13 @@ const Summarizer = () => {
         {},
         { headers: { "Content-Type": "application/json" } }
       );
-      console.log("preprocess");
+      console.log("summarize", summarize_res.data);
 
-      setSummarizedCase(summarize_res.data.summary);
+      setSummarizedCase(summarize_res.data);
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      setIsSummaryLoading(false);
     }
   };
 
@@ -349,6 +365,20 @@ const Summarizer = () => {
         onConfirm={handleFileDelete}
       />
 
+      <SavingModal open={isEditLoading} text="Saving changes, please wait..." />
+
+      {showAddedPopup && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white font-bold py-2 px-4 rounded shadow-lg z-50">
+          Case has been added successfully!
+        </div>
+      )}
+
+      {showDeletePopup && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white font-bold py-2 px-4 rounded shadow-lg z-50">
+          File has been deleted!
+        </div>
+      )}
+
       <div className="bg-customGray text-black h-screen">
         <NavBar activePage="Summarizer" />
         <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
@@ -357,40 +387,61 @@ const Summarizer = () => {
               LIST OF COURT CASES
             </p>
             <div
-              className="font-sans text-sm bg-customRbox rounded-xl py-6 
-            h-[450px] overflow-y-auto custom-scrollbar"
+              className="font-sans text-sm bg-customRbox rounded-xl py-0 h-[73vh] overflow-y-auto custom-scrollbar"
+              style={{ height: "calc(100vh - 200px)" }}
             >
-              <ol className="list-decimal list-inside">
+              <ol className="list-none">
                 {existingFiles.length > 0 ? (
                   existingFiles.map((file, index) => (
                     <li
                       key={index}
-                      className={`hover:bg-customHoverC w-full px-4 cursor-pointer mb-2 ${
+                      className={`hover:bg-customHoverC w-full px-4 py-2 cursor-${
+                        isSummaryLoading || editCase ? "not-allowed" : "pointer"
+                      } ${
                         activeFile?.id === file.id ? "bg-customHoverC" : ""
-                      }`}
-                      onClick={() => handleFileClick(file)}
+                      } flex items-center border border-gray-300`}
+                      onClick={
+                        !isSummaryLoading && !editCase
+                          ? () => handleFileClick(file)
+                          : null
+                      }
                     >
-                      {file.file_name && file.file_name.length > 35
-                        ? `${file.file_name.slice(0, 35)}...`
-                        : file.file_name || "Untitled"}
+                      <div className="flex items-center">
+                        <span title={file.file_name || "Untitled"}>
+                          {index + 1}.{" "}
+                          {file.file_name && file.file_name.length > 20
+                            ? `${file.file_name.slice(0, 20)}...`
+                            : file.file_name || "Untitled"}
+                        </span>
+                      </div>
                     </li>
                   ))
                 ) : (
-                  <p className="ml-4">No files uploaded yet.</p>
+                  <div className="flex items-center justify-center h-80">
+                    <p className="text-gray-600">No files uploaded yet.</p>
+                  </div>
                 )}
               </ol>
             </div>
             <div className="mt-4 flex justify-between px-2">
-              <label
-                className="flex items-center cursor-pointer"
+              <button
+                className={`flex items-center ${
+                  isSummaryLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={isSummaryLoading}
                 onClick={() => setIsModalOpen(true)}
               >
                 <FaCirclePlus className="size-6 text-icon-40" />
                 <p className="font-bold font-sans text-[14px] ml-2">Add Case</p>
-              </label>
+              </button>
               <button
                 onClick={() => setShowConfirmation(true)}
-                className="flex items-center"
+                className={`flex items-center ${
+                  !activeFile || isSummaryLoading
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                disabled={!activeFile || isSummaryLoading}
               >
                 <FaCircleMinus className="size-6 text-icon-20" />
                 <p className="font-bold font-sans text-[14px] ml-2">
@@ -400,7 +451,7 @@ const Summarizer = () => {
             </div>
           </div>
 
-          <div>
+          <div className="w-full">
             <p className="font-bold font-sans text-[15px] ml-4 mb-4 flex items-center">
               ORIGINAL COURT CASE
               {editCase ? (
@@ -413,15 +464,30 @@ const Summarizer = () => {
                 </>
               )}
             </p>
-            <div className="relative">
+            <div className="relative" style={{ height: "calc(100vh - 200px)" }}>
               <textarea
-                className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] 
-                w-full overflow-y-auto custom-scrollbar"
-                value={courtCaseValue ? courtCaseValue : "No case selected"}
+                className={`bg-customRbox rounded-xl px-4 py-6 h-[450px] w-full overflow-y-auto custom-scrollbar flex items-center justify-center ${
+                  courtCaseValue ? "" : "text-center"
+                }`}
+                value={courtCaseValue ? courtCaseValue : ""}
                 onChange={(e) => setCourtCaseValue(e.target.value)}
                 readOnly={!editCase}
-                style={{ paddingBottom: "2.5rem" }}
+                style={{
+                  paddingBottom: "2.5rem",
+                  height: "calc(100vh - 200px)",
+                  fontSize: "1rem",
+                  fontFamily: "'Roboto', sans-serif",
+                  color: "#333",
+                  whiteSpace: "pre-line", // Keeps \n formatting
+                  lineHeight: "1.5rem", // Increases line height for multiline
+                }}
               />
+              {!courtCaseValue && (
+                <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  No court case is selected yet
+                </span>
+              )}
+
               <div
                 className="gap-2 flex items-center font-sans font-bold text-xs 
               absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl 
@@ -432,20 +498,29 @@ const Summarizer = () => {
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <button
-                  className="flex items-center cursor-pointer h-8 bg-summarize 
-                  justify-center rounded-xl shadow-xl"
+                  className={`btn flex items-center h-8 bg-summarize
+                  justify-center rounded-xl shadow-xl ${
+                    !activeFile || isSummaryLoading
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
                   onClick={() => {
                     handleSummarizedCase();
                   }}
+                  disabled={!activeFile || isSummaryLoading}
                 >
                   <p className="font-bold font-sans text-xs m-3">Summarize</p>
-                  <input type="button" className="hidden" />
+                  <input type="button" className="hidden " />
                 </button>
               </div>
             </div>
             {editCase ? (
               <div className="mt-4 flex justify-between px-2">
-                <button className="flex items-center" onClick={handleSaveEdit}>
+                <button
+                  className="flex items-center"
+                  onClick={handleSaveEdit}
+                  disabled={isEditLoading || !activeFile || isSummaryLoading}
+                >
                   <PiArrowLineDownBold className="size-6 text-icon-10" />
                   <p className="font-bold font-sans text-[14px] ml-2">
                     Save Case
@@ -464,8 +539,13 @@ const Summarizer = () => {
             ) : (
               <div className="mt-4 flex justify-center px-2">
                 <button
-                  className="flex items-center"
                   onClick={() => setEditCase(true)}
+                  disabled={!activeFile || isSummaryLoading} // Disable the button while summarizing
+                  className={`flex items-center ${
+                    !activeFile || isSummaryLoading
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
                 >
                   <BiSolidEditAlt className="text-icon-10 size-6" />
                   <p className="font-bold font-sans text-[14px] ml-2">
@@ -480,11 +560,12 @@ const Summarizer = () => {
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               SUMMARIZED COURT CASE
             </p>
-            <div className="relative">
-              {loading ? (
+            <div className="relative" style={{ height: "calc(100vh - 200px)" }}>
+              {isSummaryLoading ? (
                 <div
                   className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] 
                 w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center"
+                  style={{ height: "calc(100vh - 200px)" }}
                 >
                   <p
                     className={`loading-text fade-text ${
@@ -497,13 +578,60 @@ const Summarizer = () => {
                   <div className="spinner"></div>
                 </div>
               ) : (
-                <textarea
-                  className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] 
-                  w-full overflow-y-auto custom-scrollbar"
-                  readOnly
-                  value={summarizedCase}
-                  style={{ paddingBottom: "2.5rem" }}
-                />
+                <div
+                  className={`bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px]
+                    w-full overflow-y-auto custom-scrollbar flex ${
+                      summarizedCase === "No Summary yet"
+                        ? "justify-center items-center text-center"
+                        : "flex-col justify-start items-start"
+                    }`}
+                  style={{
+                    paddingBottom: "2.5rem",
+                    height: "calc(100vh - 200px)", // Makes the outer container responsive to viewport height
+                    fontSize: "1rem", // Slightly larger font for readability
+                    fontFamily: "'Roboto', sans-serif", // Readable sans-serif font
+                    color: "#333",
+                    whiteSpace: "pre-line", // Keeps \n formatting
+                    lineHeight: "1.5rem",
+                    overflowY: "auto", // Enables scrolling on the outer div
+                    boxSizing: "border-box", // Includes padding in height calculations
+                  }}
+                >
+                  <div
+                    className="whitespace-pre-wrap w-full"
+                    style={{
+                      maxWidth: "100%", // Prevents content from exceeding container width
+                      wordWrap: "break-word", // Ensures long words or links break properly
+                      textAlign:
+                        summarizedCase === "No Summary yet"
+                          ? "center"
+                          : "justify", // Justifies text for a clean look
+                    }}
+                  >
+                    {summarizedCase.title ? (
+                      <div>
+                        <div className="mb-12">
+                          <p className="font-semibold">TITLE:</p>
+                          <p>{summarizedCase["title"]}</p>
+                        </div>
+                        <div className="mb-12">
+                          <p className="font-semibold">FACTS:</p>
+                          <p>{summarizedCase["facts"]}</p>
+                        </div>
+                        <div className="mb-12">
+                          <p className="font-semibold">ISSUES:</p>
+                          <p>{summarizedCase["issues"]}</p>
+                        </div>
+                        <div className="mb-12">
+                          <p className="font-semibold">RULINGS:</p>
+                          <p>{summarizedCase["rulings"]}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      "No Summary Yet"
+                    )}
+                  </div>
+                </div>
               )}
 
               <div
@@ -513,16 +641,28 @@ const Summarizer = () => {
               >
                 <p className="text-white">Word Count:</p>
                 <p className="text-customWC">
-                  {loading
-                    ? ""
-                    : summarizedCase.split(/\s+/).filter(Boolean).length}
+                  {!isSummaryLoading && summarizedCase?.facts
+                    ? summarizedCase["facts"].split(/\s+/).filter(Boolean)
+                        .length +
+                      summarizedCase["issues"].split(/\s+/).filter(Boolean)
+                        .length +
+                      summarizedCase["rulings"].split(/\s+/).filter(Boolean)
+                        .length
+                    : ""}
                 </p>
               </div>
             </div>
 
             <div className="mt-4 flex justify-center px-2">
               <button
-                className="flex items-center"
+                className={`flex items-center ${
+                  summarizedCase === "No Summary yet" || isSummaryLoading
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                disabled={
+                  summarizedCase === "No Summary yet" || isSummaryLoading
+                }
                 onClick={handleTextDownload}
               >
                 <ImCloudDownload className="text-icon-30 size-6" />
