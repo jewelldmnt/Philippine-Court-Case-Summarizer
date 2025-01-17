@@ -61,9 +61,15 @@ from bs4 import BeautifulSoup
 import requests
 import re
 import os
-from Custom_Modules.Preprocess import preprocess
 import spacy
 
+# Importing the custom modules
+from Custom_Modules.Preprocess import preprocess
+from Custom_Modules.TopicSegmentation import TopicSegmentation
+from Custom_Modules.LSA import LSA
+        
+# Defining the instances of the preprocessor
+preprocessor = preprocess(is_training=False)
 
 
 def scrape_court_case(url):
@@ -148,8 +154,6 @@ def scrape_court_case(url):
             ]
 
         title_text = title.text.strip().replace("\n", " ")
-        from Custom_Modules.Preprocess import preprocess
-        preprocessor = preprocess(is_training=False)
         sliced_content = preprocessor.merge_numbered_lines(sliced_content)
 
         return {"title": title_text, "case_text": sliced_content}
@@ -165,13 +169,10 @@ def scrape_court_case(url):
     
 def create_wordcloud(court_case_content, file_id):
     from wordcloud import WordCloud
-    from Custom_Modules.Preprocess import preprocess
     from Custom_Modules.WordCloud import WordCloudGenerator
     from collections import Counter
     from stopwords import unigram_stopwords, bigram_stopwords
-    preprocessor = preprocess(is_training=False)
     # Assuming preprocessor.remove_unnecesary_char and stopwords are defined
-    nlp = spacy.load("en_core_web_sm")
     cleaned_text = preprocessor.remove_unnecesary_char(court_case_content)
 
     doc = nlp(cleaned_text)
@@ -250,6 +251,7 @@ db = SQLAlchemy(app)
 
 
 Base = declarative_base()
+nlp = spacy.load("en_core_web_sm")
 
 import base64
 
@@ -323,8 +325,6 @@ def send_file():
             court_case_content = data.get("content")
             print(court_case_content)
             court_case_title = data.get("title")[:-4]
-            from Custom_Modules.Preprocess import preprocess
-            preprocessor = preprocess(is_training=False)
             court_case_content = preprocessor.merge_numbered_lines(court_case_content)
             # print(court_case_content)
 
@@ -422,7 +422,6 @@ def send_file_link():
     - JSON: Error messages if any part of the process fails (400 or 500 status).
     """
     import re
-    from Custom_Modules.Preprocess import preprocess
 
     try:
 
@@ -431,7 +430,6 @@ def send_file_link():
             court_case_link = data.get("link")
             print(court_case_link)
             court_case = scrape_court_case(court_case_link)
-            preprocessor = preprocess(is_training=False)
             court_case_text = preprocessor.merge_numbered_lines(court_case["case_text"])
 
             if not court_case_link:
@@ -599,9 +597,6 @@ def get_summarized(id):
     - JSON: An error message if preprocessing fails or if the file is not found.
     """
     try:
-        from Custom_Modules.Preprocess import preprocess
-        from Custom_Modules.TopicSegmentation import TopicSegmentation
-        from Custom_Modules.LSA import LSA
 
         file = db.session.get(File, id)
         if file is None:
@@ -615,7 +610,6 @@ def get_summarized(id):
         # summary = "TITLE:"+ "\n" + file.file_name+ "\n\n" + summarize_case(court_case_text)
         # print(summary)
 
-        preprocessor = preprocess(is_training=False)
 
         cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
         segmented_paragraph = preprocessor.segment_paragraph(cleaned_text, court_case_text)
@@ -658,7 +652,6 @@ def get_preprocess(id):
     - JSON: An error message if preprocessing fails or if the file is not found.
     """
     try:
-        nlp = spacy.load("en_core_web_sm")
 
         file = db.session.get(File, id)
         if file is None:
@@ -670,7 +663,6 @@ def get_preprocess(id):
             return jsonify({"error": "No case text provided"}), 400
 
 
-        preprocessor = preprocess(is_training=False)
 
         cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
         doc = nlp(cleaned_text)
