@@ -47,7 +47,6 @@ import AddCaseModal from "../Modals/AddCaseFile";
 import "../../assets/spinner.css";
 import CircularProgress from "@mui/material/CircularProgress";
 import SavingModal from "../Modals/SavingModal";
-import "../../assets/summarizer.css";
 
 const Summarizer = () => {
   const [editCase, setEditCase] = useState(false);
@@ -382,7 +381,7 @@ const Summarizer = () => {
               LIST OF COURT CASES
             </p>
             <div
-              className="font-sans text-sm bg-customRbox rounded-xl py-6 sm:h-[200px] lg:h-[450px] overflow-y-auto custom-scrollbar"
+              className="font-sans text-sm bg-customRbox rounded-xl py-0 h-[73vh] overflow-y-auto custom-scrollbar"
               style={{ height: "calc(100vh - 200px)" }}
             >
               <ol className="list-none">

@@ -215,29 +215,31 @@ const Statistics = () => {
           <p className="font-bold font-sans text-[15px] ml-4 mb-4">
             LIST OF COURT CASES
           </p>
-          <div
-            className="font-sans text-sm bg-customRbox rounded-xl py-6
-            h-[73vh] overflow-y-auto"
-          >
-            <ol className="list-decimal list-inside">
+          <div className="font-sans text-sm bg-customRbox rounded-xl py-0 h-[73vh] overflow-y-auto custom-scrollbar">
+            <ol className="list-none">
               {existingFiles.length > 0 ? (
                 existingFiles.map((file, index) => (
                   <li
                     key={index}
-                    className={`hover:bg-customHoverC w-full px-4 cursor-${
+                    className={`hover:bg-customHoverC w-full px-4 py-2 cursor-${
                       loading ? "not-allowed" : "pointer"
-                    } mb-2 ${
+                    } ${
                       activeFile?.id === file.id ? "bg-customHoverC" : ""
-                    }`}
+                    } flex items-center border border-gray-300`}
                     onClick={!loading ? () => handleFileClick(file) : null}
                   >
-                    {file.file_name.length > 35
-                      ? `${file.file_name.slice(0, 35)}...`
-                      : file.file_name}
+                    <div className="flex items-center">
+                      <span title={file.file_name || "Untitled"}>
+                        {index + 1}.{" "}
+                        {file.file_name && file.file_name.length > 20
+                          ? `${file.file_name.slice(0, 20)}...`
+                          : file.file_name || "Untitled"}
+                      </span>
+                    </div>
                   </li>
                 ))
               ) : (
-                <p className="ml-4">No files uploaded yet.</p>
+                <p className="ml-4 text-gray-600">No files uploaded yet.</p>
               )}
             </ol>
           </div>

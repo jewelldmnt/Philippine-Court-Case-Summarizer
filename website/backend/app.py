@@ -214,6 +214,33 @@ def create_wordcloud(court_case_content, file_id):
 
     generator = WordCloudGenerator()
     generator.create_wordcloud(filtered_words, f"../public/images/{file_id}_wordcloud.jpg")
+    
+def delete_wordcloud(id):
+    """
+    Description:
+    Deletes the word cloud image file for a specified file ID.
+    
+    Parameters:
+    - id (int): The ID of the file whose associated word cloud image is to be deleted.
+
+    Returns:
+    - JSON: A success message if the word cloud was deleted.
+    - JSON: An error message if the word cloud was not found or if deletion failed.
+    """
+    try:
+        # Assuming the file ID is the same as the associated word cloud image file's ID (e.g., {file_id}_wordcloud.jpg)
+        wordcloud_image_path = f"../public/images/{id}_wordcloud.jpg"
+
+        # Check if the image exists
+        if os.path.exists(wordcloud_image_path):
+            # Remove the word cloud image
+            os.remove(wordcloud_image_path)
+
+        else:
+            return
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 app = Flask(__name__)
@@ -510,6 +537,8 @@ def delete_file(id):
         file = db.session.get(File, id)
         if file is None:
             return jsonify({"error": "File not found"}), 404
+        
+        delete_wordcloud(id)
 
         db.session.delete(file)
         db.session.commit()
