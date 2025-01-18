@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { FaUpload } from "react-icons/fa";
 import "../../assets/spinner.css";
+import { ThemeContext } from "../../ThemeContext";
 
 const AddCaseModal = ({
   open,
@@ -13,6 +14,7 @@ const AddCaseModal = ({
   const [fileName, setFileName] = useState(""); // State to store the selected file name
   const [link, setLink] = useState(""); // State to store the entered link
   const [isDragOver, setIsDragOver] = useState(false); // Drag-and-drop state
+  const { isDarkMode } = useContext(ThemeContext);
 
   if (!open) return null;
 
@@ -61,18 +63,29 @@ const AddCaseModal = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className={`fixed inset-0 flex items-center justify-center z-50 ${
+        isDarkMode
+          ? "bg-black bg-opacity-50" // Dark mode: darker backdrop
+          : "bg-gray-800 bg-opacity-50" // Light mode: lighter backdrop
+      }`}
       aria-label="Add Case Modal"
     >
-      <div className="bg-white rounded-lg shadow-lg w-96 p-6">
+      <div
+        className={`rounded-lg shadow-lg w-96 p-6 ${
+          isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"
+        }`}
+      >
         <h2 className="text-xl font-semibold mb-6 text-center">
           Add Case File or Link
         </h2>
-
         {/* File Upload Input */}
         <div
           className={`border-2 ${
-            isDragOver ? "border-blue-500 bg-blue-50" : "border-gray-300"
+            isDragOver
+              ? "border-blue-500 bg-blue-50"
+              : isDarkMode
+              ? "border-gray-600 bg-gray-800" // Dark mode styles
+              : "border-gray-300 bg-white" // Light mode styles
           } border-dashed rounded-lg p-4 text-center transition`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -89,7 +102,9 @@ const AddCaseModal = ({
           />
           <label
             htmlFor="case-file"
-            className="cursor-pointer flex flex-col items-center text-gray-600"
+            className={`cursor-pointer flex flex-col items-center ${
+              isDarkMode ? "text-white" : "text-gray-600" // Dark mode vs light mode text color
+            }`}
           >
             <FaUpload className="text-3xl mb-2" />
             <span className="text-sm">
@@ -97,37 +112,47 @@ const AddCaseModal = ({
             </span>
           </label>
         </div>
-
         {/* File Name Display */}
         {fileName && !loading && (
-          <p className="mt-2 text-sm text-gray-500">
+          <p
+            className={`mt-2 text-sm ${
+              isDarkMode ? "text-gray-300" : "text-gray-500"
+            }`}
+          >
             Selected File: {fileName}
           </p>
         )}
-
         {/* Separator Line */}
         <div className="flex items-center my-4">
           <hr className="flex-grow border-gray-300" />
-          <div className="mx-2 bg-white px-2 text-gray-500 text-sm font-semibold">
+          <div
+            className={`mx-2 px-2 text-sm font-semibold ${
+              isDarkMode ? "text-gray-300" : "text-gray-500"
+            }`}
+          >
             OR
           </div>
           <hr className="flex-grow border-gray-300" />
         </div>
-
         {/* Link Input */}
         <div className="mt-4">
           <input
             type="text"
-            className="w-full border border-gray-300 rounded p-2 text-sm"
+            className={`w-full border rounded p-2 text-sm ${
+              isDarkMode
+                ? "bg-gray-800 text-white border-gray-600" // Dark mode styles
+                : "bg-white text-black border-gray-300" // Light mode styles
+            }`}
             placeholder="Enter a link to a case document"
             onChange={(e) => setLink(e.target.value)}
             disabled={loading}
             aria-label="Enter Case Link"
           />
+
           <button
             className={`mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition ${
               loading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            } ${isDarkMode ? "bg-blue-600 hover:bg-blue-800" : ""}`}
             onClick={handleFileChangeLink}
             disabled={loading}
             aria-label="Add Link"
@@ -135,15 +160,17 @@ const AddCaseModal = ({
             Add Link
           </button>
         </div>
-
         {/* Loading State */}
         {loading && (
           <div className="flex items-center mt-4">
             <div className="spinner border-t-4 border-blue-500 rounded-full w-6 h-6 animate-spin"></div>
-            <p className="ml-2 text-gray-600">Processing...</p>
+            <p
+              className={`ml-2 ${isDarkMode ? "text-white" : "text-gray-600"}`}
+            >
+              Processing...
+            </p>
           </div>
         )}
-
         {/* Action Buttons */}
         <div className="flex justify-end items-center mt-6">
           <button

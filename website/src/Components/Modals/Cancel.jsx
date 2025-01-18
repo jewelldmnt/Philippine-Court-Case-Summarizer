@@ -70,7 +70,7 @@ const Cancel = ({ open, edit, cancel }) => {
     <div
       className={`fixed inset-0 flex items-center justify-center z-50 ${
         isDarkMode
-          ? "bg-black bg-opacity-70" // Dark mode: darker backdrop
+          ? "bg-black bg-opacity-50" // Dark mode: darker backdrop
           : "bg-gray-800 bg-opacity-50" // Light mode: lighter backdrop
       }`}
       aria-label="Cancel Modal"
