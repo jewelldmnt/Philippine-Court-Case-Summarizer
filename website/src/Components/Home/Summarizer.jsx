@@ -47,12 +47,14 @@ import AddCaseModal from "../Modals/AddCaseFile";
 import "../../assets/spinner.css";
 import CircularProgress from "@mui/material/CircularProgress";
 import SavingModal from "../Modals/SavingModal";
+import ConfirmSave from "../Modals/ConfirmSave";
 
 const Summarizer = () => {
   const [editCase, setEditCase] = useState(false);
   const [courtCaseValue, setCourtCaseValue] = useState("");
   const [deleteCase, setDeleteCase] = useState(false);
   const [cancelEdit, setCancelEdit] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [activeFile, setActiveFile] = useState("");
   const [existingFiles, setExistingFiles] = useState([]);
   const [summarizedCase, setSummarizedCase] = useState("No Summary yet");
@@ -67,10 +69,6 @@ const Summarizer = () => {
   const [isEditLoading, setIsEditLoading] = useState(false); // for edit case loading state
   const [showAddedPopup, setShowAddedPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-
-  const [input, setInput] = useState({
-    text: "no case is selected yet",
-  });
 
   useEffect(() => {
     axios
@@ -177,6 +175,11 @@ const Summarizer = () => {
     setCancelEdit(false);
     setEditCase(false); // Exit edit mode
     setCourtCaseValue(activeFile.file_text); // Reset the text area to its original state
+  };
+
+  const handleSave = () => {
+    // Logic to save the case (e.g., making an API call to update the database)
+    console.log("Changes saved:", caseData);
   };
 
   const handleFileAdd = async (event, resetFileName) => {
@@ -365,6 +368,12 @@ const Summarizer = () => {
         onConfirm={handleFileDelete}
       />
 
+      <ConfirmSave
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        onSave={handleSaveEdit}
+      />
+
       <SavingModal open={isEditLoading} text="Saving changes, please wait..." />
 
       {showAddedPopup && (
@@ -518,7 +527,7 @@ const Summarizer = () => {
               <div className="mt-4 flex justify-between px-2">
                 <button
                   className="flex items-center"
-                  onClick={handleSaveEdit}
+                  onClick={() => setIsSaveModalOpen(true)}
                   disabled={isEditLoading || !activeFile || isSummaryLoading}
                 >
                   <PiArrowLineDownBold className="size-6 text-icon-10" />
