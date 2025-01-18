@@ -128,6 +128,18 @@ const Summarizer = () => {
      */
     setActiveFile(file);
     setCourtCaseValue(file.file_text);
+
+    // Check if any of the summary-related properties exist and show
+    if (file.file_facts || file.file_issues || file.file_rulings) {
+      setSummarizedCase({
+        title: file.file_name,
+        facts: file.file_facts || "No facts available",
+        issues: file.file_issues || "No issues available",
+        rulings: file.file_rulings || "No rulings available"
+      });
+    } else {
+      setSummarizedCase("No Summary yet");
+    }
   };
 
   const handleSaveEdit = async () => {

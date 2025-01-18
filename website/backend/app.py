@@ -270,6 +270,10 @@ class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_name = db.Column(db.String, nullable=False)
     file_text = db.Column(db.String, nullable=False)
+    file_has_summ = db.Column(db.Integer, nullable=True)
+    file_facts = db.Column(db.String, nullable=False)
+    file_issues = db.Column(db.String, nullable=False)
+    file_rulings = db.Column(db.String, nullable=False)
     file_content = db.Column(db.LargeBinary)
 
     def to_json(self):
@@ -277,6 +281,10 @@ class File(db.Model):
             "id": self.id,
             "file_name": self.file_name,
             "file_text": self.file_text,
+            "file_summary":self.file_has_summ,
+            "file_facts":self.file_facts,
+            "file_issues":self.file_issues,
+            "file_rulings":self.file_rulings,
             "file_content": base64.b64encode(self.file_content).decode('utf-8') if self.file_content else None,
         }
 
@@ -326,7 +334,6 @@ def send_file():
     - JSON: A JSON message indicating success and the file name.
     - JSON: Error messages if any part of the process fails (400 or 500 status).
     """
-    import re
 
     try:
 
@@ -607,39 +614,55 @@ def get_summarized(id):
     - JSON: An error message if preprocessing fails or if the file is not found.
     """
     try:
-
+        # Verify if there are court case
         file = db.session.get(File, id)
         if file is None:
             return jsonify({"error": "Court case not found"}), 404
-
-        court_case_text = file.file_text
-
-        if not court_case_text:
-            return jsonify({"error": "No case text provided"}), 400
-
-        # summary = "TITLE:"+ "\n" + file.file_name+ "\n\n" + summarize_case(court_case_text)
-        # print(summary)
-
-
-        cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
-        segmented_paragraph = preprocessor.segment_paragraph(cleaned_text, court_case_text)
         
-        segmentation = TopicSegmentation(model_path="77")
-
-
-        predicted_labels = segmentation.sequence_classification(
-            segmented_paragraph, threshold=0.8
-        )
-        segmentation_output = segmentation.label_mapping(predicted_labels)
-        lsa = LSA(segmentation_output)
-        summarize_case = lsa.create_summary()
-        summarize_case["title"] = file.file_name
+        # Default value is set to none
+        summarize_case = {"title": file.file_name, "facts":"", "issues":"", "rulings":""}
         
-        print("summary case:", summarize_case)
+        # Create a summary if there are no summary
+        if file.file_has_summ == 0:
+            court_case_text = file.file_text
 
-        file = db.session.get(File, id)
+            if not court_case_text:
+                return jsonify({"error": "No case text provided"}), 400
 
-        # summary = "TITLE:" + "\n" + file.file_name + "\n\n\n" + summarize_case
+            # Preprocessing and segmentation
+            cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
+            segmented_paragraph = preprocessor.segment_paragraph(cleaned_text, court_case_text)
+            
+            segmentation = TopicSegmentation(model_path="77")
+
+
+            predicted_labels = segmentation.sequence_classification(
+                segmented_paragraph, threshold=0.8
+            )
+            segmentation_output = segmentation.label_mapping(predicted_labels)
+
+            # Summarization
+            lsa = LSA(segmentation_output)
+            generated_summary = lsa.create_summary()
+
+            # Ensure generated summary contains required keys
+            summarize_case["facts"] = generated_summary.get("facts", "No facts available")
+            summarize_case["issues"] = generated_summary.get("issues", "No issues available")
+            summarize_case["rulings"] = generated_summary.get("rulings", "No rulings available")
+
+            print("Generated Summary:", summarize_case, "\n\n")
+            
+            # Update and commit summary to the database
+            file.file_has_summ = 1 # 1 = True (summary exists)
+            file.file_facts = summarize_case["facts"]
+            file.file_issues = summarize_case["issues"]
+            file.file_rulings = summarize_case["rulings"]
+            db.session.commit()
+        else:
+            # Retrieve existing summary
+            summarize_case["facts"] = file.file_facts 
+            summarize_case["issues"] = file.file_issues
+            summarize_case["rulings"] = file.file_rulings
 
         return jsonify(summarize_case), 200
 
