@@ -68,8 +68,7 @@ const Summarizer = () => {
   const [isEditLoading, setIsEditLoading] = useState(false); // for edit case loading state
   const [showAddedPopup, setShowAddedPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-  const { isDarkMode, toggleTheme } = useContext(ThemeContext);
-  const [isToggleOpen, setIsToggleOpen] = useState(false);
+  const { isDarkMode } = useContext(ThemeContext);
 
   const [input, setInput] = useState({
     text: "no case is selected yet",
@@ -389,8 +388,8 @@ const Summarizer = () => {
       >
         {" "}
         <NavBar activePage="Summarizer" />
-        <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
-          <div>
+        <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-[80vh] m-8">
+          <div className="h-[80vh]">
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               LIST OF COURT CASES
             </p>
@@ -398,7 +397,6 @@ const Summarizer = () => {
               className={`${
                 isDarkMode ? "bg-darkSecondary" : "bg-customRbox"
               } font-sans text-sm rounded-xl py-0 h-[73vh] overflow-y-auto custom-scrollbar`}
-              style={{ height: "calc(100vh - 200px)" }}
             >
               <ol className="list-none">
                 {existingFiles.length > 0 ? (
@@ -413,10 +411,8 @@ const Summarizer = () => {
                               isDarkMode ? "bg-darkTertiary" : "bg-customHoverC"
                             }` // Active file background in dark or light mode
                           : ""
-                      } flex items-center border-[0.3px] ${
-                        isDarkMode
-                          ? "border-gray-600"
-                          : "border border-gray-300" // No border in dark mode
+                      } flex items-center border-b-[0.3px] ${
+                        isDarkMode ? "border-gray-600" : "border-gray-300" // No border in dark mode
                       } ${
                         isDarkMode
                           ? "hover:bg-darkTertiary" // Dark mode hover effect
@@ -473,7 +469,7 @@ const Summarizer = () => {
             </div>
           </div>
 
-          <div className="w-full">
+          <div className="w-full h-[73vh]">
             <p className="font-bold font-sans text-[15px] ml-4 mb-4 flex items-center">
               ORIGINAL COURT CASE
               {editCase ? (
@@ -486,9 +482,9 @@ const Summarizer = () => {
                 </>
               )}
             </p>
-            <div className="relative" style={{ height: "calc(100vh - 200px)" }}>
+            <div className="relative">
               <textarea
-                className={`bg-customRbox rounded-xl px-4 py-6 h-[450px] w-full overflow-y-auto custom-scrollbar flex items-center justify-center ${
+                className={`bg-customRbox rounded-xl px-4 py-6 h-[73vh] w-full overflow-y-auto custom-scrollbar flex items-center justify-center ${
                   isDarkMode
                     ? "bg-darkSecondary text-gray-300"
                     : "bg-customRbox text-black"
@@ -498,7 +494,6 @@ const Summarizer = () => {
                 readOnly={!editCase}
                 style={{
                   paddingBottom: "2.5rem",
-                  height: "calc(100vh - 200px)",
                   fontSize: "1rem",
                   fontFamily: "'Roboto', sans-serif",
                   whiteSpace: "pre-line", // Keeps \n formatting
@@ -593,15 +588,14 @@ const Summarizer = () => {
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               SUMMARIZED COURT CASE
             </p>
-            <div className="relative" style={{ height: "calc(100vh - 200px)" }}>
+            <div className="relative h-[73vh]">
               {isSummaryLoading ? (
                 <div
-                  className={`rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center ${
+                  className={`rounded-xl px-4 py-6 pb-10 h-[73vh] w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center ${
                     isDarkMode
                       ? "bg-darkSecondary text-white"
                       : "bg-customRbox text-black"
                   }`}
-                  style={{ height: "calc(100vh - 200px)" }}
                 >
                   <p
                     className={`loading-text fade-text ${
@@ -618,14 +612,13 @@ const Summarizer = () => {
                     isDarkMode
                       ? "bg-darkSecondary text-gray-300"
                       : "bg-customRbox text-black"
-                  } rounded-xl px-4 py-6 pb-10 h-[450px] w-full overflow-y-auto custom-scrollbar flex ${
+                  } rounded-xl px-4 py-6 pb-10 h-[73vh] w-full overflow-y-auto custom-scrollbar flex ${
                     summarizedCase === "No Summary yet"
                       ? "justify-center items-center text-center"
                       : "flex-col justify-start items-start"
                   }`}
                   style={{
                     paddingBottom: "2.5rem",
-                    height: "calc(100vh - 200px)", // Makes the outer container responsive to viewport height
                     fontSize: "1rem", // Slightly larger font for readability
                     fontFamily: "'Roboto', sans-serif", // Readable sans-serif font
                     whiteSpace: "pre-line", // Keeps \n formatting

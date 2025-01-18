@@ -185,11 +185,7 @@ const NavBar = ({ activePage }) => {
           >
             {getModalContent()}
             <button
-              className={`mt-4 ${
-                isDarkMode
-                  ? "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                  : "bg-blue-500 text-white hover:bg-blue-600"
-              } px-4 py-2 rounded shadow`}
+              className="mt-4 bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 rounded shadow"
               onClick={toggleModal}
             >
               Close
