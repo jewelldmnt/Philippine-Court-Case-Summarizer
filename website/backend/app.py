@@ -161,8 +161,6 @@ def scrape_court_case(url):
 
         title_text = title.text.strip().replace("\n", " ")
         title_text = re.sub(r"\[\s*|\s*\]", "", title.text.strip().replace("\n", " "))
-        from Custom_Modules.Preprocess import preprocess
-        preprocessor = preprocess(is_training=False)
 
         sliced_content = preprocessor.merge_numbered_lines(sliced_content)
 
