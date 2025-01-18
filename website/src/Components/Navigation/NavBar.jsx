@@ -73,7 +73,7 @@ const NavBar = ({ activePage }) => {
     >
       <div
         className={`${
-          isDarkMode ? "bg-gray-900 border-gray-700" : "bg-customLight"
+          isDarkMode ? "bg-darkPrimary border-gray-700" : "bg-customLight"
         } px-4 pt-6 border-b-[0.1px] w-full`}
       >
         <div className="mb-3 mx-2 flex justify-between items-center">
@@ -145,7 +145,9 @@ const NavBar = ({ activePage }) => {
             >
               <div
                 className={`absolute w-6 h-6  rounded-full shadow-md transform transition-transform ${
-                  isDarkMode ? "translate-x-6 bg-darkSecondary" : "translate-x-0 bg-white"
+                  isDarkMode
+                    ? "translate-x-6 bg-darkSecondary"
+                    : "translate-x-0 bg-white"
                 }`}
               ></div>
               <FaSun
