@@ -3,6 +3,7 @@ import tailwindScrollbar from "tailwind-scrollbar";
 
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -22,6 +23,12 @@ export default {
         active1: "#192E40",
         delete: "#D90429",
         summarize: "#EBF4FB",
+        darkPrimary: "#021526",
+        darkSecondary: "#192E40",
+        darkTertiary: "#3B5366",
+        darkAccent1: "#B1D8FB",
+        darkAccent2: "#FC5271",
+        darkSummarize: "#61BB5F",
         icon: {
           10: "#F67F3B",
           20: "#F05546",

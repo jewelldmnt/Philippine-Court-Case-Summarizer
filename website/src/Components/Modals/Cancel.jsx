@@ -36,6 +36,8 @@
  */
 
 import { BsQuestionCircle } from "react-icons/bs";
+import { useContext } from "react";
+import { ThemeContext } from "../../ThemeContext";
 
 const Cancel = ({ open, edit, cancel }) => {
   /**
@@ -57,21 +59,36 @@ const Cancel = ({ open, edit, cancel }) => {
    * Returns:
    * @returns {JSX.Element|null} - The rendered modal component or null if `open` is false.
    */
+
+  const { isDarkMode } = useContext(ThemeContext);
+
   if (!open) {
     return null;
   }
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className={`fixed inset-0 flex items-center justify-center z-50 ${
+        isDarkMode
+          ? "bg-black bg-opacity-50" // Dark mode: darker backdrop
+          : "bg-gray-800 bg-opacity-50" // Light mode: lighter backdrop
+      }`}
       aria-label="Cancel Modal"
     >
-      <div className="bg-white rounded-lg shadow-lg w-96 p-6">
-        <BsQuestionCircle className="text-3xl mb-4 mx-auto text-red-600" />
-        <h2 className="text-xl font-semibold mb-4 text-center text-gray-800">
+      <div
+        className={`rounded-lg shadow-lg w-96 p-6 ${
+          isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
+        }`}
+      >
+        <BsQuestionCircle className="text-3xl mb-4 mx-auto text-red-500" />
+        <h2 className="text-xl font-semibold mb-4 text-center ">
           Are you sure you want to discard changes?
         </h2>
-        <p className="text-sm text-gray-500 text-center mb-6">
+        <p
+          className={`text-sm text-center mb-6 ${
+            isDarkMode ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
           This action cannot be undone.
         </p>
         <div className="flex justify-between">

@@ -35,6 +35,8 @@
  */
 
 import React from "react";
+import { useContext } from "react";
+import { ThemeContext } from "../../ThemeContext";
 
 const ConfirmDelete = ({ isOpen, onClose, onConfirm }) => {
   /**
@@ -56,20 +58,33 @@ const ConfirmDelete = ({ isOpen, onClose, onConfirm }) => {
    * @returns {JSX.Element|null} - The rendered modal component or null if `isOpen`
    *                              is false.
    */
+  const { isDarkMode } = useContext(ThemeContext);
+
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center 
-    justify-center z-50"
+      className={`fixed inset-0 flex items-center justify-center z-50 ${
+        isDarkMode
+          ? "bg-black bg-opacity-50" // Dark mode: darker backdrop
+          : "bg-gray-800 bg-opacity-50" // Light mode: lighter backdrop
+      }`}
     >
-      <div className="bg-white rounded-lg p-6 w-80 text-center">
+      <div
+        className={`rounded-lg p-6 w-80 text-center ${
+          isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
+        }`}
+      >
         <h2 className="text-lg font-bold mb-4">Confirm Delete</h2>
         <p>Are you sure you want to delete this court case?</p>
         <div className="mt-6 flex justify-between">
           <button
             onClick={onClose}
-            className="bg-gray-300 rounded px-4 py-2 font-bold hover:bg-gray-400"
+            className={`rounded px-4 py-2 font-bold ${
+              isDarkMode
+                ? "bg-gray-500 text-white hover:bg-gray-500" // Dark mode styles
+                : "bg-gray-300 text-black hover:bg-gray-400" // Light mode styles
+            }`}
           >
             Cancel
           </button>
