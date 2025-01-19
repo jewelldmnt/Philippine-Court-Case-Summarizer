@@ -396,7 +396,8 @@ const Summarizer = () => {
             <div
               className={`${
                 isDarkMode ? "bg-darkSecondary" : "bg-customRbox"
-              } font-sans text-sm rounded-xl py-0 sm:h-[60vh] md:h-[70vh] lg:h-[60vh] xl:h-[73vh] overflow-y-auto custom-scrollbar`}
+              } font-sans text-sm rounded-xl py-0 h-[73vh] overflow-y-auto custom-scrollbar`}
+              style={{ height: "calc(100vh - 200px)" }}
             >
               <ol className="list-none">
                 {existingFiles.length > 0 ? (
@@ -469,7 +470,7 @@ const Summarizer = () => {
             </div>
           </div>
 
-          <div className="w-full sm:h-[60vh] md:h-[70vh] lg:h-[60vh] xl:h-[73vh]">
+          <div className="w-full h-[73vh]">
             <p className="font-bold font-sans text-[15px] ml-4 mb-4 flex items-center">
               ORIGINAL COURT CASE
               {editCase ? (
@@ -482,9 +483,9 @@ const Summarizer = () => {
                 </>
               )}
             </p>
-            <div className="relative">
+            <div className="relative" style={{ height: "calc(100vh - 200px)" }}>
               <textarea
-                className={`bg-customRbox rounded-xl px-4 py-6 sm:h-[60vh] md:h-[70vh] lg:h-[60vh] xl:h-[73vh] w-full overflow-y-auto custom-scrollbar flex items-center justify-center ${
+                className={`bg-customRbox rounded-xl px-4 py-6 h-[450px] w-full overflow-y-auto custom-scrollbar flex items-center justify-center ${
                   isDarkMode
                     ? "bg-darkSecondary text-gray-300"
                     : "bg-customRbox text-black"
@@ -498,6 +499,7 @@ const Summarizer = () => {
                   fontFamily: "'Roboto', sans-serif",
                   whiteSpace: "pre-line", // Keeps \n formatting
                   lineHeight: "1.5rem", // Increases line height for multiline
+                  height: "calc(100vh - 200px)",
                 }}
               />
               {!courtCaseValue && (
@@ -588,14 +590,18 @@ const Summarizer = () => {
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               SUMMARIZED COURT CASE
             </p>
-            <div className="relative sm:h-[60vh] md:h-[70vh] lg:h-[60vh] xl:h-[73vh]">
+            <div
+              className="relative h-[73vh]"
+              style={{ height: "calc(100vh - 200px)" }}
+            >
               {isSummaryLoading ? (
                 <div
-                  className={`rounded-xl px-4 py-6 pb-10 sm:h-[60vh] md:h-[70vh] lg:h-[60vh] xl:h-[73vh] w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center ${
+                  className={`rounded-xl px-4 py-6 pb-10 h-[73vh] w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center ${
                     isDarkMode
                       ? "bg-darkSecondary text-white"
                       : "bg-customRbox text-black"
                   }`}
+                  style={{ height: "calc(100vh - 200px)" }}
                 >
                   <p
                     className={`loading-text fade-text ${
@@ -612,7 +618,7 @@ const Summarizer = () => {
                     isDarkMode
                       ? "bg-darkSecondary text-gray-300"
                       : "bg-customRbox text-black"
-                  } rounded-xl px-4 py-6 pb-10 sm:h-[60vh] md:h-[70vh] lg:h-[60vh] xl:h-[73vh] w-full overflow-y-auto custom-scrollbar flex ${
+                  } rounded-xl px-4 py-6 pb-10 h-[73vh] w-full overflow-y-auto custom-scrollbar flex ${
                     summarizedCase === "No Summary yet"
                       ? "justify-center items-center text-center"
                       : "flex-col justify-start items-start"
@@ -625,6 +631,7 @@ const Summarizer = () => {
                     lineHeight: "1.5rem",
                     overflowY: "auto", // Enables scrolling on the outer div
                     boxSizing: "border-box", // Includes padding in height calculations
+                    height: "calc(100vh - 200px)",
                   }}
                 >
                   <div
