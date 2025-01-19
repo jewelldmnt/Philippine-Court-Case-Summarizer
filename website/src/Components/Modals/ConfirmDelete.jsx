@@ -72,7 +72,7 @@ const ConfirmDelete = ({ isOpen, onClose, onConfirm }) => {
     >
       <div
         className={`rounded-lg p-6 w-80 text-center ${
-          isDarkMode ? "bg-darkSecondary text-white" : "bg-white text-black"
+          isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
         }`}
       >
         <h2 className="text-lg font-bold mb-4">Confirm Delete</h2>
@@ -82,7 +82,7 @@ const ConfirmDelete = ({ isOpen, onClose, onConfirm }) => {
             onClick={onClose}
             className={`rounded px-4 py-2 font-bold ${
               isDarkMode
-                ? "bg-gray-600 text-white hover:bg-gray-500" // Dark mode styles
+                ? "bg-gray-500 text-white hover:bg-gray-500" // Dark mode styles
                 : "bg-gray-300 text-black hover:bg-gray-400" // Light mode styles
             }`}
           >

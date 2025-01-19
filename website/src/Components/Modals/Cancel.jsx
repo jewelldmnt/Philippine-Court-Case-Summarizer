@@ -77,7 +77,7 @@ const Cancel = ({ open, edit, cancel }) => {
     >
       <div
         className={`rounded-lg shadow-lg w-96 p-6 ${
-          isDarkMode ? "bg-darkSecondary text-white" : "bg-white text-black"
+          isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
         }`}
       >
         <BsQuestionCircle className="text-3xl mb-4 mx-auto text-red-500" />

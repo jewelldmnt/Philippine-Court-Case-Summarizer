@@ -72,7 +72,7 @@ const AddCaseModal = ({
     >
       <div
         className={`rounded-lg shadow-lg w-96 p-6 ${
-          isDarkMode ? "bg-gray-800 text-white" : "bg-white text-black"
+          isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
         }`}
       >
         <h2 className="text-xl font-semibold mb-6 text-center">
@@ -84,7 +84,7 @@ const AddCaseModal = ({
             isDragOver
               ? "border-blue-500 bg-blue-50"
               : isDarkMode
-              ? "border-gray-600 bg-gray-800" // Dark mode styles
+              ? "border-gray-600 bg-gray-700" // Dark mode styles
               : "border-gray-300 bg-white" // Light mode styles
           } border-dashed rounded-lg p-4 text-center transition`}
           onDragOver={handleDragOver}
@@ -107,7 +107,9 @@ const AddCaseModal = ({
             }`}
           >
             <FaUpload className="text-3xl mb-2" />
-            <span className="text-sm">
+            <span
+              className={`text-sm ${fileName ? "text-white" : "text-gray-400"}`}
+            >
               {fileName || "Click to upload or drag and drop a file here"}
             </span>
           </label>
@@ -138,9 +140,9 @@ const AddCaseModal = ({
         <div className="mt-4">
           <input
             type="text"
-            className={`w-full border rounded p-2 text-sm ${
+            className={`w-full border rounded p-2 text-sm placeholder-gray-400 ${
               isDarkMode
-                ? "bg-gray-800 text-white border-gray-600" // Dark mode styles
+                ? "bg-gray-700 text-white border-gray-600" // Dark mode styles
                 : "bg-white text-black border-gray-300" // Light mode styles
             }`}
             placeholder="Enter a link to a case document"
