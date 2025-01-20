@@ -133,7 +133,7 @@ const Summarizer = () => {
         title: file.file_name,
         facts: file.file_facts || "No facts available",
         issues: file.file_issues || "No issues available",
-        rulings: file.file_rulings || "No rulings available"
+        rulings: file.file_rulings || "No rulings available",
       });
     } else {
       setSummarizedCase("No Summary yet");
@@ -446,8 +446,10 @@ const Summarizer = () => {
             </div>
             <div className="mt-4 flex justify-between px-2">
               <button
-                className={`flex items-center ${
-                  isSummaryLoading ? "opacity-50 cursor-not-allowed" : ""
+                className={`flex items-center px-3 py-2 rounded-md ${
+                  isSummaryLoading
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
                 }`}
                 disabled={isSummaryLoading}
                 onClick={() => setIsModalOpen(true)}
@@ -457,10 +459,10 @@ const Summarizer = () => {
               </button>
               <button
                 onClick={() => setShowConfirmation(true)}
-                className={`flex items-center ${
+                className={`flex items-center px-3 py-2 rounded-md ${
                   !activeFile || isSummaryLoading
                     ? "opacity-50 cursor-not-allowed"
-                    : ""
+                    : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
                 }`}
                 disabled={!activeFile || isSummaryLoading}
               >
@@ -519,11 +521,11 @@ const Summarizer = () => {
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <button
-                  className={`btn flex items-center h-8 bg-summarize
+                  className={`btn flex items-center h-8 bg-summarize 
                   justify-center rounded-xl shadow-xl ${
                     !activeFile || isSummaryLoading
                       ? "opacity-50 cursor-not-allowed"
-                      : ""
+                      : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
                   }`}
                   onClick={() => {
                     handleSummarizedCase();
@@ -538,7 +540,11 @@ const Summarizer = () => {
             {editCase ? (
               <div className="mt-4 flex justify-between px-2">
                 <button
-                  className="flex items-center"
+                  className={`flex items-center px-3 py-2 rounded-md ${
+                    isEditLoading || !activeFile || isSummaryLoading
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
+                  }`}
                   onClick={() => setIsSaveModalOpen(true)}
                   disabled={isEditLoading || !activeFile || isSummaryLoading}
                 >
@@ -548,7 +554,11 @@ const Summarizer = () => {
                   </p>
                 </button>
                 <button
-                  className="flex items-center"
+                  className={`flex items-center px-3 py-2 rounded-md ${
+                    isEditLoading || !activeFile || isSummaryLoading
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
+                  }`}
                   onClick={() => setCancelEdit(true)}
                 >
                   <FaTrash className="size-6 text-icon-20" />
@@ -562,10 +572,10 @@ const Summarizer = () => {
                 <button
                   onClick={() => setEditCase(true)}
                   disabled={!activeFile || isSummaryLoading} // Disable the button while summarizing
-                  className={`flex items-center ${
+                  className={`flex items-center px-3 py-2 rounded-md ${
                     !activeFile || isSummaryLoading
                       ? "opacity-50 cursor-not-allowed"
-                      : ""
+                      : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
                   }`}
                 >
                   <BiSolidEditAlt className="text-icon-10 size-6" />
@@ -676,10 +686,10 @@ const Summarizer = () => {
 
             <div className="mt-4 flex justify-center px-2">
               <button
-                className={`flex items-center ${
+                className={`flex items-center px-3 py-2 rounded-md ${
                   summarizedCase === "No Summary yet" || isSummaryLoading
                     ? "opacity-50 cursor-not-allowed"
-                    : ""
+                    : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
                 }`}
                 disabled={
                   summarizedCase === "No Summary yet" || isSummaryLoading

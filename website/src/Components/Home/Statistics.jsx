@@ -236,14 +236,17 @@ const Statistics = () => {
           </div>
         </div>
 
-        <div className="grid grid-rows-[auto,1fr,1fr] gap-y-4">
+        <div className="grid grid-rows-[auto,1fr] gap-y-4">
           <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
             STATISTICS OF THE ORIGINAL COURT CASE
           </p>
 
           <div className="flex flex-col justify-between h-[73vh]">
             {/* Unigram Statistics Table */}
-            <div className="bg-customRbox rounded-xl py-6 w-full h-[35vh] overflow-y-auto custom-scrollbar">
+            <div
+              className="bg-customRbox rounded-xl pb-10 py-6 w-full h-[35vh] overflow-y-auto custom-scrollbar"
+              style={{ overflow: wordStatsList.length < 1 ? "hidden" : "" }}
+            >
               <table className="table-fixed w-full">
                 <thead>
                   <tr>
@@ -298,6 +301,7 @@ const Statistics = () => {
                 color: "#333",
                 whiteSpace: "pre-line", // Keeps \n formatting
                 lineHeight: "1.5rem", // Increases line height for multiline
+                overflow: wordStatsList.length < 1 ? "hidden" : "",
               }}
             >
               <table className="table-fixed w-full">
