@@ -152,7 +152,7 @@ const AddCaseModal = ({
           />
 
           <button
-            className={`mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition ${
+            className={`flex items-center justify-center mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             } ${isDarkMode ? "bg-blue-600 hover:bg-blue-800" : ""}`}
             onClick={handleFileChangeLink}

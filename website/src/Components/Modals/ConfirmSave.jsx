@@ -1,4 +1,7 @@
 import React from "react";
+import { useContext } from "react";
+import { ThemeContext } from "../../ThemeContext";
+import { BsQuestionCircle } from "react-icons/bs";
 
 const ConfirmSave = ({ isOpen, onClose, onSave }) => {
   /**
@@ -20,17 +23,39 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
    * @returns {JSX.Element|null} - The rendered modal component or null if `isOpen`
    *                              is false.
    */
+
+  const { isDarkMode } = useContext(ThemeContext);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-80 text-center">
-        <h2 className="text-lg font-bold mb-4">Confirm Save</h2>
-        <p>Are you sure you want to save the changes to this court case?</p>
-        <div className="mt-6 flex justify-between">
+    <div
+      className={`fixed inset-0 flex items-center justify-center z-50 ${
+        isDarkMode
+          ? "bg-black bg-opacity-50" // Dark mode: darker backdrop
+          : "bg-gray-800 bg-opacity-50" // Light mode: lighter backdrop
+      }`}
+    >
+      <div
+        className={`rounded-lg shadow-lg w-96 p-6 ${
+          isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
+        }`}
+      >
+        <BsQuestionCircle className="text-3xl mb-4 mx-auto text-blue-500" />
+        <h2 className="text-xl font-semibold mb-4 text-center ">
+          Are you sure you want to save the changes to this court case?
+        </h2>
+        <p
+          className={`text-sm text-center mb-6 ${
+            isDarkMode ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
+          This action cannot be undone.
+        </p>
+        <div className="mt-6 flex justify-center space-x-40">
           <button
             onClick={onClose}
-            className="bg-gray-300 rounded px-4 py-2 font-bold hover:bg-gray-400"
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
           >
             Cancel
           </button>
@@ -39,9 +64,9 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
               onSave();
               onClose();
             }}
-            className="bg-green-500 text-white rounded px-4 py-2 font-bold hover:bg-green-600"
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
           >
-            Confirm Save
+            Save
           </button>
         </div>
       </div>

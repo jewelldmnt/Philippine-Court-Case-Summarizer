@@ -37,6 +37,7 @@
 import React from "react";
 import { useContext } from "react";
 import { ThemeContext } from "../../ThemeContext";
+import { BsQuestionCircle } from "react-icons/bs";
 
 const ConfirmDelete = ({ isOpen, onClose, onConfirm }) => {
   /**
@@ -71,20 +72,25 @@ const ConfirmDelete = ({ isOpen, onClose, onConfirm }) => {
       }`}
     >
       <div
-        className={`rounded-lg p-6 w-80 text-center ${
+        className={`rounded-lg shadow-lg w-96 p-6 ${
           isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
         }`}
       >
-        <h2 className="text-lg font-bold mb-4">Confirm Delete</h2>
-        <p>Are you sure you want to delete this court case?</p>
-        <div className="mt-6 flex justify-between">
+        <BsQuestionCircle className="text-3xl mb-4 mx-auto text-red-500" />
+        <h2 className="text-xl font-semibold mb-4 text-center ">
+          Are you sure you want to delete this court case?
+        </h2>
+        <p
+          className={`text-sm text-center mb-6 ${
+            isDarkMode ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
+          This action cannot be undone.
+        </p>
+        <div className="mt-6 flex justify-center space-x-40">
           <button
             onClick={onClose}
-            className={`rounded px-4 py-2 font-bold ${
-              isDarkMode
-                ? "bg-gray-500 text-white hover:bg-gray-500" // Dark mode styles
-                : "bg-gray-300 text-black hover:bg-gray-400" // Light mode styles
-            }`}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
           >
             Cancel
           </button>
@@ -93,8 +99,7 @@ const ConfirmDelete = ({ isOpen, onClose, onConfirm }) => {
               onConfirm();
               onClose();
             }}
-            className="bg-red-500 text-white rounded px-4 py-2 font-bold 
-            hover:bg-red-600"
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
           >
             Confirm
           </button>
