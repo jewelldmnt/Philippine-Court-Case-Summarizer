@@ -52,10 +52,11 @@
 
 import NavBar from "../Navigation/NavBar";
 import WordCloudPage from "./WordCloudPage";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import "../../assets/wordcloud.css";
 import { unigramStopwords, bigramStopwords } from "../Constants/stopwords";
+import { ThemeContext } from "../../ThemeContext";
 
 const Statistics = () => {
   /**
@@ -82,6 +83,7 @@ const Statistics = () => {
   const [wordStatsList, setWordStatsList] = useState([]);
   const [bigramStatsList, setBigramStatsList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { isDarkMode } = useContext(ThemeContext);
 
   const handleFileClick = (file) => {
     /**
@@ -199,24 +201,40 @@ const Statistics = () => {
   }, []);
 
   return (
-    <div className="bg-customGray text-black h-screen">
+    <div
+      className={`h-screen ${
+        isDarkMode ? "bg-darkPrimary text-white" : "bg-customGray text-black"
+      }`}
+    >
       <NavBar activePage="Statistics" />
       <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-[80vh] m-8">
         <div className="h-[80vh] overflow-y-auto">
           <p className="font-bold font-sans text-[15px] ml-4 mb-4">
             LIST OF COURT CASES
           </p>
-          <div className="font-sans text-sm bg-customRbox rounded-xl py-0 h-[73vh] overflow-y-auto custom-scrollbar">
+          <div
+            className={`font-sans text-sm rounded-xl py-0 h-[73vh] overflow-y-auto custom-scrollbar ${
+              isDarkMode
+                ? "bg-darkSecondary text-white"
+                : "bg-customRbox text-black"
+            }`}
+          >
             <ol className="list-none">
               {existingFiles.length > 0 ? (
                 existingFiles.map((file, index) => (
                   <li
                     key={index}
-                    className={`hover:bg-customHoverC w-full px-4 py-2 cursor-${
+                    className={`w-full px-4 py-2 cursor-${
                       loading ? "not-allowed" : "pointer"
-                    } ${
-                      activeFile?.id === file.id ? "bg-customHoverC" : ""
-                    } flex items-center border border-gray-300`}
+                    } flex items-center border-b-[0.3px] ${
+                      activeFile?.id === file.id
+                        ? isDarkMode
+                          ? "bg-darkTertiary text-white border-b-gray-600" // Active file in dark mode
+                          : "bg-customHoverC text-black border-b-gray-300" // Active file in light mode
+                        : isDarkMode
+                        ? "bg-darkSecondary text-white hover:bg-darkTertiary border-b-gray-600" // Default dark mode styles
+                        : "bg-white text-black hover:bg-customHoverC border-b-gray-300" // Default light mode styles
+                    }`}
                     onClick={!loading ? () => handleFileClick(file) : null}
                   >
                     <div className="flex items-center">
@@ -244,7 +262,11 @@ const Statistics = () => {
           <div className="flex flex-col justify-between h-[73vh]">
             {/* Unigram Statistics Table */}
             <div
-              className="bg-customRbox rounded-xl pb-10 py-6 w-full h-[35vh] overflow-y-auto custom-scrollbar"
+              className={`rounded-xl py-6 pb-10 w-full h-[35vh] overflow-y-auto custom-scrollbar ${
+                isDarkMode
+                  ? "bg-darkSecondary text-white"
+                  : "bg-customRbox text-black"
+              }`}
               style={{ overflow: wordStatsList.length < 1 ? "hidden" : "" }}
             >
               <table className="table-fixed w-full">
@@ -293,12 +315,15 @@ const Statistics = () => {
 
             {/* Bigram Statistics Table */}
             <div
-              className="bg-customRbox rounded-xl py-6 pb-10 w-full h-[35vh] overflow-y-auto custom-scrollbar"
+              className={`rounded-xl py-6 pb-10 w-full h-[35vh] overflow-y-auto custom-scrollbar ${
+                isDarkMode
+                  ? "bg-darkSecondary text-white"
+                  : "bg-customRbox text-black"
+              }`}
               style={{
                 paddingBottom: "2.5rem",
                 fontSize: "1rem",
                 fontFamily: "'Roboto', sans-serif",
-                color: "#333",
                 whiteSpace: "pre-line", // Keeps \n formatting
                 lineHeight: "1.5rem", // Increases line height for multiline
                 overflow: wordStatsList.length < 1 ? "hidden" : "",
@@ -355,7 +380,13 @@ const Statistics = () => {
             WORD CLOUD OF THE ORIGINAL COURT CASE
           </p>
           {/* Word Cloud */}
-          <div className="bg-customRbox rounded-xl w-full h-[73vh]  overflow-y-auto">
+          <div
+            className={`rounded-xl w-full h-[73vh] overflow-y-auto ${
+              isDarkMode
+                ? "bg-darkSecondary text-white"
+                : "bg-customRbox text-black"
+            }`}
+          >
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <p>Loading...</p>

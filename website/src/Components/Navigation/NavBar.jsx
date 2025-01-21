@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { NavLink } from "react-router-dom";
-import { FaQuestionCircle } from "react-icons/fa";
+import { FaSun, FaMoon, FaQuestionCircle } from "react-icons/fa";
+import { ThemeContext } from "../../ThemeContext"; // Import ThemeContext, not ThemeProvider
 
 const NavBar = ({ activePage }) => {
+  const { isDarkMode, toggleTheme } = useContext(ThemeContext); // Use the correct context
+
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
 
   const toggleModal = () => {
@@ -28,7 +31,7 @@ const NavBar = ({ activePage }) => {
               <b>Edit or delete</b> a file using the respective options.
             </li>
             <li>
-              <b>Download</b> the summarized case as a `.txt` file. by pressing
+              <b>Download</b> the summarized case as a `.txt` file by pressing
               the <b>"Download" button</b>
             </li>
           </ol>
@@ -63,72 +66,126 @@ const NavBar = ({ activePage }) => {
   };
 
   return (
-    <>
-      <div className="bg-customLight px-4 pt-6 border-b-[0.1px] border-[#3F3F3F] w-full">
-        <div className="mb-3 mx-2 flex justify-between">
+    <div
+      className={`${
+        isDarkMode ? "bg-darkPrimary text-white" : "bg-white text-black"
+      } transition duration-300`}
+    >
+      <div
+        className={`${
+          isDarkMode ? "bg-darkPrimary border-gray-700" : "bg-customLight"
+        } px-4 pt-6 border-b-[0.1px] w-full`}
+      >
+        <div className="mb-3 mx-2 flex justify-between items-center">
           <div className="flex items-center gap-[8px]">
             <img
               alt="logo"
               className="w-[17px]"
               src="/images/logo/ph_flag.png"
             />
-            <p className="text-white font-bold font-sans text-[16px]">
-              <span className="text-primary">PHILIPPINE </span>
-              <span className="text-tertiary">COURT CASE </span>
-              <span className="text-secondary">SUMMARIZER</span>
+            <p className="font-bold font-sans text-[16px]">
+              <span
+                className={`${
+                  isDarkMode ? "text-darkAccent1" : "text-primary"
+                }`}
+              >
+                PHILIPPINE{" "}
+              </span>
+              <span
+                className={`${isDarkMode ? "text-white" : "text-tertiary"}`}
+              >
+                COURT CASE{" "}
+              </span>
+              <span
+                className={`${
+                  isDarkMode ? "text-darkAccent2" : "text-secondary"
+                }`}
+              >
+                SUMMARIZER
+              </span>
             </p>
           </div>
-          <div className="flex text-white gap-10 font-bold text-[16px] font-sans mr-21">
-            {/* Summarizer Link */}
-            <div className="relative group">
-              <NavLink to="/">
-                <p
-                  className={`cursor-pointer transition duration-300 ${
-                    activePage === "Summarizer" ? "text-active" : "text-active1"
-                  }`}
-                >
-                  Summarizer
-                </p>
-              </NavLink>
-              <div className="absolute left-0 -bottom-1 w-full h-1 bg-active opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="flex items-center gap-10 font-bold text-[16px] font-sans">
+            <NavLink to="/" className="relative group">
+              <p
+                className={`cursor-pointer transition duration-300 ${
+                  activePage === "Summarizer"
+                    ? isDarkMode
+                      ? "text-darkAccent1"
+                      : "text-primary"
+                    : isDarkMode
+                    ? "text-white"
+                    : "text-black"
+                }`}
+              >
+                Summarizer
+              </p>
+            </NavLink>
+            <NavLink to="/Statistics" className="relative group">
+              <p
+                className={`cursor-pointer transition duration-300 ${
+                  activePage === "Statistics"
+                    ? isDarkMode
+                      ? "text-darkAccent1"
+                      : "text-primary"
+                    : isDarkMode
+                    ? "text-white"
+                    : "text-black"
+                }`}
+              >
+                Statistics
+              </p>
+            </NavLink>
+            {/* Toggle Switch */}
+            <div
+              onClick={toggleTheme}
+              className={`relative w-14 h-8 flex items-center rounded-full cursor-pointer p-1 transition-all duration-300 ${
+                isDarkMode ? "bg-darkTertiary" : "bg-gray-300"
+              }`}
+            >
+              <div
+                className={`absolute w-6 h-6  rounded-full shadow-md transform transition-transform ${
+                  isDarkMode
+                    ? "translate-x-6 bg-darkSecondary"
+                    : "translate-x-0 bg-white"
+                }`}
+              ></div>
+              <FaSun
+                className={`absolute left-1.5 transition-opacity ${
+                  isDarkMode ? "opacity-0" : "opacity-100"
+                }`}
+                size={16}
+                color="#FFD700"
+              />
+              <FaMoon
+                className={`absolute right-1.5 transition-opacity ${
+                  isDarkMode ? "opacity-100 text-yellow-400" : "opacity-0"
+                }`}
+                size={16}
+              />
             </div>
-
-            {/* Statistics Link */}
-            <div className="relative group">
-              <NavLink to="/Statistics">
-                <p
-                  className={`cursor-pointer transition duration-300 ${
-                    activePage === "Statistics" ? "text-active" : "text-active1"
-                  }`}
-                >
-                  Statistics
-                </p>
-              </NavLink>
-              <div className="absolute left-0 -bottom-1 w-full h-1 bg-active1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
-
-            {/* Help Icon (Trigger for Modal) */}
             <div
               className="relative group cursor-pointer"
               onClick={toggleModal}
               title="Help"
             >
-              <p className="text-black font-bold">
-                <FaQuestionCircle size={24} />
-              </p>
-              <div className="absolute left-0 -bottom-1 w-full h-1 bg-active opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <FaQuestionCircle size={24} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal (will show when isModalOpen is true) */}
+      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
+          <div
+            className={`${
+              isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
+            } rounded-lg p-6 w-96 shadow-lg`}
+          >
             {getModalContent()}
             <button
-              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600"
+              className="mt-4 bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 rounded shadow"
               onClick={toggleModal}
             >
               Close
@@ -136,7 +193,7 @@ const NavBar = ({ activePage }) => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

@@ -38,7 +38,7 @@ import ConfirmDelete from "../Modals/ConfirmDelete";
 import { PiArrowLineDownBold } from "react-icons/pi";
 import { FaTrash } from "react-icons/fa6";
 import { ImCloudDownload } from "react-icons/im";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { BiSolidEditAlt } from "react-icons/bi";
 import { FaCirclePlus, FaCircleMinus } from "react-icons/fa6";
@@ -47,6 +47,7 @@ import AddCaseModal from "../Modals/AddCaseFile";
 import "../../assets/spinner.css";
 import CircularProgress from "@mui/material/CircularProgress";
 import SavingModal from "../Modals/SavingModal";
+import { ThemeContext } from "../../ThemeContext";
 import ConfirmSave from "../Modals/ConfirmSave";
 
 const Summarizer = () => {
@@ -69,6 +70,7 @@ const Summarizer = () => {
   const [isEditLoading, setIsEditLoading] = useState(false); // for edit case loading state
   const [showAddedPopup, setShowAddedPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const { isDarkMode } = useContext(ThemeContext);
 
   useEffect(() => {
     axios
@@ -400,15 +402,22 @@ const Summarizer = () => {
         </div>
       )}
 
-      <div className="bg-customGray text-black h-screen">
+      <div
+        className={`${
+          isDarkMode ? "bg-darkPrimary text-white" : "bg-customGray text-black"
+        } h-screen`}
+      >
+        {" "}
         <NavBar activePage="Summarizer" />
-        <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-fit m-8">
-          <div>
+        <div className="grid grid-cols-[1fr,2fr,2fr] gap-x-10 h-[80vh] m-8">
+          <div className="h-[80vh]">
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               LIST OF COURT CASES
             </p>
             <div
-              className="font-sans text-sm bg-customRbox rounded-xl py-0 h-[73vh] overflow-y-auto custom-scrollbar"
+              className={`${
+                isDarkMode ? "bg-darkSecondary" : "bg-customRbox"
+              } font-sans text-sm rounded-xl py-0 h-[73vh] overflow-y-auto custom-scrollbar`}
               style={{ height: "calc(100vh - 200px)" }}
             >
               <ol className="list-none">
@@ -416,11 +425,21 @@ const Summarizer = () => {
                   existingFiles.map((file, index) => (
                     <li
                       key={index}
-                      className={`hover:bg-customHoverC w-full px-4 py-2 cursor-${
+                      className={`w-full px-4 py-2 cursor-${
                         isSummaryLoading || editCase ? "not-allowed" : "pointer"
                       } ${
-                        activeFile?.id === file.id ? "bg-customHoverC" : ""
-                      } flex items-center border border-gray-300`}
+                        activeFile?.id === file.id
+                          ? `${
+                              isDarkMode ? "bg-darkTertiary" : "bg-customHoverC"
+                            }` // Active file background in dark or light mode
+                          : ""
+                      } flex items-center border-b-[0.3px] ${
+                        isDarkMode ? "border-gray-600" : "border-gray-300" // No border in dark mode
+                      } ${
+                        isDarkMode
+                          ? "hover:bg-darkTertiary" // Dark mode hover effect
+                          : "hover:bg-customHoverC" // Light mode hover effect
+                      }`}
                       onClick={
                         !isSummaryLoading && !editCase
                           ? () => handleFileClick(file)
@@ -474,7 +493,7 @@ const Summarizer = () => {
             </div>
           </div>
 
-          <div className="w-full">
+          <div className="w-full h-[73vh]">
             <p className="font-bold font-sans text-[15px] ml-4 mb-4 flex items-center">
               ORIGINAL COURT CASE
               {editCase ? (
@@ -490,39 +509,50 @@ const Summarizer = () => {
             <div className="relative" style={{ height: "calc(100vh - 200px)" }}>
               <textarea
                 className={`bg-customRbox rounded-xl px-4 py-6 h-[450px] w-full overflow-y-auto custom-scrollbar flex items-center justify-center ${
-                  courtCaseValue ? "" : "text-center"
-                }`}
+                  isDarkMode
+                    ? "bg-darkSecondary text-gray-300"
+                    : "bg-customRbox text-black"
+                } ${courtCaseValue ? "" : "text-center"}`}
                 value={courtCaseValue ? courtCaseValue : ""}
                 onChange={(e) => setCourtCaseValue(e.target.value)}
                 readOnly={!editCase}
                 style={{
                   paddingBottom: "2.5rem",
-                  height: "calc(100vh - 200px)",
                   fontSize: "1rem",
                   fontFamily: "'Roboto', sans-serif",
-                  color: "#333",
                   whiteSpace: "pre-line", // Keeps \n formatting
                   lineHeight: "1.5rem", // Increases line height for multiline
+                  height: "calc(100vh - 200px)",
                 }}
               />
               {!courtCaseValue && (
-                <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span
+                  className={`absolute inset-0 flex items-center justify-center pointer-events-none ${
+                    isDarkMode ? "text-gray-300" : "text-black"
+                  }`}
+                >
+                  {" "}
                   No court case is selected yet
                 </span>
               )}
 
               <div
-                className="gap-2 flex items-center font-sans font-bold text-xs 
-              absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl 
-              rounded-br-xl p-4 z-10"
+                className={`gap-2 flex items-center font-sans font-bold text-xs absolute left-0 right-0 bottom-0 h-10 p-4 z-10 ${
+                  isDarkMode
+                    ? "bg-darkTertiary text-white rounded-bl-xl rounded-br-xl"
+                    : "bg-wordCount text-black rounded-bl-xl rounded-br-xl"
+                }`}
               >
                 <p className="text-white">Word Count:</p>
                 <p className="text-customWC">
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <button
-                  className={`btn flex items-center h-8 bg-summarize 
-                  justify-center rounded-xl shadow-xl ${
+                  className={`btn flex items-center h-8 justify-center rounded-xl shadow-xl ${
+                    isDarkMode
+                      ? "bg-darkSummarize text-white"
+                      : "bg-summarize text-black"
+                  } ${
                     !activeFile || isSummaryLoading
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
@@ -591,18 +621,23 @@ const Summarizer = () => {
             <p className="font-bold font-sans text-[15px] ml-4 mb-4">
               SUMMARIZED COURT CASE
             </p>
-            <div className="relative" style={{ height: "calc(100vh - 200px)" }}>
+            <div
+              className="relative h-[73vh]"
+              style={{ height: "calc(100vh - 200px)" }}
+            >
               {isSummaryLoading ? (
                 <div
-                  className="bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px] 
-                w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center"
+                  className={`rounded-xl px-4 py-6 pb-10 h-[73vh] w-full overflow-y-auto custom-scrollbar flex flex-col justify-center items-center ${
+                    isDarkMode
+                      ? "bg-darkSecondary text-white"
+                      : "bg-customRbox text-black"
+                  }`}
                   style={{ height: "calc(100vh - 200px)" }}
                 >
                   <p
                     className={`loading-text fade-text ${
                       isFadingOut ? "hidden" : ""
                     }`}
-                    style={{ color: "black" }}
                   >
                     {loadingText}
                   </p>
@@ -610,22 +645,24 @@ const Summarizer = () => {
                 </div>
               ) : (
                 <div
-                  className={`bg-customRbox rounded-xl px-4 py-6 pb-10 h-[450px]
-                    w-full overflow-y-auto custom-scrollbar flex ${
-                      summarizedCase === "No Summary yet"
-                        ? "justify-center items-center text-center"
-                        : "flex-col justify-start items-start"
-                    }`}
+                  className={`${
+                    isDarkMode
+                      ? "bg-darkSecondary text-gray-300"
+                      : "bg-customRbox text-black"
+                  } rounded-xl px-4 py-6 pb-10 h-[73vh] w-full overflow-y-auto custom-scrollbar flex ${
+                    summarizedCase === "No Summary yet"
+                      ? "justify-center items-center text-center"
+                      : "flex-col justify-start items-start"
+                  }`}
                   style={{
                     paddingBottom: "2.5rem",
-                    height: "calc(100vh - 200px)", // Makes the outer container responsive to viewport height
                     fontSize: "1rem", // Slightly larger font for readability
                     fontFamily: "'Roboto', sans-serif", // Readable sans-serif font
-                    color: "#333",
                     whiteSpace: "pre-line", // Keeps \n formatting
                     lineHeight: "1.5rem",
                     overflowY: "auto", // Enables scrolling on the outer div
                     boxSizing: "border-box", // Includes padding in height calculations
+                    height: "calc(100vh - 200px)",
                   }}
                 >
                   <div
@@ -666,9 +703,11 @@ const Summarizer = () => {
               )}
 
               <div
-                className="gap-2 flex items-center font-sans font-bold text-xs 
-              absolute left-0 right-0 bottom-0 h-10 bg-wordCount rounded-bl-xl 
-              rounded-br-xl p-4 z-10"
+                className={`gap-2 flex items-center font-sans font-bold text-xs absolute left-0 right-0 bottom-0 h-10 rounded-bl-xl rounded-br-xl p-4 z-10 ${
+                  isDarkMode
+                    ? "bg-darkTertiary text-white"
+                    : "bg-wordCount text-black"
+                }`}
               >
                 <p className="text-white">Word Count:</p>
                 <p className="text-customWC">
