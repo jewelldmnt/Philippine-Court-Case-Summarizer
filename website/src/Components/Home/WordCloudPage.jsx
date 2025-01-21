@@ -33,34 +33,101 @@
  *    - `getFontSize`: Helper function that returns a size for each word based on
  *      the min-max frequency range.
  */
-import { useEffect, useState } from "react";
-const WordCloud = ({ file_id }) => {
+import "d3-transition";
+import { select } from "d3-selection";
+import React from "react";
+import WordCloud from "react-wordcloud";
+import { removeStopwords } from "stopword"; // Import stopword module
+import { useContext, useState } from "react";
+import { ThemeContext } from "../../ThemeContext";
+
+import "tippy.js/dist/tippy.css";
+import "tippy.js/animations/scale.css";
+
+const WordCloudPage = ({ file_text }) => {
   /**
-   * WordCloud component that renders a pre-generated word cloud image
-   * based on the type of word (unigram or bigram).
+   * WordCloud component that generates and renders a word cloud
+   * based on the frequencies of words in the given text,
+   * excluding stopwords, numbers, and words with fewer than 3 letters.
    *
-   * @param {string} file_id - The ID of the selected file.
+   * @param {string} file_text - The text content to process for the word cloud.
    *
    * @returns {JSX.Element}
    */
 
-  useEffect(() => {
-    if (file_id) {
-      console.log("File ID for WordCloud: ", file_id);
-      // Fetch or process data related to the word cloud using file_id
-      // Example: Fetch word cloud image or generate word cloud
-    }
-  }, [file_id]);
+  const getWordCounts = (str) => {
+    // Handle edge cases for invalid input
+    if (!str || typeof str !== "string") return [];
 
+    // Process text: convert to lowercase, remove punctuation, split into words
+    const words = str
+      .toLowerCase()
+      .replace(/[^\w\s]/g, "") // Remove punctuation
+      .split(/\s+/); // Split by spaces
+
+    // Remove stopwords, numbers, and words with fewer than 3 letters
+    const filteredWords = removeStopwords(words).filter(
+      (word) => isNaN(word) && word.length > 3 // Exclude numbers and short words
+    );
+
+    // Count word occurrences using reduce
+    const wordCounts = filteredWords.reduce((counts, word) => {
+      counts[word] = (counts[word] || 0) + 1;
+      return counts;
+    }, {});
+
+    // Map the word counts to the format required by WordCloud
+    return Object.entries(wordCounts).map(([word, count]) => ({
+      text: word, // Word
+      value: count, // Word frequency
+    }));
+  };
+
+  const words = getWordCounts(file_text);
+  const { isDarkMode } = useContext(ThemeContext);
+
+  const options = {
+    rotations: 2,
+    rotationAngles: [0, -90],
+    padding: 1,
+    fontSizes: [24, 84],
+    fontFamily: "Montserrat, sans-serif",
+    colors: isDarkMode
+      ? // ? ["#a7bac6", "#3a83b7", "#739bb7"] // Word colors for dark mode option 1
+        // ["#bfd5e3", "#3a83b7", "#f26881"] // Word colors for dark mode option 2
+        ["#bfd5e3", "#e09f95", "#d66636", "#e89572"]
+      : // : ["#09324d", "#3a83b7", "#f26881"], // Word colors for light mode 1
+        ["#222224", "#b37159", "#b04e2b", "#f09b67"], // Word colors for light mode option2
+  };
+
+  function getCallback(callback) {
+    return function (word, event) {
+      const isActive = callback !== "onWordMouseOut";
+      const element = event.target;
+      const text = select(element);
+      text
+        .on("click", () => {
+          if (isActive) {
+            window.open(`https://duckduckgo.com/?q=${word.text}`, "_blank");
+          }
+        })
+        .transition()
+        .attr("background", "white")
+        .attr("text-decoration", isActive ? "underline" : "none");
+    };
+  }
+  const callbacks = {
+    getWordTooltip: (word) =>
+      `The word "${word.text}" appears ${word.value} times.`,
+    onWordClick: getCallback("onWordClick"),
+    onWordMouseOut: getCallback("onWordMouseOut"),
+    onWordMouseOver: getCallback("onWordMouseOver"),
+  };
   return (
-    <div className="flex items-center justify-center w-full h-full bg-white">
-      <img
-        src={`public/images/${file_id}_wordcloud.jpg`} // Use dynamic image path
-        alt="Word Cloud"
-        className="max-w-full max-h-full object-contain"
-      />
+    <div className="h-full w-full flex justify-center items-center overflow-hidden p-5 m-0">
+      <WordCloud callbacks={callbacks} words={words} options={options} />
     </div>
   );
 };
 
-export default WordCloud;
+export default WordCloudPage;

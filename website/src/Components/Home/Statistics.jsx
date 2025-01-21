@@ -390,7 +390,7 @@ const Statistics = () => {
                 <p>Loading...</p>
               </div>
             ) : activeFile && activeFile.id ? (
-              <WordCloudPage file_id={activeFile.id} />
+              <WordCloudPage file_text={activeFile.file_text} />
             ) : (
               <div className="flex items-center justify-center h-full">
                 No File selected
