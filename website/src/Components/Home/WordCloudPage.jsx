@@ -55,7 +55,7 @@ const WordCloud = ({ file_id }) => {
   return (
     <div className="flex items-center justify-center w-full h-full bg-white">
       <img
-        src={`public/images/${file_id}_wordcloud.jpg`} // Use dynamic image path
+        src={`/images/${file_id}_wordcloud.jpg`} // Use dynamic image path
         alt="Word Cloud"
         className="max-w-full max-h-full object-contain"
       />
