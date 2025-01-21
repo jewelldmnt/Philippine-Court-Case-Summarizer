@@ -54,12 +54,12 @@ button {
   text-align: center; /* Center the text */
   border: none; /* Optional: Remove border */
   border-radius: 0.375rem; /* Optional: Add rounded corners */
-  background-color: #f0f0f0; /* Example background color */
+  /* background-color: #f0f0f0; Example background color */
   transition: all 0.3s ease; /* Add a hover effect */
 }
 
 button:hover {
-  background-color: #e0e0e0; /* Optional: Hover background color */
+  /* background-color: #e0e0e0; Optional: Hover background color */
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Add hover shadow */
 }
 
