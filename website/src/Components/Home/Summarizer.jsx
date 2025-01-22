@@ -180,6 +180,46 @@ const Summarizer = () => {
     }
   };
 
+  const handleRevertCase = async () => {
+    /**
+     * Saves the edited case by sending a PATCH request to the backend to update the file.
+     * Updates the local state to reflect the changes made to the case.
+     *
+     * @returns {void}
+     */
+    setIsEditLoading(true);
+    const newFile = {
+      file_name: activeFile.file_name,
+      file_text: activeFile.file_orig_text,
+      file_content: activeFile.file_content,
+    };
+
+    try {
+      // Update the file on the backend
+      await axios.patch(
+        `http://127.0.0.1:5000/update-file/${activeFile.id}`,
+        newFile
+      );
+
+      setCourtCaseValue(activeFile.file_orig_text);
+
+      // Update the existing files in the state
+      setExistingFiles((prev) =>
+        prev.map((file) =>
+          file.id === activeFile.id
+            ? { ...file, file_text: courtCaseValue }
+            : file
+        )
+      );
+      setEditCase(false); // Exit edit mode after saving
+      setCancelEdit(false); // Reset cancel state
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsEditLoading(false);
+    }
+  };
+
   const handleCancelEdit = () => {
     /**
      * Cancels the editing of a case. Resets the editing state and restores the original case text.
@@ -563,6 +603,26 @@ const Summarizer = () => {
                   disabled={!activeFile || isSummaryLoading}
                 >
                   <p className="font-bold font-sans text-xs m-3">Summarize</p>
+                  <input type="button" className="hidden " />
+                </button>
+                <button
+                  className={`btn flex items-center h-8 justify-center shadow-xl ${
+                    isDarkMode
+                      ? "bg-darkSummarize text-white"
+                      : "bg-summarize text-black"
+                  } ${
+                    !activeFile || isSummaryLoading
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
+                  }`}
+                  onClick={() => {
+                    handleRevertCase();
+                  }}
+                  disabled={!activeFile || isSummaryLoading}
+                >
+                  <p className="font-bold font-sans text-xs m-3">
+                    Revert to original
+                  </p>
                   <input type="button" className="hidden " />
                 </button>
               </div>

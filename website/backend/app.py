@@ -318,6 +318,7 @@ def send_file():
                 upload = File(
                     file_name=court_case_title,
                     file_text=court_case_content,
+                    file_orig=court_case_content,
                     file_content=file_content
                 )
                 db.session.add(upload)
@@ -420,6 +421,7 @@ def send_file_link():
                 upload = File(
                     file_name=txt_file_name,
                     file_text=court_case["case_text"],
+                    file_original=court_case["case_text"],
                     file_content=file_content,
                 )
                 print("uploaded")
