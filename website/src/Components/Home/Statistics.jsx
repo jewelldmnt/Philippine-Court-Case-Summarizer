@@ -254,7 +254,7 @@ const Statistics = () => {
           </div>
         </div>
 
-        <div className="grid grid-rows-[auto,1fr,1fr] gap-y-4">
+        <div className="grid grid-rows-[auto,1fr] gap-y-4">
           <p className="font-bold font-sans text-[15px] ml-4 flex items-center">
             STATISTICS OF THE ORIGINAL COURT CASE
           </p>

@@ -25,19 +25,19 @@ h3 {
 /* Hides scrollbar on larger screens */
 @media (min-width: 1024px) {
   .custom-scrollbar {
-    overflow-y: hidden; /* No scrollbar on large screens */
+    overflow-y: auto; /* No scrollbar on large screens */
   }
 }
 
 /* Show scrollbar on smaller screens if content exceeds container height */
 @media (max-height: 35vh) {
   .custom-scrollbar {
-    overflow-y: hidden; /* No scrollbar on small content */
+    overflow-y: auto; /* No scrollbar on small content */
   }
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
+  width: 11px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-button {
@@ -52,6 +52,28 @@ h3 {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #3f3f3f;
   border-radius: 10px;
+}
+button {
+  display: flex; /* Align icon and text inline */
+  align-items: center; /* Vertically center the content */
+  white-space: nowrap; /* Prevent text wrapping */
+  padding: 0.5rem 0 0.5rem 0; /* Add enough space around the content */
+  font-size: 14px; /* Adjust the font size */
+  line-height: 1; /* Prevent extra line height spacing */
+  text-align: center; /* Center the text */
+  border: none; /* Optional: Remove border */
+  border-radius: 0.375rem; /* Optional: Add rounded corners */
+  /* background-color: #f0f0f0; Example background color */
+  transition: all 0.3s ease; /* Add a hover effect */
+}
+
+button:hover {
+  /* background-color: #e0e0e0; Optional: Hover background color */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Add hover shadow */
+}
+
+button p {
+  margin: 0; /* Remove default margins from <p> */
 }
 
 textarea {

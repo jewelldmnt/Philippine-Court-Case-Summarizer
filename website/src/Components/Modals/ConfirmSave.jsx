@@ -1,6 +1,7 @@
 import React from "react";
 import { useContext } from "react";
 import { ThemeContext } from "../../ThemeContext";
+import { BsQuestionCircle } from "react-icons/bs";
 
 const ConfirmSave = ({ isOpen, onClose, onSave }) => {
   /**
@@ -34,16 +35,25 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
       }`}
     >
       <div
-        className={`rounded-lg p-6 w-80 text-center ${
+        className={`rounded-lg p-6 w-96 text-center ${
           isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
         }`}
       >
-        <h2 className="text-lg font-bold mb-4">Confirm Save</h2>
-        <p>Are you sure you want to save the changes to this court case?</p>
+        <BsQuestionCircle className="text-3xl mb-4 mx-auto text-blue-500" />
+        <h2 className="text-xl font-semibold mb-4 text-center ">
+          Are you sure you want to save the changes to this court case?
+        </h2>
+        <p
+          className={`text-sm text-center mb-6 ${
+            isDarkMode ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
+          This action cannot be undone.
+        </p>
         <div className="mt-6 flex justify-between">
           <button
             onClick={onClose}
-            className={`rounded px-4 py-2 font-bold ${
+            className={`rounded px-4 py-2 font-bold transition duration-300 ${
               isDarkMode
                 ? "bg-gray-500 text-white hover:bg-gray-600" // Dark mode styles
                 : "bg-gray-300 text-black hover:bg-gray-400" // Light mode styles
@@ -58,8 +68,8 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
             }}
             className={`rounded px-4 py-2 font-bold ${
               isDarkMode
-                ? "bg-green-600 text-white hover:bg-green-700" // Dark mode styles
-                : "bg-green-500 text-white hover:bg-green-600" // Light mode styles
+                ? "bg-blue-600 text-white hover:bg-blue-700" // Dark mode styles
+                : "bg-blue-500 text-white hover:bg-blue-600" // Light mode styles
             }`}
           >
             Confirm Save
