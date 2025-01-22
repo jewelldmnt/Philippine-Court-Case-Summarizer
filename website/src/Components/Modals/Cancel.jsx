@@ -93,13 +93,13 @@ const Cancel = ({ open, edit, cancel }) => {
         </p>
         <div className="flex justify-between">
           <button
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
+            className="bg-red-500 font-bold text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
             onClick={cancel}
           >
             Discard Changes
           </button>
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
+            className="bg-blue-500 font-bold text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
             onClick={edit}
           >
             Keep Editing

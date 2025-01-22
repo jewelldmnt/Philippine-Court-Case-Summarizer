@@ -176,7 +176,7 @@ const AddCaseModal = ({
         {/* Action Buttons */}
         <div className="flex justify-end items-center mt-6">
           <button
-            className={`bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition ${
+            className={`bg-red-500 font-bold text-white px-4 py-2 rounded hover:bg-red-600 transition ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
             onClick={() => {

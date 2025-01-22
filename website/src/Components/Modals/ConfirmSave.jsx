@@ -1,4 +1,6 @@
 import React from "react";
+import { useContext } from "react";
+import { ThemeContext } from "../../ThemeContext";
 
 const ConfirmSave = ({ isOpen, onClose, onSave }) => {
   /**
@@ -21,16 +23,31 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
    *                              is false.
    */
   if (!isOpen) return null;
+  const { isDarkMode } = useContext(ThemeContext);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-80 text-center">
+    <div
+      className={`fixed inset-0 flex items-center justify-center z-50 ${
+        isDarkMode
+          ? "bg-black bg-opacity-50" // Dark mode: darker backdrop
+          : "bg-gray-800 bg-opacity-50" // Light mode: lighter backdrop
+      }`}
+    >
+      <div
+        className={`rounded-lg p-6 w-80 text-center ${
+          isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
+        }`}
+      >
         <h2 className="text-lg font-bold mb-4">Confirm Save</h2>
         <p>Are you sure you want to save the changes to this court case?</p>
         <div className="mt-6 flex justify-between">
           <button
             onClick={onClose}
-            className="bg-gray-300 rounded px-4 py-2 font-bold hover:bg-gray-400"
+            className={`rounded px-4 py-2 font-bold ${
+              isDarkMode
+                ? "bg-gray-500 text-white hover:bg-gray-600" // Dark mode styles
+                : "bg-gray-300 text-black hover:bg-gray-400" // Light mode styles
+            }`}
           >
             Cancel
           </button>
@@ -39,7 +56,11 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
               onSave();
               onClose();
             }}
-            className="bg-green-500 text-white rounded px-4 py-2 font-bold hover:bg-green-600"
+            className={`rounded px-4 py-2 font-bold ${
+              isDarkMode
+                ? "bg-green-600 text-white hover:bg-green-700" // Dark mode styles
+                : "bg-green-500 text-white hover:bg-green-600" // Light mode styles
+            }`}
           >
             Confirm Save
           </button>
