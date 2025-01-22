@@ -238,10 +238,6 @@ const Summarizer = () => {
 
   const handleFileAdd = async (event, resetFileName) => {
     const file = event.target.files[0];
-    if (!file || file.type !== "text/plain") {
-      alert("Please upload a valid .txt file");
-      return;
-    }
 
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -285,11 +281,6 @@ const Summarizer = () => {
      *
      * @returns {void}
      */
-
-    if (!courtCaseLink || courtCaseLink.trim() === "") {
-      alert("Please provide a valid link");
-      return;
-    }
 
     setLoadingModal(true); // Indicate loading state
 
