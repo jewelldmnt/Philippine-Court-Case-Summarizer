@@ -191,8 +191,9 @@ class File(db.Model):
     __tablename__ = "file"
     id = db.Column(db.Integer, primary_key=True)
     file_name = db.Column(db.String, nullable=False)
+    file_orig_text = db.Column(db.String, nullable=False)
     file_text = db.Column(db.String, nullable=False)
-    file_has_summ = db.Column(db.Integer, nullable=True)
+    file_has_summ = db.Column(db.Integer, nullable=False, default=int(0))
     file_facts = db.Column(db.String, nullable=False)
     file_issues = db.Column(db.String, nullable=False)
     file_rulings = db.Column(db.String, nullable=False)
@@ -202,6 +203,7 @@ class File(db.Model):
         return {
             "id": self.id,
             "file_name": self.file_name,
+            "file_orig_text": self.file_orig_text,
             "file_text": self.file_text,
             "file_summary":self.file_has_summ,
             "file_facts":self.file_facts,
@@ -316,7 +318,7 @@ def send_file():
                 upload = File(
                     file_name=court_case_title,
                     file_text=court_case_content,
-                    file_content=file_content,
+                    file_content=file_content
                 )
                 db.session.add(upload)
                 db.session.commit()
@@ -498,6 +500,7 @@ def update_file(id):
         data = request.json
         file.file_name = data.get("file_name", file.file_name)
         file.file_text = data.get("file_text", file.file_text)
+        file.file_has_summ = 0
 
         if "file_content" in data:
             file.file_content = bytes(data["file_content"], "utf-8")
