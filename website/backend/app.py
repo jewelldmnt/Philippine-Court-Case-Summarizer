@@ -192,7 +192,7 @@ class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_name = db.Column(db.String, nullable=False)
     file_text = db.Column(db.String, nullable=False)
-    file_has_summ = db.Column(db.Integer, nullable=True)
+    file_has_summ = db.Column(db.Integer, nullable=False, default=int(0))
     file_facts = db.Column(db.String, nullable=False)
     file_issues = db.Column(db.String, nullable=False)
     file_rulings = db.Column(db.String, nullable=False)
@@ -316,7 +316,7 @@ def send_file():
                 upload = File(
                     file_name=court_case_title,
                     file_text=court_case_content,
-                    file_content=file_content,
+                    file_content=file_content
                 )
                 db.session.add(upload)
                 db.session.commit()
