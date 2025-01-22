@@ -175,82 +175,6 @@ def scrape_court_case(url):
         print(f"Error in scrape_court_case: {str(e)}")
         return None
     
-def create_wordcloud(court_case_content, file_id):
-    from wordcloud import WordCloud
-    from Custom_Modules.WordCloud import WordCloudGenerator
-    from collections import Counter
-    from stopwords import unigram_stopwords, bigram_stopwords
-    # Assuming preprocessor.remove_unnecesary_char and stopwords are defined
-    cleaned_text = preprocessor.remove_unnecesary_char(court_case_content)
-
-    doc = nlp(cleaned_text)
-
-    # Filter tokens with specific POS tags
-    filtered_words = " ".join([token.text for token in doc if token.pos_ in ['NOUN', 'VERB', 'ADJ']])
-
-    # Remove punctuation, convert to lowercase, split into words
-
-    words = re.sub(r'[^\w\s]', '', filtered_words.lower())  # Remove punctuation
-    words = re.sub(r'\b[a-zA-Z]+\d+\b', '', words).split()  # Remove letters followed by numbers and split
-
-
-    # Filter out stopwords
-    unigram_words = [word for word in words if word not in unigram_stopwords]
-    bigram_words = [word for word in words if word not in bigram_stopwords]
-
-    # Create a frequency map
-    unigram_frequency_map = Counter(unigram_words)
-
-    # Filter words with frequency greater than 2
-    unigram_filtered_words = {word: freq for word, freq in unigram_frequency_map.items() if freq > 2 and len(word.strip()) > 2}
-
-    # bigram process
-    bigrams = [f"{words[i]} {words[i + 1]}" for i in range(len(bigram_words) - 1)]
-
-    bigram_frequency_map = Counter(bigrams)
-
-    # Filter and sort bigrams with frequency > 1
-    sorted_bigrams = sorted(
-    [(bigram, freq) for bigram, freq in bigram_frequency_map.items() if freq > 1],
-    key=lambda x: x[1],
-    reverse=True
-    )
-
-    bigram_filtered_words = {bigram: freq for bigram, freq in sorted_bigrams}
-
-    filtered_words = unigram_filtered_words.copy()
-    filtered_words.update(bigram_filtered_words)
-
-    generator = WordCloudGenerator()
-    generator.create_wordcloud(filtered_words, f"../public/images/{file_id}_wordcloud.jpg")
-
-def delete_wordcloud(id):
-    """
-    Description:
-    Deletes the word cloud image file for a specified file ID.
-    
-    Parameters:
-    - id (int): The ID of the file whose associated word cloud image is to be deleted.
-
-    Returns:
-    - JSON: A success message if the word cloud was deleted.
-    - JSON: An error message if the word cloud was not found or if deletion failed.
-    """
-    try:
-        # Assuming the file ID is the same as the associated word cloud image file's ID (e.g., {file_id}_wordcloud.jpg)
-        wordcloud_image_path = f"../public/images/{id}_wordcloud.jpg"
-
-        # Check if the image exists
-        if os.path.exists(wordcloud_image_path):
-            # Remove the word cloud image
-            os.remove(wordcloud_image_path)
-
-        else:
-            return
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 
 app = Flask(__name__)
 CORS(app)
@@ -410,9 +334,6 @@ def send_file():
             except OSError as e:
                 return jsonify({"error": "File deletion error: " + str(e)}), 500
 
-            # Generate WordCloud
-            create_wordcloud(court_case_content, file_id)
-
             return jsonify({"msg": "successful", "file": txt_file_name})
 
     except Exception as e:
@@ -519,9 +440,6 @@ def send_file_link():
             except OSError as e:
                 return jsonify({"error": "File deletion error: " + str(e)}), 500
 
-            # Generate WordCloud
-            create_wordcloud(court_case["case_text"], file_id)
-
             return jsonify({"msg": "successful", "file": txt_file_name})
 
     except Exception as e:
@@ -551,8 +469,6 @@ def delete_file(id):
         if file is None:
             return jsonify({"error": "File not found"}), 404
         
-        delete_wordcloud(id)
-
         db.session.delete(file)
         db.session.commit()
         return jsonify({"msg": "File deleted successfully"}), 200
@@ -587,8 +503,6 @@ def update_file(id):
             file.file_content = bytes(data["file_content"], "utf-8")
 
         db.session.commit()
-
-        create_wordcloud(data["file_text"], id)
 
         return jsonify(file.to_json()), 200
     except Exception as e:
