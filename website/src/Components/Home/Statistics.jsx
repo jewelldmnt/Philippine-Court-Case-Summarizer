@@ -397,7 +397,7 @@ const Statistics = () => {
               <WordCloudPage file_text={activeFile.file_text} />
             ) : (
               <div className="flex items-center justify-center h-full">
-                No File selected
+                No File Selected
               </div>
             )}
           </div>

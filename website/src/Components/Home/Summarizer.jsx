@@ -608,14 +608,19 @@ const Summarizer = () => {
                 }}
               />
               {!courtCaseValue && (
-                <span
+                <p
                   className={`absolute inset-0 flex items-center justify-center pointer-events-none ${
                     isDarkMode ? "text-gray-300" : "text-black"
                   }`}
+                  style={{
+                    fontSize: "1rem",
+                    fontFamily: "'Roboto', sans-serif",
+                    lineHeight: "1.5rem", // Increases line height for multiline
+                    height: "calc(100vh - 200px)",
+                  }}
                 >
-                  {" "}
                   No court case is selected yet
-                </span>
+                </p>
               )}
 
               <div
@@ -739,6 +744,10 @@ const Summarizer = () => {
                   <p
                     className={`loading-text fade-text ${
                       isFadingOut ? "hidden" : ""
+                    } ${
+                      isDarkMode
+                        ? "bg-darkSecondary text-white"
+                        : "bg-customRbox text-black"
                     }`}
                   >
                     {loadingText}
@@ -813,7 +822,10 @@ const Summarizer = () => {
               >
                 <p className="text-white">Word Count:</p>
                 <p className="text-customWC">
-                  {!isSummaryLoading && summarizedCase?.facts
+                  {!isSummaryLoading &&
+                  (summarizedCase?.facts ||
+                    summarizedCase?.issues ||
+                    summarizedCase?.ruling)
                     ? summarizedCase["facts"].split(/\s+/).filter(Boolean)
                         .length +
                       summarizedCase["issues"].split(/\s+/).filter(Boolean)
