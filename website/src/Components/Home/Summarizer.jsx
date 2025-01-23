@@ -38,7 +38,7 @@ import ConfirmDelete from "../Modals/ConfirmDelete";
 import { PiArrowLineDownBold } from "react-icons/pi";
 import { FaTrash } from "react-icons/fa6";
 import { ImCloudDownload } from "react-icons/im";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, act } from "react";
 import axios from "axios";
 import { BiSolidEditAlt } from "react-icons/bi";
 import { FaCirclePlus, FaCircleMinus } from "react-icons/fa6";
@@ -669,7 +669,15 @@ const Summarizer = () => {
                       !activeFile || isSummaryLoading || editCase
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
-                    }`}
+                    }
+                    `}
+                    style={{
+                      display:
+                        activeFile.file_text === activeFile.file_orig_text ||
+                        !activeFile
+                          ? "none"
+                          : "",
+                    }}
                     onClick={() => {
                       setRevertModal(true);
                     }}
