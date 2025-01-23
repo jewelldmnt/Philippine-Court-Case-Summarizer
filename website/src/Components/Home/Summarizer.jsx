@@ -561,11 +561,11 @@ const Summarizer = () => {
               <button
                 onClick={() => setShowConfirmation(true)}
                 className={`flex items-center px-3 py-2 rounded-md ${
-                  !activeFile || isSummaryLoading
+                  !activeFile || isSummaryLoading || editCase
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
                 }`}
-                disabled={!activeFile || isSummaryLoading}
+                disabled={!activeFile || isSummaryLoading || editCase}
               >
                 <FaCircleMinus className="size-6 text-icon-20" />
                 <p className="font-bold font-sans text-[14px] ml-2">
@@ -635,14 +635,14 @@ const Summarizer = () => {
                       ? "bg-darkSummarize text-white"
                       : "bg-summarize text-black"
                   } ${
-                    !activeFile || isSummaryLoading
+                    !activeFile || isSummaryLoading || editCase
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
                   }`}
                   onClick={() => {
                     handleSummarizedCase();
                   }}
-                  disabled={!activeFile || isSummaryLoading}
+                  disabled={!activeFile || isSummaryLoading || editCase}
                 >
                   <p className="font-bold font-sans text-xs m-3">Summarize</p>
                   <input type="button" className="hidden " />
@@ -653,14 +653,14 @@ const Summarizer = () => {
                       ? "bg-darkSummarize text-white"
                       : "bg-summarize text-black"
                   } ${
-                    !activeFile || isSummaryLoading
+                    !activeFile || isSummaryLoading || editCase
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
                   }`}
                   onClick={() => {
                     handleRevertCase();
                   }}
-                  disabled={!activeFile || isSummaryLoading}
+                  disabled={!activeFile || isSummaryLoading || editCase}
                 >
                   <p className="font-bold font-sans text-xs m-3">
                     Revert to original
