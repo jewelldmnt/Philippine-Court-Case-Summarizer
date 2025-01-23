@@ -44,7 +44,6 @@ import { BiSolidEditAlt } from "react-icons/bi";
 import { FaCirclePlus, FaCircleMinus } from "react-icons/fa6";
 import { HiMiniLockOpen, HiMiniLockClosed } from "react-icons/hi2";
 import AddCaseModal from "../Modals/AddCaseFile";
-import "../../assets/spinner.css";
 import CircularProgress from "@mui/material/CircularProgress";
 import SavingModal from "../Modals/SavingModal";
 import { ThemeContext } from "../../ThemeContext";
@@ -643,10 +642,10 @@ const Summarizer = () => {
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <button
-                  className={`btn flex items-center h-8 justify-center shadow-xl ${
+                  className={`btn flex items-center h-8 justify-center shadow-xl ml-4 ${
                     isDarkMode
                       ? "bg-darkSummarize text-white"
-                      : "bg-summarize text-black"
+                      : "bg-darkSummarize text-white"
                   } ${
                     !activeFile || isSummaryLoading || editCase
                       ? "opacity-50 cursor-not-allowed"
@@ -660,26 +659,28 @@ const Summarizer = () => {
                   <p className="font-bold font-sans text-xs m-3">Summarize</p>
                   <input type="button" className="hidden " />
                 </button>
-                <button
-                  className={`btn flex items-center h-8 justify-center shadow-xl ${
-                    isDarkMode
-                      ? "bg-darkSummarize text-white"
-                      : "bg-summarize text-black"
-                  } ${
-                    !activeFile || isSummaryLoading || editCase
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
-                  }`}
-                  onClick={() => {
-                    setRevertModal(true);
-                  }}
-                  disabled={!activeFile || isSummaryLoading || editCase}
-                >
-                  <p className="font-bold font-sans text-xs m-3">
-                    Revert to original
-                  </p>
-                  <input type="button" className="hidden " />
-                </button>
+                <div className="flex justify-end flex-grow mr-4">
+                  <button
+                    className={`btn flex items-center h-8 justify-center shadow-xl ${
+                      isDarkMode
+                        ? "bg-darkRevert text-white"
+                        : "bg-darkRevert text-white"
+                    } ${
+                      !activeFile || isSummaryLoading || editCase
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
+                    }`}
+                    onClick={() => {
+                      setRevertModal(true);
+                    }}
+                    disabled={!activeFile || isSummaryLoading || editCase}
+                  >
+                    <p className="font-bold font-sans text-xs m-3">
+                      Revert to original
+                    </p>
+                    <input type="button" className="hidden " />
+                  </button>
+                </div>
               </div>
             </div>
             {editCase ? (
