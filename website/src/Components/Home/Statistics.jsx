@@ -248,7 +248,9 @@ const Statistics = () => {
                   </li>
                 ))
               ) : (
-                <p className="ml-4 text-gray-600">No files uploaded yet.</p>
+                <div className="flex items-center justify-center h-[30rem]">
+                  <p className="">No files uploaded yet.</p>
+                </div>
               )}
             </ol>
           </div>
@@ -262,11 +264,12 @@ const Statistics = () => {
           <div className="flex flex-col justify-between h-[73vh]">
             {/* Unigram Statistics Table */}
             <div
-              className={`rounded-xl py-6 w-full h-[35vh] overflow-y-auto custom-scrollbar ${
+              className={`rounded-xl py-6 pb-10 w-full h-[35vh] overflow-y-auto custom-scrollbar ${
                 isDarkMode
                   ? "bg-darkSecondary text-white"
                   : "bg-customRbox text-black"
               }`}
+              style={{ overflow: wordStatsList.length < 1 ? "hidden" : "" }}
             >
               <table className="table-fixed w-full">
                 <thead>
@@ -325,6 +328,7 @@ const Statistics = () => {
                 fontFamily: "'Roboto', sans-serif",
                 whiteSpace: "pre-line", // Keeps \n formatting
                 lineHeight: "1.5rem", // Increases line height for multiline
+                overflow: wordStatsList.length < 1 ? "hidden" : "",
               }}
             >
               <table className="table-fixed w-full">

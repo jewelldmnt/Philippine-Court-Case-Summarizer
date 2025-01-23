@@ -70,6 +70,9 @@ const Summarizer = () => {
   const [isEditLoading, setIsEditLoading] = useState(false); // for edit case loading state
   const [showAddedPopup, setShowAddedPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [revertPopup, setRevertPopup] = useState(false);
+  const [summaryPopup, setSummaryPopup] = useState(false);
+  const [hasSummaryPopup, setHasSummaryPopup] = useState(false);
   const { isDarkMode } = useContext(ThemeContext);
 
   useEffect(() => {
@@ -151,9 +154,9 @@ const Summarizer = () => {
      */
     setIsEditLoading(true);
     const newFile = {
-      file_name: activeFile.file_name,
+      ...activeFile,
       file_text: courtCaseValue,
-      file_content: activeFile.file_content,
+      file_summary: 0,
     };
 
     try {
@@ -164,12 +167,9 @@ const Summarizer = () => {
       );
 
       // Update the existing files in the state
+      setActiveFile(newFile); // Update the active file state
       setExistingFiles((prev) =>
-        prev.map((file) =>
-          file.id === activeFile.id
-            ? { ...file, file_text: courtCaseValue }
-            : file
-        )
+        prev.map((file) => (file.id === activeFile.id ? newFile : file))
       );
       setEditCase(false); // Exit edit mode after saving
       setCancelEdit(false); // Reset cancel state
@@ -189,9 +189,9 @@ const Summarizer = () => {
      */
     setIsEditLoading(true);
     const newFile = {
-      file_name: activeFile.file_name,
+      ...activeFile,
       file_text: activeFile.file_orig_text,
-      file_content: activeFile.file_content,
+      file_summary: 0,
     };
 
     try {
@@ -201,6 +201,7 @@ const Summarizer = () => {
         newFile
       );
 
+      setActiveFile(newFile);
       setCourtCaseValue(activeFile.file_orig_text);
 
       // Update the existing files in the state
@@ -211,12 +212,15 @@ const Summarizer = () => {
             : file
         )
       );
+      console.log("summ:", activeFile.file_summary);
       setEditCase(false); // Exit edit mode after saving
       setCancelEdit(false); // Reset cancel state
     } catch (err) {
       console.error(err);
     } finally {
       setIsEditLoading(false);
+      setRevertPopup(true); // Show the popup
+      setTimeout(() => setRevertPopup(false), 3000);
     }
   };
 
@@ -363,7 +367,13 @@ const Summarizer = () => {
      *
      * @returns {void}
      */
+    if (activeFile.file_summary === 1) {
+      setHasSummaryPopup(true); // Show the popup
+      setTimeout(() => setHasSummaryPopup(false), 3000); // Hide popup after 3 seconds
+      return;
+    }
     setIsSummaryLoading(true);
+    console.log("has summary", activeFile.file_summary);
     setProgress(0); // Reset progress at the beginning of the process
 
     // Function to slowly increment progress over time
@@ -374,13 +384,33 @@ const Summarizer = () => {
         {},
         { headers: { "Content-Type": "application/json" } }
       );
+
+      const summarizedFile = {
+        ...activeFile,
+        file_summary: 1,
+        file_facts: summarize_res.data.facts,
+        file_issues: summarize_res.data.issues,
+        file_rulings: summarize_res.data.rulings,
+      };
+
       console.log("summarize", summarize_res.data);
 
+      setActiveFile(summarizedFile);
       setSummarizedCase(summarize_res.data);
+
+      setExistingFiles((prev) =>
+        prev.map((file) =>
+          file.id === activeFile.id
+            ? { ...file, file_text: courtCaseValue }
+            : file
+        )
+      );
     } catch (err) {
       console.error(err);
     } finally {
       setIsSummaryLoading(false);
+      setSummaryPopup(true); // Show the popup
+      setTimeout(() => setSummaryPopup(false), 3000);
     }
   };
 
@@ -433,6 +463,24 @@ const Summarizer = () => {
         </div>
       )}
 
+      {summaryPopup && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white font-bold py-2 px-4 rounded shadow-lg z-50">
+          Summary Created!
+        </div>
+      )}
+
+      {revertPopup && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white font-bold py-2 px-4 rounded shadow-lg z-50">
+          Reverted to original case!
+        </div>
+      )}
+
+      {hasSummaryPopup && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white font-bold py-2 px-4 rounded shadow-lg z-50">
+          Case already has summary!
+        </div>
+      )}
+
       <div
         className={`${
           isDarkMode ? "bg-darkPrimary text-white" : "bg-customGray text-black"
@@ -449,7 +497,10 @@ const Summarizer = () => {
               className={`${
                 isDarkMode ? "bg-darkSecondary" : "bg-customRbox"
               } font-sans text-sm rounded-xl py-0 h-[73vh] overflow-y-auto custom-scrollbar`}
-              style={{ height: "calc(100vh - 200px)" }}
+              style={{
+                height: "calc(100vh - 200px)",
+                overflow: existingFiles.length < 1 ? "hidden" : "",
+              }}
             >
               <ol className="list-none">
                 {existingFiles.length > 0 ? (
@@ -488,7 +539,7 @@ const Summarizer = () => {
                     </li>
                   ))
                 ) : (
-                  <div className="flex items-center justify-center h-80">
+                  <div className="flex items-center justify-center h-[30rem]">
                     <p className="text-gray-600">No files uploaded yet.</p>
                   </div>
                 )}

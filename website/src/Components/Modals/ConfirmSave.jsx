@@ -35,7 +35,7 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
       }`}
     >
       <div
-        className={`rounded-lg p-6 w-96 text-center ${
+        className={`rounded-lg shadow-lg w-96 p-6 ${
           isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
         }`}
       >
