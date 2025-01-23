@@ -648,6 +648,7 @@ const Summarizer = () => {
                     isDarkMode
                       ? "bg-darkSummarize text-white"
                       : "bg-darkSummarize text-white"
+                      : "bg-darkSummarize text-white"
                   } ${
                     !activeFile || isSummaryLoading || editCase
                       ? "opacity-50 cursor-not-allowed"
