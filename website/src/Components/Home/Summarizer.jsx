@@ -49,6 +49,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import SavingModal from "../Modals/SavingModal";
 import { ThemeContext } from "../../ThemeContext";
 import ConfirmSave from "../Modals/ConfirmSave";
+import ConfirmRevert from "../Modals/ConfirmRevert";
 
 const Summarizer = () => {
   const [editCase, setEditCase] = useState(false);
@@ -73,6 +74,7 @@ const Summarizer = () => {
   const [revertPopup, setRevertPopup] = useState(false);
   const [summaryPopup, setSummaryPopup] = useState(false);
   const [hasSummaryPopup, setHasSummaryPopup] = useState(false);
+  const [revertModal, setRevertModal] = useState(false);
   const { isDarkMode } = useContext(ThemeContext);
 
   useEffect(() => {
@@ -449,6 +451,12 @@ const Summarizer = () => {
         onSave={handleSaveEdit}
       />
 
+      <ConfirmRevert
+        isOpen={revertModal}
+        onClose={() => setRevertModal(false)}
+        onConfirm={handleRevertCase}
+      />
+
       <SavingModal open={isEditLoading} text="Saving changes, please wait..." />
 
       {showAddedPopup && (
@@ -663,7 +671,7 @@ const Summarizer = () => {
                       : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
                   }`}
                   onClick={() => {
-                    handleRevertCase();
+                    setRevertModal(true);
                   }}
                   disabled={!activeFile || isSummaryLoading || editCase}
                 >
