@@ -59,7 +59,7 @@ const AddCaseModal = ({
 
   const validateURL = (input) => {
     const regex =
-      /^https:\/\/batas\.org\/(\d{4})\/(\d{2})\/(\d{2})\/g-r-no-(l-)?\d+(-[a-z]+-\d{2}-\d{4})?\/?$/;
+      /^https:\/\/batas\.org\/(\d{4})\/(\d{2})\/(\d{2})\/(g-r-no-(l-)?\d+(-[a-z]+-\d{2}-\d{4})?|administrative-matter-no-\d{2}-\d{1,3}-\d{1,3}-sc)\/?$/;
     return regex.test(input);
   };
 

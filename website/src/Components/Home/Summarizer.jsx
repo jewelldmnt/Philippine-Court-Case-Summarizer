@@ -133,6 +133,8 @@ const Summarizer = () => {
     setActiveFile(file);
     setCourtCaseValue(file.file_text);
 
+    console.log(file);
+
     // Check if any of the summary-related properties exist and show
     if (file.file_facts || file.file_issues || file.file_rulings) {
       setSummarizedCase({
@@ -673,7 +675,7 @@ const Summarizer = () => {
                     `}
                     style={{
                       display:
-                        activeFile.file_text === activeFile.file_orig_text ||
+                        activeFile?.file_text === activeFile?.file_orig_text ||
                         !activeFile
                           ? "none"
                           : "",
@@ -812,15 +814,27 @@ const Summarizer = () => {
                         </div>
                         <div className="mb-12">
                           <p className="font-semibold">FACTS:</p>
-                          <p>{summarizedCase["facts"]}</p>
+                          {summarizedCase["facts"].length > 0 ? (
+                            <p>{summarizedCase["facts"]}</p>
+                          ) : (
+                            <p>No Facts Available</p>
+                          )}
                         </div>
                         <div className="mb-12">
                           <p className="font-semibold">ISSUES:</p>
-                          <p>{summarizedCase["issues"]}</p>
+                          {summarizedCase["issues"].length > 0 ? (
+                            <p>{summarizedCase["issues"]}</p>
+                          ) : (
+                            <p>No Facts Available</p>
+                          )}
                         </div>
                         <div className="mb-12">
                           <p className="font-semibold">RULINGS:</p>
-                          <p>{summarizedCase["rulings"]}</p>
+                          {summarizedCase["rulings"].length > 0 ? (
+                            <p>{summarizedCase["rulings"]}</p>
+                          ) : (
+                            <p>No Facts Available</p>
+                          )}
                         </div>
                       </div>
                     ) : (
