@@ -644,16 +644,12 @@ const Summarizer = () => {
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <button
-                  className={`btn flex items-center h-8 justify-center shadow-xl ml-4 ${
-                    isDarkMode
-                      ? "bg-darkSummarize text-white"
-                      : "bg-darkSummarize text-white"
-                      : "bg-darkSummarize text-white"
-                  } ${
-                    !activeFile || isSummaryLoading || editCase
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
-                  }`}
+                  className={`btn flex items-center h-8 justify-center shadow-xl ml-4 bg-darkSummarize text-white 
+                     ${
+                       !activeFile || isSummaryLoading || editCase
+                         ? "opacity-50 cursor-not-allowed"
+                         : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
+                     }`}
                   onClick={() => {
                     handleSummarizedCase();
                   }}
@@ -664,15 +660,12 @@ const Summarizer = () => {
                 </button>
                 <div className="flex justify-end flex-grow mr-4">
                   <button
-                    className={`btn flex items-center h-8 justify-center shadow-xl ${
-                      isDarkMode
-                        ? "bg-darkRevert text-white"
-                        : "bg-darkRevert text-white"
-                    } ${
-                      !activeFile || isSummaryLoading || editCase
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
-                    }
+                    className={`btn flex items-center h-8 justify-center shadow-xl bg-red-500 text-white however:bg-red-600
+                      ${
+                        !activeFile || isSummaryLoading || editCase
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
+                      }
                     `}
                     style={{
                       display:
@@ -687,7 +680,7 @@ const Summarizer = () => {
                     disabled={!activeFile || isSummaryLoading || editCase}
                   >
                     <p className="font-bold font-sans text-xs m-3">
-                      Revert to original
+                      Revert to Original
                     </p>
                     <input type="button" className="hidden " />
                   </button>
