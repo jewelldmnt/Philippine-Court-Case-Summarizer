@@ -48,7 +48,7 @@ const ConfirmRevert = ({ isOpen, onClose, onConfirm }) => {
             isDarkMode ? "text-gray-400" : "text-gray-500"
           }`}
         >
-          This action cannot be undone.
+          Revert to original will remove all edits made to this court case.
         </p>
         <div className="mt-6 flex justify-between">
           <button
