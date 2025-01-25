@@ -1,9 +1,11 @@
 /**
  * Program Title: Court Case Summarizer - Summarizer Component
  *
- * Programmer: Nicholas Dela Torre, Jino Llamado
+ * Programmer:
+ * Nicholas Dela Torre, Jino Llamado, Jewell Anne Diamante, Miguel Tolentino
+ *
  * Date Written: October 12, 2024
- * Date Revised: October 12, 2024
+ * Date Revised: January 25, 2025
  *
  * Purpose:
  *    This component is part of the Court Case Summarizer project. It provides a
@@ -38,13 +40,12 @@ import ConfirmDelete from "../Modals/ConfirmDelete";
 import { PiArrowLineDownBold } from "react-icons/pi";
 import { FaTrash } from "react-icons/fa6";
 import { ImCloudDownload } from "react-icons/im";
-import { useState, useEffect, useContext, act } from "react";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { BiSolidEditAlt } from "react-icons/bi";
 import { FaCirclePlus, FaCircleMinus } from "react-icons/fa6";
 import { HiMiniLockOpen, HiMiniLockClosed } from "react-icons/hi2";
 import AddCaseModal from "../Modals/AddCaseFile";
-import CircularProgress from "@mui/material/CircularProgress";
 import SavingModal from "../Modals/SavingModal";
 import { ThemeContext } from "../../ThemeContext";
 import ConfirmSave from "../Modals/ConfirmSave";
@@ -835,7 +836,7 @@ const Summarizer = () => {
                           {summarizedCase["issues"].length > 0 ? (
                             <p>{summarizedCase["issues"]}</p>
                           ) : (
-                            <p>No Facts Available</p>
+                            <p>No Issues Available</p>
                           )}
                         </div>
                         <div className="mb-12">
@@ -843,7 +844,7 @@ const Summarizer = () => {
                           {summarizedCase["rulings"].length > 0 ? (
                             <p>{summarizedCase["rulings"]}</p>
                           ) : (
-                            <p>No Facts Available</p>
+                            <p>No Rulings Available</p>
                           )}
                         </div>
                       </div>

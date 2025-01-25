@@ -1,9 +1,9 @@
 /**
  * Program Title: Court Case Management - ConfirmDelete Component
  *
- * Programmer: Nicholas Dela Torre, Jino Llamado
+ * Programmer: Nicholas Dela Torre, Jino Llamado, Jewell Anne Diamante
  * Date Written: November 15, 2024
- * Date Revised: November 15, 2024
+ * Date Revised: January 22, 2025
  *
  * Purpose:
  *    This component provides a confirmation modal for deleting a court case.

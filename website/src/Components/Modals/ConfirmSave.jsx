@@ -1,4 +1,42 @@
-import React from "react";
+/**
+ * Program Title: Court Case Summarizer - Confirm Save Component
+ *
+ * Programmer: Nicholas dela Torre
+ * Date Written: January 22, 2025
+ * Date Revised: January 22, 2025
+ *
+ * Purpose:
+ *    This component provides a confirmation modal for saving changes to a court case.
+ *    It prompts the user to confirm whether they want to save their changes, with options
+ *    to cancel or proceed with saving. The modal appears based on the `isOpen` state.
+ *
+ * Where the Program Fits in the General System Design:
+ *    The Confirm Save component is integrated into the court case editing flow.
+ *    It ensures that users confirm their intent to save any changes made to a case,
+ *    helping to prevent accidental overwrites.
+ *
+ * Dependencies and Resources:
+ *    - React: Functional component for rendering and handling state.
+ *    - ThemeContext: Provides dynamic styling for light and dark modes.
+ *    - react-icons: Used for the question circle icon (BsQuestionCircle).
+ *
+ * Control Flow and Logic:
+ *    1. `isOpen`: Determines the visibility of the modal. If `isOpen` is false,
+ *       the modal does not render.
+ *    2. `onClose`: Closes the modal without saving the changes.
+ *    3. `onSave`: Executes the save action and then closes the modal.
+ *    4. User feedback:
+ *       - Displays a warning message and confirmation buttons for the user to choose.
+ *       - Modal content includes a red question circle icon to emphasize caution.
+ *    5. Dynamic styling:
+ *       - Applies different styles based on the current theme (light or dark mode).
+ *
+ * Key Variables:
+ *    - `isOpen`: Boolean value controlling the visibility of the modal.
+ *    - `onClose`: Function to close the modal without saving changes.
+ *    - `onSave`: Function to save changes and close the modal.
+ */
+
 import { useContext } from "react";
 import { ThemeContext } from "../../ThemeContext";
 import { BsQuestionCircle } from "react-icons/bs";

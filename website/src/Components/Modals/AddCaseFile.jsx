@@ -1,4 +1,50 @@
-import React, { useState, useContext } from "react";
+/**
+ * Program Title: Court Case Summarizer - Add Case Modal Component
+ *
+ * Programmer: Nicholas dela Torre
+ * Date Written: January 22, 2025
+ * Date Revised: January 22, 2025
+ *
+ * Purpose:
+ *    This component renders a modal for adding a court case by uploading a file
+ *    or entering a link to a case document. It provides file validation, URL validation,
+ *    drag-and-drop support, and dynamic styling for light and dark themes.
+ *
+ * Where the Program Fits in the General System Design:
+ *    The Add Case Modal fits into the court case management workflow. It allows users
+ *    to add court cases to the system by providing files or links, ensuring that valid
+ *    inputs are processed and added seamlessly.
+ *
+ * Dependencies and Resources:
+ *    - React: Functional component for rendering and handling state.
+ *    - react-icons: Used for the upload icon (FaUpload).
+ *    - Tailwind CSS: For styling modal elements, inputs, and buttons.
+ *    - ThemeContext: Provides dynamic styling for light and dark modes.
+ *
+ * Control Flow and Logic:
+ *    1. `open`: Controls the visibility of the modal. If `open` is false, the modal
+ *       is not rendered.
+ *    2. `handleFileAdd`: Handles the addition of a valid uploaded file.
+ *    3. `handleLinkAdd`: Handles the addition of a valid URL link.
+ *    4. `handleFileLink`: Combines file handling and link validation with a reset callback.
+ *    5. Validation:
+ *       - Files: Only accepts `.txt` files with type `text/plain`.
+ *       - Links: Validates URLs using a regex specific to batas.org.
+ *    6. User feedback:
+ *       - Displays error messages for invalid file types or URLs.
+ *       - Shows a spinner and disables inputs when `loading` is true.
+ *    7. Drag-and-Drop: Users can drag and drop a file, which triggers validation
+ *       and file handling logic.
+ *
+ * Key Variables:
+ *    - `fileName`: Stores the name of the selected file for display.
+ *    - `link`: Tracks the entered link to a case document.
+ *    - `isDragOver`: Boolean value for the drag-and-drop hover state.
+ *    - `hasFile`: Boolean indicating if a valid file has been uploaded.
+ *    - `hasLink`: Boolean indicating if a valid link has been entered.
+ */
+
+import { useState, useContext } from "react";
 import { FaUpload } from "react-icons/fa";
 import "../../assets/spinner.css";
 import { ThemeContext } from "../../ThemeContext";
@@ -83,13 +129,6 @@ const AddCaseModal = ({
     } else {
       setHasFile(false);
       return;
-    }
-  };
-
-  const handleLinkSubmit = () => {
-    if (link.trim()) {
-      handleLinkAdd(link); // Pass the entered link
-      setLink(""); // Reset the link input field
     }
   };
 

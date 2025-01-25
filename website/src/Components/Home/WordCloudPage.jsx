@@ -3,7 +3,7 @@
  *
  * Programmer: Nicholas Dela Torre, Jewell Anne Diamante
  * Date Written: October 12, 2024
- * Date Revised: January 9, 2025
+ * Date Revised: January 23, 2025
  *
  * Purpose:
  *    This component is part of the Court Case Summarizer project. It visually
@@ -35,10 +35,9 @@
  */
 import "d3-transition";
 import { select } from "d3-selection";
-import React from "react";
 import WordCloud from "react-wordcloud";
 import { removeStopwords } from "stopword"; // Import stopword module
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { ThemeContext } from "../../ThemeContext";
 
 import "tippy.js/dist/tippy.css";

@@ -1,8 +1,8 @@
 # =============================================================================
 # Program Title: Legal Document Analysis Application
-# Programmers: Nicholas Dela Torre, Jewell Anne Diamante
+# Programmers: Nicholas Dela Torre, Jewell Anne Diamante, Miguel Tolentino
 # Date Written: October 12, 2024
-# Date Revised: January 9, 2025
+# Date Revised: January 24, 2025
 #
 # Purpose:
 #     This application serves as the main entry point for a comprehensive
@@ -52,25 +52,40 @@
 # =============================================================================
 
 
-from flask import Flask, request, jsonify, send_file
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
-import pdfplumber
-from sqlalchemy.orm import declarative_base
-from bs4 import BeautifulSoup
-import requests
-import re
-import os
-import spacy
-import re
+# Import required libraries and modules
+from flask import Flask, request, jsonify  # Flask for the web server
+from flask_sqlalchemy import SQLAlchemy    # For database interactions
+from flask_cors import CORS                # To handle cross-origin requests
+from sqlalchemy.orm import declarative_base  # For SQLAlchemy models
+from bs4 import BeautifulSoup              # For parsing HTML content
+import requests                            # For making HTTP requests
+import re                                  # For pattern matching
+import os                                  # For OS-level interactions
+import spacy                               # For NLP tasks
+import base64                              # For encoding and decoding data
 
-# Importing the custom modules
-from Custom_Modules.Preprocess import preprocess
-from Custom_Modules.TopicSegmentation import TopicSegmentation
-from Custom_Modules.LSA import LSA
-        
-# Defining the instances of the preprocessor
+
+# Import custom modules
+from Custom_Modules.Preprocess import preprocess  
+from Custom_Modules.TopicSegmentation import TopicSegmentation  
+from Custom_Modules.LSA import LSA                
+
+# Initialize the preprocessor instance
 preprocessor = preprocess(is_training=False)
+
+# Set up the Flask application and enable CORS
+app = Flask(__name__)
+CORS(app)
+
+# Configure the database to use SQLite
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test.db"
+db = SQLAlchemy(app)
+
+# Define the base for SQLAlchemy models
+Base = declarative_base()
+
+# Load the small English model for spaCy
+nlp = spacy.load("en_core_web_sm")
 
 
 def scrape_court_case(url):
@@ -93,7 +108,6 @@ def scrape_court_case(url):
         result.raise_for_status()  # Raises an error for any non-200 status codes
 
         doc = BeautifulSoup(result.text, "html.parser")
-
 
         content_class = "entry-content alignfull wp-block-post-content has-global-padding is-layout-constrained wp-block-post-content-is-layout-constrained"
         title_element = doc.find_all("h2")
@@ -164,7 +178,6 @@ def scrape_court_case(url):
                 : sliced_content.rfind("SO ORDERED") + 11
             ]
         
-
         title_text = title.text.strip().replace("\n", " ")
         title_text = re.sub(r"\[\s*|\s*\]", "", title.text.strip().replace("\n", " "))
 
@@ -172,8 +185,6 @@ def scrape_court_case(url):
 
         return {"title": title_text, "case_text": sliced_content}
     
-    
-
     except requests.exceptions.RequestException as req_err:
         print(f"Network error: {str(req_err)}")
         return None
@@ -182,30 +193,39 @@ def scrape_court_case(url):
         return None
     
 
-app = Flask(__name__)
-CORS(app)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test.db"
-db = SQLAlchemy(app)
-
-
-Base = declarative_base()
-nlp = spacy.load("en_core_web_sm")
-
-import base64
-
 class File(db.Model):
     __tablename__ = "file"
-    id = db.Column(db.Integer, primary_key=True)
-    file_name = db.Column(db.String, nullable=False)
-    file_orig_text = db.Column(db.String, nullable=False)
-    file_text = db.Column(db.String, nullable=False)
-    file_has_summ = db.Column(db.Integer, nullable=False, default=int(0))
-    file_facts = db.Column(db.String, nullable=False)
-    file_issues = db.Column(db.String, nullable=False)
-    file_rulings = db.Column(db.String, nullable=False)
-    file_content = db.Column(db.LargeBinary)
+    
+    # Define columns in the database table
+    id = db.Column(db.Integer, primary_key=True)    # Unique ID for each file
+    file_name = db.Column(db.String, nullable=False)    # Name of the file
+    file_orig_text = db.Column(db.String, nullable=False)   # Original file text
+    file_text = db.Column(db.String, nullable=False)    # Processed file text
+    file_has_summ = db.Column(db.Integer, nullable=False, default=int(0))  # Indicator for whether the file has a summary (0 = No, 1 = Yes)
+    file_facts = db.Column(db.String, nullable=False)   # Facts extracted from the file
+    file_issues = db.Column(db.String, nullable=False)  # Issues extracted from the file
+    file_rulings = db.Column(db.String, nullable=False) # Rulings extracted from the file
+    file_content = db.Column(db.LargeBinary)    # Binary content of the file
 
     def to_json(self):
+        """
+        Converts the File object to a JSON-compatible dictionary.
+
+        Encodes the binary file content to a Base64 string to ensure 
+        compatibility with JSON format.
+
+        Returns:
+            dict: A dictionary containing the file's data, including:
+                  - id: Unique ID
+                  - file_name: Name of the file
+                  - file_orig_text: Original file text
+                  - file_text: Processed file text
+                  - file_summary: Indicates if a summary exists
+                  - file_facts: Extracted facts
+                  - file_issues: Extracted issues
+                  - file_rulings: Extracted rulings
+                  - file_content: Base64-encoded binary content
+        """
         return {
             "id": self.id,
             "file_name": self.file_name,
@@ -217,20 +237,6 @@ class File(db.Model):
             "file_rulings":self.file_rulings,
             "file_content": base64.b64encode(self.file_content).decode('utf-8') if self.file_content else None,
         }
-
-
-@app.route("/hello")
-def hello():
-    """
-    Description:
-    A simple test endpoint to verify the server is running.
-
-    Parameters: None
-
-    Returns:
-    - str: A "hello" message.
-    """
-    return "hello"
 
 
 @app.route("/get-files", methods=["GET"])
@@ -246,7 +252,6 @@ def get_files():
     """
     files = File.query.all()
     result = [file.to_json() for file in files]
-    print("get files")
 
     return jsonify(result)
 
@@ -273,37 +278,9 @@ def send_file():
             print(court_case_content)
             court_case_title = data.get("title")[:-4]
             court_case_content = preprocessor.merge_numbered_lines(court_case_content)
-            # print(court_case_content)
 
             if not court_case_content:
                 return jsonify({"error": "No court case content provided"}), 400
-
-            # court_case = scrape_court_case(court_case_content)
-
-            # if (
-            #     not court_case
-            #     or "title" not in court_case
-            #     or "case_text" not in court_case
-            # ):
-            #     return jsonify({"error": "Invalid court case data"}), 400
-
-            # case_title = court_case["title"]
-
-            # # Sanitize the case title to create a valid file name
-            # case_title = re.sub(
-            #     r'[\\/*?:"<>|]', "-", case_title
-            # )  # Replace invalid characters with '-'
-            # case_title = re.sub(
-            #     r"[\.,]", "", case_title
-            # )  # Optionally remove commas and periods
-
-            # # Limit the filename length (for example, to 150 characters)
-            # max_length = 150
-            # txt_case_title = (
-            #     case_title[:max_length]
-            #     if len(case_title) > max_length
-            #     else case_title
-            # )
 
             txt_file_name = "test.txt"
 
@@ -319,7 +296,6 @@ def send_file():
             except IOError as e:
                 return jsonify({"error": "File handling error: " + str(e)}), 500
 
-            
             # Uploading the file to the database
             try:
                 upload = File(
@@ -353,6 +329,7 @@ def send_file():
             jsonify({"error": "An unexpected error occurred: " + str(e)}),
             500,
         )
+    
         
 @app.route("/send-file-link", methods=["POST"])
 def send_file_link():
@@ -370,7 +347,6 @@ def send_file_link():
     import re
 
     try:
-
         if request.method == "POST":
             data = request.json
             court_case_link = data.get("link")
@@ -397,7 +373,6 @@ def send_file_link():
                 r"[\.,]", "", case_title
             )  # Optionally remove commas and periods
             
-
             # Limit the filename length (for example, to 150 characters)
             max_length = 150
             txt_case_title = (
@@ -406,10 +381,8 @@ def send_file_link():
                 else case_title
             )
             
-
             txt_file_name = txt_case_title
             
-
             try:
                 # Writing the court case text to a .txt file
                 with open(txt_file_name, "w", encoding="utf-8") as f:
@@ -419,12 +392,10 @@ def send_file_link():
                 with open(txt_file_name, "rb") as f:
                     file_content = f.read()
 
-
             except IOError as e:
                 return jsonify({"error": "File handling error: " + str(e)}), 500
 
             # Uploading the file to the database
-            
             try:
                 upload = File(
                     file_name=txt_file_name,
@@ -432,10 +403,7 @@ def send_file_link():
                     file_orig_text=court_case["case_text"],
                     file_content=file_content,
                 )
-                print("uploaded")
-
                 db.session.add(upload)
-
                 db.session.commit()
 
             except Exception as e:
@@ -621,7 +589,6 @@ def get_preprocess(id):
             return jsonify({"error": "No case text provided"}), 400
 
 
-
         cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
         doc = nlp(cleaned_text)
         filtered_words = " ".join([token.text for token in doc if token.pos_ in ['NOUN', 'VERB', 'ADJ']])
@@ -634,9 +601,11 @@ def get_preprocess(id):
         return jsonify({"error": str(e)}), 500
 
 
+
+
+
 with app.app_context():
     db.create_all()
-
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,4 +1,40 @@
-import React from "react";
+/**
+ * Program Title: Court Case Summarizer - Confirm Revert Component
+ *
+ * Programmer: Nicholas dela Torre
+ * Date Written: January 22, 2025
+ * Date Revised: January 22, 2025
+ *
+ * Purpose:
+ *    This component provides a confirmation modal for reverting changes made
+ *    to a court case. It asks the user for confirmation before discarding all
+ *    edits and reverting the case to its original state.
+ *
+ * Where the Program Fits in the General System Design:
+ *    The Confirm Revert component is part of the court case editing workflow.
+ *    It ensures that users confirm their intent to discard all changes, helping
+ *    to prevent accidental data loss.
+ *
+ * Dependencies and Resources:
+ *    - React: Functional component for rendering and handling state.
+ *    - ThemeContext: Provides dynamic styling for light and dark modes.
+ *    - react-icons: Used for the question circle icon (BsQuestionCircle).
+ *
+ * Control Flow and Logic:
+ *    1. `isOpen`: Determines the visibility of the modal. If `isOpen` is false,
+ *       the modal does not render.
+ *    2. `onClose`: Closes the modal without taking any further action.
+ *    3. `onConfirm`: Executes the revert action and calls `onClose` to close the modal.
+ *    4. User feedback:
+ *       - Modal content includes a warning icon and descriptive text to
+ *         clearly communicate the consequences of the revert action.
+ *
+ * Key Variables:
+ *    - `isOpen`: Boolean value controlling the visibility of the modal.
+ *    - `onClose`: Function to close the modal.
+ *    - `onConfirm`: Function to execute the revert action and close the modal.
+ */
+
 import { useContext } from "react";
 import { ThemeContext } from "../../ThemeContext";
 import { BsQuestionCircle } from "react-icons/bs";

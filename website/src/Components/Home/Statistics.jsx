@@ -3,7 +3,7 @@
  *
  * Programmers: Nicholas Dela Torre, Jino Llamado, Jewell Anne Diamante
  * Date Written: October 12, 2024
- * Date Revised: October 12, 2024
+ * Date Revised: January 23, 2025
  *
  * Purpose:
  *    This component is part of the Court Case Summarizer project and is designed
@@ -79,7 +79,6 @@ const Statistics = () => {
 
   const [existingFiles, setExistingFiles] = useState([]);
   const [activeFile, setActiveFile] = useState(null);
-  const [courtCaseValue, setCourtCaseValue] = useState("");
   const [wordStatsList, setWordStatsList] = useState([]);
   const [bigramStatsList, setBigramStatsList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -98,7 +97,7 @@ const Statistics = () => {
      * {void} - No return value, updates the component's state with unigrams and bigrams.
      */
     setActiveFile(file);
-    setCourtCaseValue(file.file_text);
+    setLoading(true);
     console.log("Selected File ID: ", file.id);
 
     // Preprocess the text
@@ -126,6 +125,7 @@ const Statistics = () => {
     // Update state with the results
     setWordStatsList(unigrams);
     setBigramStatsList(bigrams);
+    setLoading(false);
   };
 
   // Function to calculate unigrams
