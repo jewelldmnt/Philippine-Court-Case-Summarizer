@@ -836,7 +836,7 @@ const Summarizer = () => {
                           {summarizedCase["issues"].length > 0 ? (
                             <p>{summarizedCase["issues"]}</p>
                           ) : (
-                            <p>No Facts Available</p>
+                            <p>No Issues Available</p>
                           )}
                         </div>
                         <div className="mb-12">
@@ -844,7 +844,7 @@ const Summarizer = () => {
                           {summarizedCase["rulings"].length > 0 ? (
                             <p>{summarizedCase["rulings"]}</p>
                           ) : (
-                            <p>No Facts Available</p>
+                            <p>No Rulings Available</p>
                           )}
                         </div>
                       </div>
