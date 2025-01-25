@@ -19,6 +19,7 @@
  *    - React: Functional component for rendering and handling user input.
  *    - react-icons: Used for the question circle icon (BsQuestionCircle).
  *    - Tailwind CSS: For styling modal and button elements.
+ *    - ThemeContext: Provides dynamic styling for light and dark modes.
  *
  * Control Flow and Logic:
  *    1. `open`: Controls the visibility of the modal. If `open` is false, the modal
