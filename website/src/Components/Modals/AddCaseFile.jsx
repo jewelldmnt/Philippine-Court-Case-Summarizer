@@ -59,7 +59,7 @@ const AddCaseModal = ({
 
   const validateURL = (input) => {
     const regex =
-      /^https:\/\/batas\.org\/(\d{4})\/(\d{2})\/(\d{2})\/g-r-no-(l-)?\d+(-[a-z]+-\d{2}-\d{4})?\/?$/;
+      /^https:\/\/batas\.org\/(\d{4})\/(\d{2})\/(\d{2})\/(g-r-no-(l-)?\d+(-[a-z]+-\d{2}-\d{4})?|administrative-matter-no-\d{2}-\d{1,3}-\d{1,3}-sc)\/?$/;
     return regex.test(input);
   };
 
@@ -183,14 +183,19 @@ const AddCaseModal = ({
             aria-label="Enter Case Link"
           />
 
-          {!hasLink && (
-            <p className="text-center" style={{ color: "red" }}>
-              Enter a valid URL from batas.org
-            </p>
-          )}
+          <p
+            className={`text-center p-2
+                ${
+                  hasLink
+                    ? `${isDarkMode ? "text-gray-700" : "text-white"}`
+                    : `${isDarkMode ? "text-red-400" : "text-red-500"}`
+                }`}
+          >
+            Enter a valid URL from batas.org
+          </p>
 
           <button
-            className={`flex items-center justify-center mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition ${
+            className={`flex items-center justify-center w-full bg-blue-500 text-white px-4 pb-2 rounded hover:bg-blue-600 transition ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             } ${isDarkMode ? "bg-blue-600 hover:bg-blue-800" : ""}`}
             onClick={handleFileChangeLink}

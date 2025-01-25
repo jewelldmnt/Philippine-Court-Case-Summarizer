@@ -39,7 +39,7 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
           isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"
         }`}
       >
-        <BsQuestionCircle className="text-3xl mb-4 mx-auto text-blue-500" />
+        <BsQuestionCircle className="text-3xl mb-4 mx-auto text-red-500" />
         <h2 className="text-xl font-semibold mb-4 text-center ">
           Are you sure you want to save the changes to this court case?
         </h2>
@@ -68,8 +68,8 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
             }}
             className={`rounded px-4 py-2 font-bold ${
               isDarkMode
-                ? "bg-blue-600 text-white hover:bg-blue-700" // Dark mode styles
-                : "bg-blue-500 text-white hover:bg-blue-600" // Light mode styles
+                ? "bg-red-600 text-white hover:bg-red-700" // Dark mode styles
+                : "bg-red-500 text-white hover:bg-red-600" // Light mode styles
             }`}
           >
             Confirm Save

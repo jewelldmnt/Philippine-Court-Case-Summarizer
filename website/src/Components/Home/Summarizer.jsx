@@ -38,13 +38,12 @@ import ConfirmDelete from "../Modals/ConfirmDelete";
 import { PiArrowLineDownBold } from "react-icons/pi";
 import { FaTrash } from "react-icons/fa6";
 import { ImCloudDownload } from "react-icons/im";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, act } from "react";
 import axios from "axios";
 import { BiSolidEditAlt } from "react-icons/bi";
 import { FaCirclePlus, FaCircleMinus } from "react-icons/fa6";
 import { HiMiniLockOpen, HiMiniLockClosed } from "react-icons/hi2";
 import AddCaseModal from "../Modals/AddCaseFile";
-import "../../assets/spinner.css";
 import CircularProgress from "@mui/material/CircularProgress";
 import SavingModal from "../Modals/SavingModal";
 import { ThemeContext } from "../../ThemeContext";
@@ -133,6 +132,8 @@ const Summarizer = () => {
      */
     setActiveFile(file);
     setCourtCaseValue(file.file_text);
+
+    console.log(file);
 
     // Check if any of the summary-related properties exist and show
     if (file.file_facts || file.file_issues || file.file_rulings) {
@@ -643,10 +644,10 @@ const Summarizer = () => {
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <button
-                  className={`btn flex items-center h-8 justify-center shadow-xl ${
+                  className={`btn flex items-center h-8 justify-center shadow-xl ml-4 ${
                     isDarkMode
                       ? "bg-darkSummarize text-white"
-                      : "bg-summarize text-black"
+                      : "bg-darkSummarize text-white"
                   } ${
                     !activeFile || isSummaryLoading || editCase
                       ? "opacity-50 cursor-not-allowed"
@@ -660,26 +661,33 @@ const Summarizer = () => {
                   <p className="font-bold font-sans text-xs m-3">Summarize</p>
                   <input type="button" className="hidden " />
                 </button>
-                <button
-                  className={`btn flex items-center h-8 justify-center shadow-xl ${
-                    isDarkMode
-                      ? "bg-darkSummarize text-white"
-                      : "bg-summarize text-black"
-                  } ${
-                    !activeFile || isSummaryLoading || editCase
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
-                  }`}
-                  onClick={() => {
-                    setRevertModal(true);
-                  }}
-                  disabled={!activeFile || isSummaryLoading || editCase}
-                >
-                  <p className="font-bold font-sans text-xs m-3">
-                    Revert to original
-                  </p>
-                  <input type="button" className="hidden " />
-                </button>
+                <div className="flex justify-end flex-grow mr-4">
+                  <button
+                    className={`btn flex items-center h-8 justify-center shadow-xl bg-red-500 text-white however:bg-red-600
+                      ${
+                        !activeFile || isSummaryLoading || editCase
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
+                      }
+                    `}
+                    style={{
+                      display:
+                        activeFile?.file_text === activeFile?.file_orig_text ||
+                        !activeFile
+                          ? "none"
+                          : "",
+                    }}
+                    onClick={() => {
+                      setRevertModal(true);
+                    }}
+                    disabled={!activeFile || isSummaryLoading || editCase}
+                  >
+                    <p className="font-bold font-sans text-xs m-3">
+                      Revert to Original
+                    </p>
+                    <input type="button" className="hidden " />
+                  </button>
+                </div>
               </div>
             </div>
             {editCase ? (
@@ -803,15 +811,27 @@ const Summarizer = () => {
                         </div>
                         <div className="mb-12">
                           <p className="font-semibold">FACTS:</p>
-                          <p>{summarizedCase["facts"]}</p>
+                          {summarizedCase["facts"].length > 0 ? (
+                            <p>{summarizedCase["facts"]}</p>
+                          ) : (
+                            <p>No Facts Available</p>
+                          )}
                         </div>
                         <div className="mb-12">
                           <p className="font-semibold">ISSUES:</p>
-                          <p>{summarizedCase["issues"]}</p>
+                          {summarizedCase["issues"].length > 0 ? (
+                            <p>{summarizedCase["issues"]}</p>
+                          ) : (
+                            <p>No Facts Available</p>
+                          )}
                         </div>
                         <div className="mb-12">
                           <p className="font-semibold">RULINGS:</p>
-                          <p>{summarizedCase["rulings"]}</p>
+                          {summarizedCase["rulings"].length > 0 ? (
+                            <p>{summarizedCase["rulings"]}</p>
+                          ) : (
+                            <p>No Facts Available</p>
+                          )}
                         </div>
                       </div>
                     ) : (

@@ -94,6 +94,7 @@ def scrape_court_case(url):
 
         doc = BeautifulSoup(result.text, "html.parser")
 
+
         content_class = "entry-content alignfull wp-block-post-content has-global-padding is-layout-constrained wp-block-post-content-is-layout-constrained"
         title_element = doc.find_all("h2")
 
@@ -103,6 +104,7 @@ def scrape_court_case(url):
         title = title_element[1]
     
         paragraphs = title.find_all("p")
+        
         if not paragraphs:
             title_div = title.find_next_sibling("div")
             if title_div:
@@ -123,21 +125,24 @@ def scrape_court_case(url):
         # Remove unnecessary tags
         for i in content.find_all(["h2", "h3", "sup", "tbody", "strong"]):
             i.extract()
+        print("court case text",content)
 
-        new_content_text = ""
+        new_content_text = content.get_text()  # Initialize with the plain text of the content
         for blockquote in content.find_all("blockquote"):
             prev_sibling = blockquote.find_previous_sibling()
 
             # Check if the previous sibling is a <p> tag
             if prev_sibling and prev_sibling.name == "p":
-
                 prev_sibling.append(f" {blockquote.get_text()}")
 
                 # Remove the blockquote after merging its content
                 blockquote.extract()
 
-                # Clean up text using regular expressions
-                new_content_text = content.get_text()
+            # Clean up text using regular expressions
+            new_content_text = content.get_text()
+        
+        if new_content_text == "":
+            new_content_text = content
 
         patterns_to_clean = [
             r"\[(?:\bx\s+)+x\b\]",  # e.g., [x x]
@@ -158,6 +163,7 @@ def scrape_court_case(url):
             sliced_content = sliced_content[
                 : sliced_content.rfind("SO ORDERED") + 11
             ]
+        
 
         title_text = title.text.strip().replace("\n", " ")
         title_text = re.sub(r"\[\s*|\s*\]", "", title.text.strip().replace("\n", " "))
@@ -313,17 +319,14 @@ def send_file():
             except IOError as e:
                 return jsonify({"error": "File handling error: " + str(e)}), 500
 
+            
             # Uploading the file to the database
             try:
                 upload = File(
-                file_name=txt_file_name,
-                file_text=court_case_content,
-                file_orig_text=court_case_content,  # Use the correct column name
-                file_has_summ=0,
-                file_facts="",
-                file_issues="",
-                file_rulings="",
-                file_content=file_content,
+                    file_name=court_case_title,
+                    file_text=court_case_content,
+                    file_orig_text=court_case_content,
+                    file_content=file_content
                 )
                 db.session.add(upload)
                 db.session.commit()
@@ -371,14 +374,12 @@ def send_file_link():
         if request.method == "POST":
             data = request.json
             court_case_link = data.get("link")
-            
+            print(court_case_link)
             court_case = scrape_court_case(court_case_link)
             court_case_text = preprocessor.merge_numbered_lines(court_case["case_text"])
-            
 
             if not court_case_link:
                 return jsonify({"error": "No court case link provided"}), 400
-            
 
             if (
                 not court_case
@@ -386,9 +387,7 @@ def send_file_link():
             ):
                 return jsonify({"error": "Invalid court case data"}), 400
 
-
             case_title = court_case["title"]
-            
             
             # Sanitize the case title to create a valid file name
             case_title = re.sub(
@@ -406,6 +405,7 @@ def send_file_link():
                 if len(case_title) > max_length
                 else case_title
             )
+            
 
             txt_file_name = txt_case_title
             
@@ -424,17 +424,13 @@ def send_file_link():
                 return jsonify({"error": "File handling error: " + str(e)}), 500
 
             # Uploading the file to the database
+            
             try:
-                print("before uploading")
                 upload = File(
-                file_name=txt_file_name,
-                file_text=court_case["case_text"],
-                file_orig_text=court_case["case_text"],  # Use the correct column name
-                file_has_summ=0,
-                file_facts="",
-                file_issues="",
-                file_rulings="",
-                file_content=file_content,
+                    file_name=txt_file_name,
+                    file_text=court_case["case_text"],
+                    file_orig_text=court_case["case_text"],
+                    file_content=file_content,
                 )
                 print("uploaded")
 
@@ -444,7 +440,6 @@ def send_file_link():
 
             except Exception as e:
                 db.session.rollback()
-                print("error in db")
                 return jsonify({"error": "Database error: " + str(e)}), 500
 
             # Optionally delete the file after saving to the database
