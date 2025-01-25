@@ -3,7 +3,7 @@
  *
  * Programmers: Nicholas Dela Torre, Jino Llamado, Jewell Anne Diamante
  * Date Written: October 12, 2024
- * Date Revised: October 12, 2024
+ * Date Revised: January 23, 2025
  *
  * Purpose:
  *    This component is part of the Court Case Summarizer project and is designed

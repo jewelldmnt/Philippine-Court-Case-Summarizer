@@ -1,9 +1,11 @@
 /**
  * Program Title: Court Case Summarizer - Summarizer Component
  *
- * Programmer: Nicholas Dela Torre, Jino Llamado
+ * Programmer: 
+ * Nicholas Dela Torre, Jino Llamado, Jewell Anne Diamante, Miguel Tolentino
+ * 
  * Date Written: October 12, 2024
- * Date Revised: October 12, 2024
+ * Date Revised: January 25, 2025
  *
  * Purpose:
  *    This component is part of the Court Case Summarizer project. It provides a

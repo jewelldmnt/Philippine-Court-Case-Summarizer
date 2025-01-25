@@ -1,9 +1,9 @@
 /**
  * Program Title: Court Case Summarizer - Cancel Component
  *
- * Programmer: Nicholas Dela Torre, Jino Llamado
+ * Programmer: Nicholas Dela Torre, Jino Llamado, Jewell Anne Diamante
  * Date Written: October 12, 2024
- * Date Revised: October 12, 2024
+ * Date Revised: January 22, 2025
  *
  * Purpose:
  *    This component provides a confirmation dialog for discarding changes when

@@ -1,3 +1,49 @@
+/**
+ * Program Navigation Bar Component
+ *
+ * Programmer: Nicholas Dela Torre, Jino Llamado, Jewell Anne Diamante
+ * Date Written: October 12, 2024
+ * Date Revised: January 25, 2025
+ *
+ * Purpose:
+ *    This component renders the navigation bar for the Court Case Summarizer application.
+ *    It provides links to different pages such as "Summarizer" and "Statistics" and
+ *    allows toggling between dark and light modes. It also includes a help modal that
+ *    displays instructions for using the respective pages.
+ *
+ * Where the Program Fits in the General System Design:
+ *    The `NavBar` component is part of the main user interface of the application.
+ *    It facilitates navigation between different pages (Summarizer, Statistics) and
+ *    allows users to adjust the theme (dark/light mode).
+ *
+ * Dependencies and Resources:
+ *    - React: Utilized for building the UI components and managing state.
+ *    - React Router (`react-router-dom`): Provides navigation between the different pages.
+ *    - React Icons (`react-icons/fa`): Used for displaying icons such as the sun, moon, and question mark.
+ *    - ThemeContext: Provides access to the current theme (dark or light) and allows for toggling the theme.
+ *
+ * Control Flow and Logic:
+ *    1. The `useState` hook is used to manage the state of the modal visibility (`isModalOpen`).
+ *    2. The `useContext` hook is used to access the `ThemeContext`, allowing the app to respond to theme changes.
+ *    3. The `toggleTheme` function toggles between dark and light modes.
+ *    4. The `toggleModal` function manages the modal's open/close state.
+ *    5. Depending on the `activePage`, different modal content is displayed to guide the user on how to use
+ *       the Summarizer or Statistics page.
+ *    6. The modal is shown when the help icon is clicked, and the content changes based on the active page.
+ *
+ * Key Variables:
+ *    - `isDarkMode`: A boolean state that indicates whether the application is in dark mode.
+ *    - `toggleTheme`: A function to toggle between dark and light modes.
+ *    - `isModalOpen`: A boolean state that controls the visibility of the modal.
+ *    - `toggleModal`: A function to toggle the visibility of the modal.
+ *    - `getModalContent`: A function that returns modal content based on the active page.
+ *
+ * User Interface:
+ *    - The navigation bar includes links to the Summarizer and Statistics pages.
+ *    - A toggle switch allows the user to switch between dark and light modes.
+ *    - A help icon triggers a modal that provides usage instructions based on the active page.
+ */
+
 import { useState, useContext } from "react";
 import { NavLink } from "react-router-dom";
 import { FaSun, FaMoon, FaQuestionCircle } from "react-icons/fa";
