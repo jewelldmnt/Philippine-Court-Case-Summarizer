@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { ThemeContext } from "../../ThemeContext";
 import { BsQuestionCircle } from "react-icons/bs";
 
-const ConfirmSave = ({ isOpen, onClose, onSave }) => {
+const ConfirmRevert = ({ isOpen, onClose, onConfirm }) => {
   /**
    * ConfirmSave Component
    *
@@ -41,14 +41,14 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
       >
         <BsQuestionCircle className="text-3xl mb-4 mx-auto text-red-500" />
         <h2 className="text-xl font-semibold mb-4 text-center ">
-          Are you sure you want to save the changes to this court case?
+          Are you sure you want to revert the changes made to this court case?
         </h2>
         <p
           className={`text-sm text-center mb-6 ${
             isDarkMode ? "text-gray-400" : "text-gray-500"
           }`}
         >
-          This action cannot be undone.
+          Revert to original will remove all edits made to this court case.
         </p>
         <div className="mt-6 flex justify-between">
           <button
@@ -63,7 +63,7 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
           </button>
           <button
             onClick={() => {
-              onSave();
+              onConfirm();
               onClose();
             }}
             className={`rounded px-4 py-2 font-bold ${
@@ -72,7 +72,7 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
                 : "bg-red-500 text-white hover:bg-red-600" // Light mode styles
             }`}
           >
-            Confirm Save
+            Confirm Revert
           </button>
         </div>
       </div>
@@ -80,4 +80,4 @@ const ConfirmSave = ({ isOpen, onClose, onSave }) => {
   );
 };
 
-export default ConfirmSave;
+export default ConfirmRevert;

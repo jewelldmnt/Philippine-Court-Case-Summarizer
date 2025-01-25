@@ -57,6 +57,7 @@ const WordCloudPage = ({ file_text }) => {
 
   const getWordCounts = (str) => {
     // Handle edge cases for invalid input
+
     if (!str || typeof str !== "string") return [];
 
     // Process text: convert to lowercase, remove punctuation, split into words
@@ -71,20 +72,21 @@ const WordCloudPage = ({ file_text }) => {
     );
 
     // Count word occurrences using reduce
-    const wordCounts = filteredWords.reduce((counts, word) => {
-      counts[word] = (counts[word] || 0) + 1;
-      return counts;
-    }, {});
-
-    // Map the word counts to the format required by WordCloud
-    return Object.entries(wordCounts).map(([word, count]) => ({
-      text: word, // Word
-      value: count, // Word frequency
-    }));
+    return Object.entries(
+      filteredWords.reduce((counts, word) => {
+        counts[word] = (counts[word] || 0) + 1;
+        return counts;
+      }, {})
+    ).map(([word, count]) => ({ text: word, value: count }));
   };
 
-  const words = getWordCounts(file_text);
+  const words = file_text ? getWordCounts(file_text) : [];
+  console.log("words:", words);
   const { isDarkMode } = useContext(ThemeContext);
+
+  if (!words || words.length === 0) {
+    return <div>No words to display</div>;
+  }
 
   const options = {
     rotations: 2,
@@ -100,22 +102,19 @@ const WordCloudPage = ({ file_text }) => {
         ["#222224", "#b37159", "#b04e2b", "#f09b67"], // Word colors for light mode option2
   };
 
-  function getCallback(callback) {
-    return function (word, event) {
-      const isActive = callback !== "onWordMouseOut";
-      const element = event.target;
-      const text = select(element);
-      text
-        .on("click", () => {
-          if (isActive) {
-            window.open(`https://duckduckgo.com/?q=${word.text}`, "_blank");
-          }
-        })
-        .transition()
-        .attr("background", "white")
-        .attr("text-decoration", isActive ? "underline" : "none");
-    };
-  }
+  const getCallback = (callback) => (word, event) => {
+    if (!word || !event) return;
+    const isActive = callback !== "onWordMouseOut";
+    select(event.target)
+      .on("click", () => {
+        if (isActive) {
+          window.open(`https://duckduckgo.com/?q=${word.text}`, "_blank");
+        }
+      })
+      .transition()
+      .attr("background", "white")
+      .attr("text-decoration", isActive ? "underline" : "none");
+  };
   const callbacks = {
     getWordTooltip: (word) =>
       `The word "${word.text}" appears ${word.value} times.`,

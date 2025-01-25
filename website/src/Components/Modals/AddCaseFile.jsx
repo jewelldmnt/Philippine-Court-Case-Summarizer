@@ -15,20 +15,52 @@ const AddCaseModal = ({
   const [link, setLink] = useState(""); // State to store the entered link
   const [isDragOver, setIsDragOver] = useState(false); // Drag-and-drop state
   const { isDarkMode } = useContext(ThemeContext);
+  const [hasLink, setHasLink] = useState(true);
+  const [hasFile, setHasFile] = useState(true);
 
   if (!open) return null;
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file) {
+    if (file && file.type === "text/plain") {
       setFileName(file.name); // Update the file name on selection
+      console.log("valid file");
       handleFileAdd(event, resetFileName); // Pass the reset callback
+      setHasFile(true);
+    } else {
+      console.log("invalid file");
+      setHasFile(false);
+      return;
     }
   };
 
   const handleFileChangeLink = (event) => {
-    console.log("file change link:", link);
+    console.log("valid url:", validateURL(link.trim()));
+    console.log("link url:", JSON.stringify(link));
+    console.log("word count:", link.length);
+
+    if (link.length < 1) {
+      console.log("rejected: empty link");
+      setHasLink(false);
+      return;
+    }
+
+    if (!validateURL(link.trim())) {
+      console.log("rejected: invalid URL");
+      setHasLink(false);
+      return;
+    }
+
+    setHasLink(true);
+
     handleFileLink(event, link, resetFileName); // Pass the reset callback
+    setLink("");
+  };
+
+  const validateURL = (input) => {
+    const regex =
+      /^https:\/\/batas\.org\/(\d{4})\/(\d{2})\/(\d{2})\/(g-r-no-(l-)?\d+(-[a-z]+-\d{2}-\d{4})?|administrative-matter-no-\d{2}-\d{1,3}-\d{1,3}-sc)\/?$/;
+    return regex.test(input);
   };
 
   const handleDragOver = (event) => {
@@ -44,9 +76,13 @@ const AddCaseModal = ({
     event.preventDefault();
     setIsDragOver(false);
     const file = event.dataTransfer.files[0];
-    if (file) {
-      setFileName(file.name); // Update the file name on drop
-      handleFileAdd({ target: { files: [file] } }, resetFileName); // Pass the reset callback
+    if (file && file.type === "text/plain") {
+      setFileName(file.name); // Update the file name on selection
+      handleFileAdd(event, resetFileName); // Pass the reset callback
+      setHasFile(true);
+    } else {
+      setHasFile(false);
+      return;
     }
   };
 
@@ -114,16 +150,12 @@ const AddCaseModal = ({
             </span>
           </label>
         </div>
-        {/* File Name Display */}
-        {fileName && !loading && (
-          <p
-            className={`mt-2 text-sm ${
-              isDarkMode ? "text-gray-300" : "text-gray-500"
-            }`}
-          >
-            Selected File: {fileName}
+        {!hasFile && (
+          <p className="text-center" style={{ color: "red" }}>
+            upload valid file type (.txt)
           </p>
         )}
+
         {/* Separator Line */}
         <div className="flex items-center my-4">
           <hr className="flex-grow border-gray-300" />
@@ -151,8 +183,19 @@ const AddCaseModal = ({
             aria-label="Enter Case Link"
           />
 
+          <p
+            className={`text-center p-2
+                ${
+                  hasLink
+                    ? `${isDarkMode ? "text-gray-700" : "text-white"}`
+                    : `${isDarkMode ? "text-red-400" : "text-red-500"}`
+                }`}
+          >
+            Enter a valid URL from batas.org
+          </p>
+
           <button
-            className={`flex items-center justify-center mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition ${
+            className={`flex items-center justify-center w-full bg-blue-500 text-white px-4 pb-2 rounded hover:bg-blue-600 transition ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             } ${isDarkMode ? "bg-blue-600 hover:bg-blue-800" : ""}`}
             onClick={handleFileChangeLink}
@@ -176,12 +219,14 @@ const AddCaseModal = ({
         {/* Action Buttons */}
         <div className="flex justify-end items-center mt-6">
           <button
-            className={`bg-red-500 font-bold text-white px-4 py-2 rounded hover:bg-red-600 transition ${
+            className={`bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
             onClick={() => {
               resetFileName(); // Reset the file name on cancel
               setLink(""); // Reset the link input field
+              setHasFile(true);
+              setHasLink(true);
               onClose();
             }}
             disabled={loading}

@@ -38,17 +38,17 @@ import ConfirmDelete from "../Modals/ConfirmDelete";
 import { PiArrowLineDownBold } from "react-icons/pi";
 import { FaTrash } from "react-icons/fa6";
 import { ImCloudDownload } from "react-icons/im";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, act } from "react";
 import axios from "axios";
 import { BiSolidEditAlt } from "react-icons/bi";
 import { FaCirclePlus, FaCircleMinus } from "react-icons/fa6";
 import { HiMiniLockOpen, HiMiniLockClosed } from "react-icons/hi2";
 import AddCaseModal from "../Modals/AddCaseFile";
-import "../../assets/spinner.css";
 import CircularProgress from "@mui/material/CircularProgress";
 import SavingModal from "../Modals/SavingModal";
 import { ThemeContext } from "../../ThemeContext";
 import ConfirmSave from "../Modals/ConfirmSave";
+import ConfirmRevert from "../Modals/ConfirmRevert";
 
 const Summarizer = () => {
   const [editCase, setEditCase] = useState(false);
@@ -70,6 +70,10 @@ const Summarizer = () => {
   const [isEditLoading, setIsEditLoading] = useState(false); // for edit case loading state
   const [showAddedPopup, setShowAddedPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [revertPopup, setRevertPopup] = useState(false);
+  const [summaryPopup, setSummaryPopup] = useState(false);
+  const [hasSummaryPopup, setHasSummaryPopup] = useState(false);
+  const [revertModal, setRevertModal] = useState(false);
   const { isDarkMode } = useContext(ThemeContext);
 
   useEffect(() => {
@@ -129,6 +133,8 @@ const Summarizer = () => {
     setActiveFile(file);
     setCourtCaseValue(file.file_text);
 
+    console.log(file);
+
     // Check if any of the summary-related properties exist and show
     if (file.file_facts || file.file_issues || file.file_rulings) {
       setSummarizedCase({
@@ -151,9 +157,9 @@ const Summarizer = () => {
      */
     setIsEditLoading(true);
     const newFile = {
-      file_name: activeFile.file_name,
+      ...activeFile,
       file_text: courtCaseValue,
-      file_content: activeFile.file_content,
+      file_summary: 0,
     };
 
     try {
@@ -164,12 +170,9 @@ const Summarizer = () => {
       );
 
       // Update the existing files in the state
+      setActiveFile(newFile); // Update the active file state
       setExistingFiles((prev) =>
-        prev.map((file) =>
-          file.id === activeFile.id
-            ? { ...file, file_text: courtCaseValue }
-            : file
-        )
+        prev.map((file) => (file.id === activeFile.id ? newFile : file))
       );
       setEditCase(false); // Exit edit mode after saving
       setCancelEdit(false); // Reset cancel state
@@ -177,6 +180,50 @@ const Summarizer = () => {
       console.error(err);
     } finally {
       setIsEditLoading(false);
+    }
+  };
+
+  const handleRevertCase = async () => {
+    /**
+     * Saves the edited case by sending a PATCH request to the backend to update the file.
+     * Updates the local state to reflect the changes made to the case.
+     *
+     * @returns {void}
+     */
+    setIsEditLoading(true);
+    const newFile = {
+      ...activeFile,
+      file_text: activeFile.file_orig_text,
+      file_summary: 0,
+    };
+
+    try {
+      // Update the file on the backend
+      await axios.patch(
+        `http://127.0.0.1:5000/update-file/${activeFile.id}`,
+        newFile
+      );
+
+      setActiveFile(newFile);
+      setCourtCaseValue(activeFile.file_orig_text);
+
+      // Update the existing files in the state
+      setExistingFiles((prev) =>
+        prev.map((file) =>
+          file.id === activeFile.id
+            ? { ...file, file_text: courtCaseValue }
+            : file
+        )
+      );
+      console.log("summ:", activeFile.file_summary);
+      setEditCase(false); // Exit edit mode after saving
+      setCancelEdit(false); // Reset cancel state
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsEditLoading(false);
+      setRevertPopup(true); // Show the popup
+      setTimeout(() => setRevertPopup(false), 3000);
     }
   };
 
@@ -198,10 +245,6 @@ const Summarizer = () => {
 
   const handleFileAdd = async (event, resetFileName) => {
     const file = event.target.files[0];
-    if (!file || file.type !== "text/plain") {
-      alert("Please upload a valid .txt file");
-      return;
-    }
 
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -245,11 +288,6 @@ const Summarizer = () => {
      *
      * @returns {void}
      */
-
-    if (!courtCaseLink || courtCaseLink.trim() === "") {
-      alert("Please provide a valid link");
-      return;
-    }
 
     setLoadingModal(true); // Indicate loading state
 
@@ -332,7 +370,13 @@ const Summarizer = () => {
      *
      * @returns {void}
      */
+    if (activeFile.file_summary === 1) {
+      setHasSummaryPopup(true); // Show the popup
+      setTimeout(() => setHasSummaryPopup(false), 3000); // Hide popup after 3 seconds
+      return;
+    }
     setIsSummaryLoading(true);
+    console.log("has summary", activeFile.file_summary);
     setProgress(0); // Reset progress at the beginning of the process
 
     // Function to slowly increment progress over time
@@ -343,13 +387,33 @@ const Summarizer = () => {
         {},
         { headers: { "Content-Type": "application/json" } }
       );
+
+      const summarizedFile = {
+        ...activeFile,
+        file_summary: 1,
+        file_facts: summarize_res.data.facts,
+        file_issues: summarize_res.data.issues,
+        file_rulings: summarize_res.data.rulings,
+      };
+
       console.log("summarize", summarize_res.data);
 
+      setActiveFile(summarizedFile);
       setSummarizedCase(summarize_res.data);
+
+      setExistingFiles((prev) =>
+        prev.map((file) =>
+          file.id === activeFile.id
+            ? { ...file, file_text: courtCaseValue }
+            : file
+        )
+      );
     } catch (err) {
       console.error(err);
     } finally {
       setIsSummaryLoading(false);
+      setSummaryPopup(true); // Show the popup
+      setTimeout(() => setSummaryPopup(false), 3000);
     }
   };
 
@@ -388,6 +452,12 @@ const Summarizer = () => {
         onSave={handleSaveEdit}
       />
 
+      <ConfirmRevert
+        isOpen={revertModal}
+        onClose={() => setRevertModal(false)}
+        onConfirm={handleRevertCase}
+      />
+
       <SavingModal open={isEditLoading} text="Saving changes, please wait..." />
 
       {showAddedPopup && (
@@ -399,6 +469,24 @@ const Summarizer = () => {
       {showDeletePopup && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white font-bold py-2 px-4 rounded shadow-lg z-50">
           File has been deleted!
+        </div>
+      )}
+
+      {summaryPopup && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white font-bold py-2 px-4 rounded shadow-lg z-50">
+          Summary Created!
+        </div>
+      )}
+
+      {revertPopup && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white font-bold py-2 px-4 rounded shadow-lg z-50">
+          Reverted to original case!
+        </div>
+      )}
+
+      {hasSummaryPopup && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white font-bold py-2 px-4 rounded shadow-lg z-50">
+          Case already has summary!
         </div>
       )}
 
@@ -418,7 +506,10 @@ const Summarizer = () => {
               className={`${
                 isDarkMode ? "bg-darkSecondary" : "bg-customRbox"
               } font-sans text-sm rounded-xl py-0 h-[73vh] overflow-y-auto custom-scrollbar`}
-              style={{ height: "calc(100vh - 200px)" }}
+              style={{
+                height: "calc(100vh - 200px)",
+                overflow: existingFiles.length < 1 ? "hidden" : "",
+              }}
             >
               <ol className="list-none">
                 {existingFiles.length > 0 ? (
@@ -457,7 +548,7 @@ const Summarizer = () => {
                     </li>
                   ))
                 ) : (
-                  <div className="flex items-center justify-center h-80">
+                  <div className="flex items-center justify-center h-[30rem]">
                     <p className="text-gray-600">No files uploaded yet.</p>
                   </div>
                 )}
@@ -479,11 +570,11 @@ const Summarizer = () => {
               <button
                 onClick={() => setShowConfirmation(true)}
                 className={`flex items-center px-3 py-2 rounded-md ${
-                  !activeFile || isSummaryLoading
+                  !activeFile || isSummaryLoading || editCase
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
                 }`}
-                disabled={!activeFile || isSummaryLoading}
+                disabled={!activeFile || isSummaryLoading || editCase}
               >
                 <FaCircleMinus className="size-6 text-icon-20" />
                 <p className="font-bold font-sans text-[14px] ml-2">
@@ -526,14 +617,19 @@ const Summarizer = () => {
                 }}
               />
               {!courtCaseValue && (
-                <span
+                <p
                   className={`absolute inset-0 flex items-center justify-center pointer-events-none ${
                     isDarkMode ? "text-gray-300" : "text-black"
                   }`}
+                  style={{
+                    fontSize: "1rem",
+                    fontFamily: "'Roboto', sans-serif",
+                    lineHeight: "1.5rem", // Increases line height for multiline
+                    height: "calc(100vh - 200px)",
+                  }}
                 >
-                  {" "}
                   No court case is selected yet
-                </span>
+                </p>
               )}
 
               <div
@@ -548,23 +644,50 @@ const Summarizer = () => {
                   {courtCaseValue.split(/\s+/).filter(Boolean).length}
                 </p>
                 <button
-                  className={`btn flex items-center h-8 justify-center shadow-xl ${
+                  className={`btn flex items-center h-8 justify-center shadow-xl ml-4 ${
                     isDarkMode
                       ? "bg-darkSummarize text-white"
-                      : "bg-summarize text-black"
+                      : "bg-darkSummarize text-white"
                   } ${
-                    !activeFile || isSummaryLoading
+                    !activeFile || isSummaryLoading || editCase
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
                   }`}
                   onClick={() => {
                     handleSummarizedCase();
                   }}
-                  disabled={!activeFile || isSummaryLoading}
+                  disabled={!activeFile || isSummaryLoading || editCase}
                 >
                   <p className="font-bold font-sans text-xs m-3">Summarize</p>
                   <input type="button" className="hidden " />
                 </button>
+                <div className="flex justify-end flex-grow mr-4">
+                  <button
+                    className={`btn flex items-center h-8 justify-center shadow-xl bg-red-500 text-white however:bg-red-600
+                      ${
+                        !activeFile || isSummaryLoading || editCase
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:shadow-md hover:shadow-black/50 transition-shadow duration-300"
+                      }
+                    `}
+                    style={{
+                      display:
+                        activeFile?.file_text === activeFile?.file_orig_text ||
+                        !activeFile
+                          ? "none"
+                          : "",
+                    }}
+                    onClick={() => {
+                      setRevertModal(true);
+                    }}
+                    disabled={!activeFile || isSummaryLoading || editCase}
+                  >
+                    <p className="font-bold font-sans text-xs m-3">
+                      Revert to Original
+                    </p>
+                    <input type="button" className="hidden " />
+                  </button>
+                </div>
               </div>
             </div>
             {editCase ? (
@@ -637,6 +760,10 @@ const Summarizer = () => {
                   <p
                     className={`loading-text fade-text ${
                       isFadingOut ? "hidden" : ""
+                    } ${
+                      isDarkMode
+                        ? "bg-darkSecondary text-white"
+                        : "bg-customRbox text-black"
                     }`}
                   >
                     {loadingText}
@@ -684,15 +811,27 @@ const Summarizer = () => {
                         </div>
                         <div className="mb-12">
                           <p className="font-semibold">FACTS:</p>
-                          <p>{summarizedCase["facts"]}</p>
+                          {summarizedCase["facts"].length > 0 ? (
+                            <p>{summarizedCase["facts"]}</p>
+                          ) : (
+                            <p>No Facts Available</p>
+                          )}
                         </div>
                         <div className="mb-12">
                           <p className="font-semibold">ISSUES:</p>
-                          <p>{summarizedCase["issues"]}</p>
+                          {summarizedCase["issues"].length > 0 ? (
+                            <p>{summarizedCase["issues"]}</p>
+                          ) : (
+                            <p>No Facts Available</p>
+                          )}
                         </div>
                         <div className="mb-12">
                           <p className="font-semibold">RULINGS:</p>
-                          <p>{summarizedCase["rulings"]}</p>
+                          {summarizedCase["rulings"].length > 0 ? (
+                            <p>{summarizedCase["rulings"]}</p>
+                          ) : (
+                            <p>No Facts Available</p>
+                          )}
                         </div>
                       </div>
                     ) : (
@@ -711,7 +850,10 @@ const Summarizer = () => {
               >
                 <p className="text-white">Word Count:</p>
                 <p className="text-customWC">
-                  {!isSummaryLoading && summarizedCase?.facts
+                  {!isSummaryLoading &&
+                  (summarizedCase?.facts ||
+                    summarizedCase?.issues ||
+                    summarizedCase?.ruling)
                     ? summarizedCase["facts"].split(/\s+/).filter(Boolean)
                         .length +
                       summarizedCase["issues"].split(/\s+/).filter(Boolean)
