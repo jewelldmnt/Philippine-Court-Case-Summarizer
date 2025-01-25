@@ -343,8 +343,21 @@ const Summarizer = () => {
      *
      * @returns {void}
      */
+
+    const downloadContent =
+      "TITLE:\n" +
+      summarizedCase["title"] +
+      "\n\n" +
+      "FACTS:\n" +
+      summarizedCase["facts"] +
+      "\n\n" +
+      "ISSUES:\n" +
+      summarizedCase["issues"] +
+      "\n\n" +
+      "RULINGS:\n" +
+      summarizedCase["rulings"];
     if (activeFile) {
-      const blob = new Blob([summarizedCase], {
+      const blob = new Blob([downloadContent], {
         type: "text/plain",
       });
       const url = URL.createObjectURL(blob);
