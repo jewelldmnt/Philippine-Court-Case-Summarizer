@@ -66,7 +66,7 @@ from typing import List, Dict
 
 
 class TopicSegmentation:
-    def __init__(self, model_path: str = "jewelldmnt/CASE-BART"):
+    def __init__(self, model_path: str = "jijemini/case-bart"):
         """
         Description:
             Initialize the TopicSegmentation class with a fine-tuned BART model 
