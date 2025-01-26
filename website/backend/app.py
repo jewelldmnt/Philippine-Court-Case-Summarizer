@@ -526,7 +526,7 @@ def get_summarized(id):
             cleaned_text = preprocessor.remove_unnecesary_char(court_case_text)
             segmented_paragraph = preprocessor.segment_paragraph(cleaned_text, court_case_text)
             
-            segmentation = TopicSegmentation(model_path="77")
+            segmentation = TopicSegmentation()
 
 
             predicted_labels = segmentation.sequence_classification(
