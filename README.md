@@ -17,6 +17,7 @@ The Philippine Court Case Summarizer processes court case documents and extracts
 1. **Preprocessing**: Removing unnecessary characters and tokenization.
 2. **Topic Segmentation**: Identifies and segments the document into coherent segments.
 3. **Latent Semantic Analysis (LSA)**: Extracts the relevant sentences from the segmented text.
+4. **BART Model**: A fine-tuned BART model classifies the segments of the court case. The model can be accessed here: [Case Bart](https://huggingface.co/jijemini/case-bart)
 
 ## Technologies Used
 
