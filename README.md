@@ -21,14 +21,14 @@ The Philippine Court Case Summarizer processes court case documents and extracts
 ## Technologies Used
 
 - **Backend**: Python, Flask  
-  ![Python](https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg)  
-  ![Flask](https://upload.wikimedia.org/wikipedia/commons/3/3c/Flask_logo.svg)
+  ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+  ![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
 
 - **Frontend**: React.js  
-  ![React](https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg)
+  ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 
 - **Database**: SQLite  
-  ![SQLite](https://upload.wikimedia.org/wikipedia/commons/3/38/SQLite370.svg)
+  ![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 
 ## Screenshot of the User Interface
 
