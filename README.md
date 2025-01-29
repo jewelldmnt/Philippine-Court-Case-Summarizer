@@ -21,7 +21,7 @@ The Philippine Court Case Summarizer processes court case documents and extracts
 ## Technologies Used
 
 - **Backend**: Python, Flask  
-  ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+  ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=yellow)
   ![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
 
 - **Frontend**: React.js  
