@@ -32,21 +32,37 @@ The Philippine Court Case Summarizer processes court case documents and extracts
 
 ## Screenshot of the User Interface
 
-
 ## Installation
-1. Clone the repository:
+### 1. Clone the repository:
  ```bash
 git clone https://github.com/jewelldmnt/Philippine-Court-Case-Summarizer.git
 cd Philippine-Court-Case-Summarizer
 ```
-2. Install backend dependencies:
+
+### 2. Set up the backend environment:
+Create a virtual environment inside the backend folder:
+```bash
+cd backend
+python -m venv venv
+```
+Activate the virtual environment:
+For Windows:
+```bash
+.\venv\Scripts\activate
+```
+For macOS/Linus:
+```bash
+source venv/bin/activate
+```
+
+### 3. Install backend dependencies:
 The `requirements.txt` file contains a list of required Python packages. Install these packages using the following command:
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-3. Install frontend dependencies:
+### 4. Install frontend dependencies:
 ```bash
 cd ../frontend
 npm install
@@ -54,13 +70,13 @@ npm install
 
 ## How to Run
 To run the application, both the backend and frontend should be running:
-1. Start the backend:
+### 1. Start the backend:
 ```bash
 cd backend
 python app.py
 ```
 
-2. Start the frontend:
+### 2. Start the frontend:
 ```bash
 cd ../frontend
 npm run dev
