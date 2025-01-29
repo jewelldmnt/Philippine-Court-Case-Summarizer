@@ -31,6 +31,13 @@ The Philippine Court Case Summarizer processes court case documents and extracts
   ![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 
 ## Screenshot of the User Interface
+### Summarizer Page
+<img src="https://github.com/user-attachments/assets/e6fc8d92-074b-4725-a495-da1ae320843d" width="800px" />
+
+### Statistics Page
+<img src="https://github.com/user-attachments/assets/4ae9c83f-5c8e-41b1-960d-81d9c62156db" width="800px" />
+
+
 
 ## Installation
 ### 1. Clone the repository:
