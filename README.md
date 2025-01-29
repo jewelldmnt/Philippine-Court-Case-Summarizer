@@ -5,6 +5,8 @@ This project is designed to summarize Philippine court case documents. The syste
 ## Table of Contents
 
 - [Overview](#overview)
+- [Technologies Used](#technologies-used)
+- [Screenshot of the UI](#screenshot-of-the-user-interface)
 - [Installation](#installation)
 - [Usage](#usage)
 
@@ -15,6 +17,18 @@ The Philippine Court Case Summarizer processes court case documents and extracts
 1. **Preprocessing**: Removing unnecessary characters and tokenization.
 2. **Topic Segmentation**: Identifies and segments the document into coherent segments.
 3. **Latent Semantic Analysis (LSA)**: Extracts the relevant sentences from the segmented text.
+
+## Technologies Used
+
+- **Backend**: Python, Flask  
+  ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+  ![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+
+- **Frontend**: React.js  
+  ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+
+- **Database**: SQLite  
+  ![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 
 ## Screenshot of the User Interface
 
