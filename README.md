@@ -1,6 +1,6 @@
 # Philippine Court Case Summarizer
 
-This project is designed to summarize Philippine court case documents. The system consists of three main modules: Preprocessing, Topic Segmentation, and Latent Semantic Analysis (LSA).
+This web application is designed to summarize Philippine court case documents. The system consists of three main modules: Preprocessing, Topic Segmentation, and Latent Semantic Analysis (LSA).
 
 ## Table of Contents
 
@@ -20,14 +20,14 @@ The Philippine Court Case Summarizer processes court case documents and extracts
 
 ## Technologies Used
 
-- **Backend**: Python, Flask  
+- **Backend**: 
   ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=yellow)
   ![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
 
-- **Frontend**: React.js  
+- **Frontend**: 
   ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 
-- **Database**: SQLite  
+- **Database**: 
   ![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 
 ## Screenshot of the User Interface
