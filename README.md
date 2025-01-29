@@ -1,15 +1,12 @@
 # Philippine Court Case Summarizer
 
-This project is designed to summarize Philippine court case documents. The system consists of three main modules: Preprocessing, Topic Segmentation, and Latent Semantic Analysis (LSA).
+This web application is designed to summarize Philippine court case documents. The system consists of three main modules: Preprocessing, Topic Segmentation, and Latent Semantic Analysis (LSA).
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Modules](#modules)
-  - [Preprocessing](#preprocessing)
-  - [Topic Segmentation](#topic-segmentation)
-  - [Latent Semantic Analysis (LSA)](#latent-semantic-analysis-lsa)
-- [Dependencies](#dependencies)
+- [Technologies Used](#technologies-used)
+- [Screenshot of the UI](#screenshot-of-the-user-interface)
 - [Installation](#installation)
 - [Usage](#usage)
 
@@ -17,55 +14,82 @@ This project is designed to summarize Philippine court case documents. The syste
 
 The Philippine Court Case Summarizer processes court case documents and extracts meaningful segments to provide concise summaries. The system performs the following steps:
 
-1. **Preprocessing**: Tokenization, stopword removal, POS tagging, and NER tagging.
-2. **Topic Segmentation**: Identifies and segments the document into coherent topics.
-3. **Latent Semantic Analysis (LSA)**: Extracts the main topics and themes from the segmented text.
+1. **Preprocessing**: Removing unnecessary characters and tokenization.
+2. **Topic Segmentation**: Identifies and segments the document into coherent segments.
+3. **Latent Semantic Analysis (LSA)**: Extracts the relevant sentences from the segmented text.
+4. **Case BART Model**: A fine-tuned BART model classifies the segments of the court case. The model can be accessed here: [Case BART](https://huggingface.co/jijemini/case-bart)
 
-## Modules
+## Technologies Used
 
-### Preprocessing
+- **Backend**: 
+  ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=yellow)
+  ![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
 
-The preprocessing module handles the initial text processing tasks, including:
+- **Frontend**: 
+  ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 
-- **Tokenization**: Splits text into tokens (words or phrases).
-- **Stopword Removal**: Removes common words that do not contribute significant meaning.
-- **POS Tagging**: Labels each token with its corresponding part of speech.
-- **NER Tagging**: Identifies and classifies named entities in the text.
+- **Database**: 
+  ![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 
-### Topic Segmentation
+## Screenshot of the User Interface
+### Summarizer Page
+<img src="https://github.com/user-attachments/assets/e6fc8d92-074b-4725-a495-da1ae320843d" width="800px" />
 
-This module segments the court case documents into coherent topics, making it easier to understand the structure and main points of the document.
+### Statistics Page
+<img src="https://github.com/user-attachments/assets/4ae9c83f-5c8e-41b1-960d-81d9c62156db" width="800px" />
 
-### Latent Semantic Analysis (LSA)
 
-LSA is used to analyze relationships between a set of documents and the terms they contain, providing a deeper understanding of the underlying topics.
 
 ## Installation
-1. Clone the repository:
+### 1. Clone the repository:
  ```bash
 git clone https://github.com/jewelldmnt/Philippine-Court-Case-Summarizer.git
 cd Philippine-Court-Case-Summarizer
 ```
-2. Install dependencies:
+
+### 2. Set up the backend environment:
+Create a virtual environment inside the backend folder:
+```bash
+cd backend
+python -m venv venv
+```
+Activate the virtual environment:
+For Windows:
+```bash
+.\venv\Scripts\activate
+```
+For macOS/Linus:
+```bash
+source venv/bin/activate
+```
+
+### 3. Install backend dependencies:
 The `requirements.txt` file contains a list of required Python packages. Install these packages using the following command:
 ```bash
+cd backend
 pip install -r requirements.txt
 ```
-3. Download SpaCy model:
-Download the SpaCy model for English:
+
+### 4. Install frontend dependencies:
 ```bash
-python -m spacy download en_core_web_sm
-```
-4. Download NLTK data:
-Run the nltk_downloader.py script to download necessary NLTK data:
-```bash
-python nltk_downloader.py
+cd ../frontend
+npm install
 ```
 
 ## How to Run
-Run the main script:
+To run the application, both the backend and frontend should be running:
+### 1. Start the backend:
 ```bash
-python main.py
+cd backend
+python app.py
 ```
+
+### 2. Start the frontend:
+```bash
+cd ../frontend
+npm run dev
+```
+The application should now be running and accessible through the frontend.
+
 
 
